@@ -12,12 +12,15 @@ You need to complete all of columns in 2 weeks. You want to be working on the fi
 |--|--|--|--|--|--|
 | 1 | [Setting Up a Console App][1] | [ExtraVert Introduction][6] | [Khan Academy: Intro to SQL][28]  | [Debugging C# in Visual Studio Code][12] | [Project Setup][16]|
 | 2 | [Interacting with the Console][2] | [Plant Classes][7] <br/> <sub style="font-size:0.85rem;">\#classes</sub> | [SQL Bolt: Beginner SQL Tutorial][29] | [Minimal API Setup][13] | [Jewelry Database][17] |
-| 3 | [Conditionals and Loops][3] | [Inheritance][8] <br/> <sub style="font-size:0.85rem;">\#inheritance</sub> | [PostgreSQL Basics][11] | [Creating the Database][14] | [Get All Products][18] |
-| 4 | [Lists and Collections][4] | [Properties and Encapsulation][9] <br/> <sub style="font-size:0.85rem;">\#properties</sub> | | | [Get Single Product][19] |
-| 5 | [Dictionaries][5] | [Methods and Behaviors][10] <br/> <sub style="font-size:0.85rem;">\#methods</sub> | | | [Create New Order][20] |
-| 6 | [Working with Integers][25] | [Interfaces and Abstraction][15] <br/> <sub style="font-size:0.85rem;">\#interfaces</sub> | | | [Delete an Order][21] |
-| 7 | [DateTime Handling][26] | | | | [Update a Product][22] |
-| 8 | [Exception Handling][27] | | | | [Joining Related Data][23] |
+| 3 | [Conditionals and Loops][3] | [Inheritance][8] <br/> <sub style="font-size:0.85rem;">\#inheritance</sub> | [PostgreSQL Basics][11] | [Initializing the Project and Database][33] | [Get All Products][18] |
+| 4 | [Lists and Collections][4] | [Properties and Encapsulation][9] <br/> <sub style="font-size:0.85rem;">\#properties</sub> | | [Seeding the Database][34] | [Get Single Product][19] |
+| 5 | [Dictionaries][5] | [Methods and Behaviors][10] <br/> <sub style="font-size:0.85rem;">\#methods</sub> | | [Getting Ships][35] | [Create New Order][20] |
+| 6 | [Working with Integers][25] | [Interfaces and Abstraction][15] <br/> <sub style="font-size:0.85rem;">\#interfaces</sub> | | [Get Docks][36] | [Delete an Order][21] |
+| 7 | [DateTime Handling][26] | | | [Create a Dock][37] | [Update a Product][22] |
+| 8 | [Exception Handling][27] | | | [Create a Ship][38] | [Joining Related Data][23] |
+| 9 | | | | [Create Haulers][39] | |
+| 10 | | | | [Decomission Ships][40] | |
+| 11 | | | | [Decomission Haulers][41] | |
 
 ## 🤔 Learning Reflections
 
@@ -40,7 +43,6 @@ Once everyone has had their reflections interview with a coach, we will start on
 | #   |  | Description |
 | --- | ------------------ | --- |
 | 1   | [Proficiency Interview][32] | We will be interviewing each team after the group project is complete to discuss your growth on general problem solving skills and help you devise strategies for growth. |
-
 
 
 [1]: ./chapters/setting-up-console-app.md
@@ -75,3 +77,12 @@ Once everyone has had their reflections interview with a coach, we will start on
 [30]: ./chapters/INITIAL_REFLECTIONS.md
 [31]: ./chapters/RARE.md
 [32]: ./chapters/FINAL_REFLECTIONS.md
+[33]: ./chapters/harbor-master-init.md
+[34]: ./chapters/harbor-master-seeding.md
+[35]: ./chapters/harbor-master-get-ships.md
+[36]: ./chapters/harbor-master-get-docks.md
+[37]: ./chapters/harbor-master-post-docks.md
+[38]: ./chapters/harbor-master-post-ships.md
+[39]: ./chapters/harbor-master-post-haulers.md
+[40]: ./chapters/harbor-master-delete-ships.md
+[41]: ./chapters/harbor-master-delete-exercise.md
