@@ -21,6 +21,7 @@ You need to complete all of columns in 2 weeks. You want to be working on the fi
 | 9 | | | | [Create Haulers][39] | |
 | 10 | | | | [Decomission Ships][40] | |
 | 11 | | | | [Decomission Haulers][41] | |
+| 12 | | | | [Advanced Tasks for LLM Prompting][42] | |
 
 ## 🤔 Learning Reflections
 
@@ -86,3 +87,4 @@ Once everyone has had their reflections interview with a coach, we will start on
 [39]: ./chapters/harbor-master-post-haulers.md
 [40]: ./chapters/harbor-master-delete-ships.md
 [41]: ./chapters/harbor-master-delete-exercise.md
+[42]: ./chapters/llm-guided-tasks.md

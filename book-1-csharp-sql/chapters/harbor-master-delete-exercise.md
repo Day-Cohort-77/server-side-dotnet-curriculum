@@ -204,30 +204,4 @@ Congratulations on completing the Harbor Master project! You've built a complete
 
 ## Next Steps
 
-Now that you've completed the Harbor Master project, you can:
-
-### Add more features to the API
-
-- Filtering and sorting for GET endpoints. Here is a well-formed LLM prompt you can use to get started.
-    ````
-    Here is my C# code for handling GET operations for the `ships` resource in my project
-
-    ```
-    paste the code from the endpoint module here
-    ```
-
-    I would like to support the following operations for the client
-
-    1. Filter ships by type with a query string parameter: `?type=some_value`
-    2. Sort ships by name is ascending or descending order: `?sortby=name&direction=asc`
-
-    Generate the code, with comprehensive explanations, needed in the module
-    ````
-- Pagination for large result sets
-- Authentication and authorization
-- Logging and error handling middleware
-
-### Build a client application to consume the API
-
-You've been using the web interface of Swagger to test your endpoints thus far. A real challenge at this point is to open up your old Shipping Ships project from the client-side course and see if you can get it to work with your new C# Web API.
-
+[Deepend your learning by adding more features or connecting your client side project](./llm-guided-tasks.md)
