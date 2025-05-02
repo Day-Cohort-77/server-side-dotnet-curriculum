@@ -1,10 +1,18 @@
-# Introduction to API Servers
+# Introduction to C# and API Servers
+
+## Installations
+
+Before you start work on the project in this course, you need to complete all of the [installations](./chapters/book-1-installations.md). Once done, come back to this page and start on the first project.
+
+## Projects
+
+You need to complete all of columns in 2 weeks. You want to be working on the final two columns for the majority of week 2 since they are most cognitively challenging.
 
 | # | C# Quick Intro | 🌿 🌱 <br/> ExtraVert Garden | 🧑🏽‍💻 SQL Intro | 🛳️ ⛴️ <br/> Harbor Master | 💎 💍 <br/> Jewelry Junction |
 |--|--|--|--|--|--|
-| 1 | [Setting Up a Console App][1] | [ExtraVert Introduction][6] | [PostgreSQL Basics][11] | [Debugging C# in Visual Studio Code][12] | [Project Setup][16]|
-| 2 | [Interacting with the Console][2] | [Plant Classes][7] <br/> <sub style="font-size:0.85rem;">\#classes</sub> | | [Minimal API Setup][13] | [Jewelry Database][17] |
-| 3 | [Conditionals and Loops][3] | [Inheritance][8] <br/> <sub style="font-size:0.85rem;">\#inheritance</sub> | | [Creating the Database][14] | [Get All Products][18] |
+| 1 | [Setting Up a Console App][1] | [ExtraVert Introduction][6] | [Khan Academy: Intro to SQL][28]  | [Debugging C# in Visual Studio Code][12] | [Project Setup][16]|
+| 2 | [Interacting with the Console][2] | [Plant Classes][7] <br/> <sub style="font-size:0.85rem;">\#classes</sub> | [SQL Bolt: Beginner SQL Tutorial][29] | [Minimal API Setup][13] | [Jewelry Database][17] |
+| 3 | [Conditionals and Loops][3] | [Inheritance][8] <br/> <sub style="font-size:0.85rem;">\#inheritance</sub> | [PostgreSQL Basics][11] | [Creating the Database][14] | [Get All Products][18] |
 | 4 | [Lists and Collections][4] | [Properties and Encapsulation][9] <br/> <sub style="font-size:0.85rem;">\#properties</sub> | | | [Get Single Product][19] |
 | 5 | [Dictionaries][5] | [Methods and Behaviors][10] <br/> <sub style="font-size:0.85rem;">\#methods</sub> | | | [Create New Order][20] |
 | 6 | [Working with Integers][25] | [Interfaces and Abstraction][15] <br/> <sub style="font-size:0.85rem;">\#interfaces</sub> | | | [Delete an Order][21] |
@@ -17,7 +25,7 @@ Once you have completed the project, your job is to do a self-assessment. This i
 
 | #   |  | Description |
 | --- | ------------------ | --- |
-| 1   | [Vocabulary Interview](./chapters/INITIAL_REFLECTIONS.md) | In this interview, we will be discussing your understanding and vocabulary on the technical concepts covered in this book to ensure you are prepared for the group project. |
+| 1   | [Vocabulary Interview][30] | In this interview, we will be discussing your understanding and vocabulary on the technical concepts covered in this book to ensure you are prepared for the group project. |
 
 ## 🔐 Group Project
 
@@ -25,13 +33,14 @@ Once everyone has had their reflections interview with a coach, we will start on
 
 | # | Project&nbsp;Name | Description |
 |--|--|--|
-|1| [Bangazon Platform][24] | Your first, large full-stack group project. You will be building an API service with C#, and using SQL to manage the permanent state in your database. |
+|1| [Rare Publishing Platform][31] | Your first, large full-stack group project. You will be building an API service with Python, and using SQL to manage the permanent state in your database. |
 
 ## 🤔 Final Reflections
 
 | #   |  | Description |
 | --- | ------------------ | --- |
-| 1   | [Proficiency Interview](./chapters/FINAL_REFLECTIONS.md) | We will be interviewing each team after the group project is complete to discuss your growth on general problem solving skills and help you devise strategies for growth. |
+| 1   | [Proficiency Interview][32] | We will be interviewing each team after the group project is complete to discuss your growth on general problem solving skills and help you devise strategies for growth. |
+
 
 
 [1]: ./chapters/setting-up-console-app.md
@@ -61,3 +70,8 @@ Once everyone has had their reflections interview with a coach, we will start on
 [25]: ./chapters/working-with-integers.md
 [26]: ./chapters/foundations-datetime.md
 [27]: ./chapters/handling-exceptions.md
+[28]: https://www.khanacademy.org/computing/computer-programming/sql
+[29]:	https://sqlbolt.com/
+[30]: ./chapters/INITIAL_REFLECTIONS.md
+[31]: ./chapters/RARE.md
+[32]: ./chapters/FINAL_REFLECTIONS.md
