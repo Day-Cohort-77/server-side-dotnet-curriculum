@@ -24,14 +24,14 @@ Creating an order involves several steps:
 
 For our order creation endpoint, we'll implement a POST request handler at the "/orders" route. This endpoint will:
 
-1. Define a route handler for POST /orders
+1. Define a route handler for POST `/orders`
 2. Parse the request body to extract order information
 3. Validate the order data
 4. Create the order and order items
 5. Calculate the total order amount
 6. Return the created order with its details
 
-The implementation will use the DatabaseService to execute the necessary SQL commands within a transaction.
+The implementation will use the appropriate task in the **DatabaseService** to execute the necessary SQL commands within a transaction.
 
 ## Validating Order Data
 
@@ -50,7 +50,7 @@ The core of our implementation will:
 1. Insert a new record into the orders table with order date and initial status
 2. Retrieve the generated order ID
 3. For each item in the order:
-   - Insert a record into the order_items table with product ID, quantity, and unit price
+   - Insert a record into the **OrderItems** table with product `ID`, `Quantity`, and `UnitPrice`
 
 ## Creating the Order and Order Items
 
@@ -92,24 +92,14 @@ This detailed response provides clients with all the information they need to di
 
 To make our API more robust, we'll implement request validation:
 
-1. Define a clear request structure that clients must follow
-2. Validate that all required fields are present
-3. Check that data types are correct
-4. Validate business rules (e.g., quantities must be positive)
+1. Validate that all required fields are present
+2. Check that data types are correct
+3. Validate business rules (e.g., quantities must be positive)
 
-This validation happens before any database operations, preventing invalid requests from affecting the database.
+This validation happens before any database operations, preventing invalid requests from affecting the database. If any of these validations fail, send a request with a **400** status code and a descriptive message.
 
 ## Conclusion
 
 In this chapter, you've learned how to implement the endpoint for creating a new order in the Jewelry Junction API. You've used transactions to ensure data consistency, validated the order data before processing, updated related data, and handled errors and edge cases. You've also learned how to structure the response to provide useful information to clients.
 
-In the next chapter, we'll implement the endpoint for deleting an order, which will involve similar concepts like transactions and validation.
-
-## Practice Exercise
-
-Enhance your Create Order endpoint by:
-1. Adding validation for the quantity (must be positive)
-2. Adding support for shipping information (address, shipping method, etc.)
-3. Adding support for payment information (payment method, transaction ID, etc.)
-4. Implementing a feature to calculate shipping costs based on order total
-5. Adding the ability to create an order with products of specific styles only
+In the next chapter, we'll implement the endpoint for deleting an order.
