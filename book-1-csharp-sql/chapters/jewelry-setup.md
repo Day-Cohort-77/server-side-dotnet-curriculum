@@ -30,7 +30,7 @@ To begin, you'll create a new minimal API project using the ASP.NET Core framewo
 1. Creating a new project using the webapi template with the minimal API option
 2. Setting up the project directory structure with folders for Models and Services
 3. Adding the Npgsql package to connect to PostgreSQL
-4. Opening the project in your preferred IDE
+4. Opening the project in VS Code
 
 The minimal API approach provides a streamlined way to build APIs with less boilerplate code than traditional controllers.
 
@@ -50,29 +50,24 @@ Understanding these entities and their relationships is crucial for designing an
 
 Based on our domain understanding, we need to create several model classes to represent our entities:
 
-1. **Product**: Represents jewelry items with properties like Id, Name, Description, and Price. It will have foreign key references to Metal, Gemstone, and Style.
+1. **Product**: Represents jewelry items with properties like `Id`, `Name`, `Description`, and `Price`. It will have foreign key references to Metal, Gemstone, and Style.
+2. **Metal**: Represents materials like gold, silver, and platinum with properties like `Id`, `Name`, and `PricePerGram`.
+3. **Gemstone**: Represents precious stones like diamonds, rubies, and emeralds with properties like `Id`, `Name`, and `PricePerCarat`.
+4. **Style**: Represents design styles like classic, modern, art deco, and minimalist with properties like `Id` and `Name`.
+5. **Order**: Represents customer orders with properties like `Id`, `OrderDate`, `TotalAmount`, and `Status`.
+6. **OrderItem**: Represents items within an order with properties like `Id`, `OrderId`, `ProductId`, `Quantity`, and `UnitPrice`.
 
-2. **Metal**: Represents materials like gold, silver, and platinum with properties like Id, Name, and PricePerGram.
-
-3. **Gemstone**: Represents precious stones like diamonds, rubies, and emeralds with properties like Id, Name, and PricePerCarat.
-
-4. **Style**: Represents design styles like classic, modern, art deco, and minimalist with properties like Id and Name.
-
-5. **Order**: Represents customer orders with properties like Id, OrderDate, TotalAmount, and Status.
-
-6. **OrderItem**: Represents items within an order with properties like Id, OrderId, ProductId, Quantity, and UnitPrice.
-
-These models will be simple POCO (Plain Old CLR Object) classes without navigation properties, as we'll be using direct SQL queries instead of an ORM.
+Refer to your model classes in the previous project as guidance for creating these. Use dbdiagram.io, or your preferred tool, to make an ERD for this project. Your teammates and coaching team are great resources to review this with you.
 
 ## Setting Up Database Connection
 
 To connect to our PostgreSQL database, we'll:
 
-1. Add a connection string to the appsettings.json file
-2. Create a DatabaseService class that will handle all database operations
+1. Add a connection string to the `appsettings.json` file
+2. Create a **DatabaseService** class that will handle all database operations
 3. Implement methods to create a database connection and execute SQL commands
 
-The DatabaseService will be the central point for all database interactions in our application.
+The **DatabaseService** will be the central point for all database interactions in our application, just as it was in Harbor Master.
 
 ## Creating the Database Schema
 
@@ -94,7 +89,7 @@ To have some initial data to work with, we'll seed the database with:
 4. Sample products
 5. Sample orders
 
-This seed data will be added using SQL INSERT statements executed by the DatabaseService.
+This seed data will be added using SQL INSERT statements executed by the **DatabaseService**. Refer to Harbor Master content to review the two strategies for seeding the database.
 
 ## Implementing Basic Endpoints
 
@@ -110,10 +105,10 @@ These endpoints will allow us to test that our API is working correctly and can 
 
 After setting up the project, we'll:
 
-1. Run the API using the dotnet run command
+1. Run the API using the `dotnet run` command
 2. Access the Swagger UI to explore and test our endpoints
-3. Test the GET /products endpoint to retrieve all products
-4. Test the GET /products/{id} endpoint to retrieve a specific product
+3. Test the GET `/products` endpoint to retrieve all products
+4. Test the GET `/products/{id}` endpoint to retrieve a specific product
 
 Swagger provides a user-friendly interface for testing our API without needing additional tools.
 
@@ -126,6 +121,7 @@ In the next chapter, we'll expand the API by implementing endpoints for managing
 ## Practice Exercise
 
 Enhance your Jewelry Junction API by:
+
 1. Adding endpoints for managing metals (GET, POST, PUT, DELETE)
 2. Adding endpoints for managing gemstones (GET, POST, PUT, DELETE)
 3. Implementing a search endpoint that allows filtering products by type, metal, or price range
