@@ -13,500 +13,94 @@ By the end of this chapter, you should be able to:
 
 ## Implementing the Basic Endpoint
 
-We've already implemented a basic endpoint for retrieving a single product by ID in a previous chapter. Let's review and enhance it:
+We'll start by implementing a basic endpoint for retrieving a single product by ID. This endpoint will:
 
-```csharp
-// Get product by ID
-app.MapGet("/products/{id}", async (int id, JewelryContext db) =>
-{
-    var product = await db.Products
-        .Include(p => p.Metal)
-        .Include(p => p.Category)
-        .Include(p => p.Discount)
-        .Include(p => p.ProductGemstones)
-            .ThenInclude(pg => pg.Gemstone)
-        .Include(p => p.Reviews)
-            .ThenInclude(r => r.Customer)
-        .FirstOrDefaultAsync(p => p.Id == id);
+1. Define a route handler for GET /products/{id}
+2. Extract the product ID from the URL path
+3. Use the DatabaseService to execute a SQL query that retrieves the product with the specified ID
+4. Return the product as a JSON response if found, or a 404 Not Found response if not found
 
-    return product != null ? Results.Ok(product) : Results.NotFound();
-})
-.WithName("GetProductById")
-.WithOpenApi();
-```
+The SQL query will select the product with the matching ID from the products table.
 
-This endpoint retrieves a single product by ID, including related data such as metal, category, discount, gemstones, and reviews. It returns a 404 Not Found response if the product doesn't exist.
+## Including Related Data
 
-Let's enhance this endpoint to provide a more structured and informative response.
+A product in our jewelry store has relationships with other entities like metals, categories, discounts, and gemstones. To provide a complete view of a product, we'll enhance our endpoint to include this related data:
+
+1. Use SQL JOINs to retrieve data from multiple related tables in a single query
+2. Join the products table with metals, categories, discounts, and product_gemstones tables
+3. Further join product_gemstones with gemstones to get gemstone details
+4. Join with reviews and customers tables to include product reviews
+
+This approach allows us to retrieve all the necessary data in a single database query, rather than making multiple roundtrips.
+
+## Handling Not Found Cases
+
+When a client requests a product that doesn't exist, we need to return an appropriate response. We'll implement error handling to:
+
+1. Check if the query returned any results
+2. Return a 404 Not Found status code with a descriptive message if the product doesn't exist
+3. Include enough information in the error response to help the client understand what went wrong
+
+This approach provides clear feedback to clients when they request a resource that doesn't exist.
 
 ## Formatting the Response
 
-First, let's format the response to include only the necessary information and to structure it in a more user-friendly way:
+To provide a well-structured and useful response, we'll format the product data:
 
-```csharp
-// Get product by ID with formatted response
-app.MapGet("/products/{id}", async (int id, JewelryContext db) =>
-{
-    var product = await db.Products
-        .Include(p => p.Metal)
-        .Include(p => p.Category)
-        .Include(p => p.Discount)
-        .Include(p => p.ProductGemstones)
-            .ThenInclude(pg => pg.Gemstone)
-        .Include(p => p.Reviews)
-            .ThenInclude(r => r.Customer)
-        .FirstOrDefaultAsync(p => p.Id == id);
+1. Include basic product information (ID, name, description, price, etc.)
+2. Add calculated fields like discounted price
+3. Structure related data (metal, category, discount) as nested objects
+4. Format gemstone information with calculated values
+5. Include review information with customer details
+6. Add summary fields like average rating and total gemstone value
 
-    if (product == null)
-    {
-        return Results.NotFound();
-    }
+This structured response makes it easier for clients to display product details without needing to make additional API calls or perform complex calculations.
 
-    // Calculate average rating
-    double averageRating = product.Reviews.Any()
-        ? product.Reviews.Average(r => r.Rating)
-        : 0;
+## Implementing Error Handling
 
-    // Format the response
-    var formattedProduct = new
-    {
-        product.Id,
-        product.Name,
-        product.Description,
-        product.Price,
-        DiscountedPrice = product.Discount != null && product.Discount.IsActive
-            ? product.Price * (1 - product.Discount.DiscountPercent / 100)
-            : (decimal?)null,
-        product.StockQuantity,
-        product.Type,
-        Metal = new
-        {
-            product.Metal.Id,
-            product.Metal.Name,
-            product.Metal.PricePerGram
-        },
-        Category = new
-        {
-            product.Category.Id,
-            product.Category.Name,
-            product.Category.Description
-        },
-        Discount = product.Discount != null ? new
-        {
-            product.Discount.Id,
-            product.Discount.Name,
-            product.Discount.Description,
-            product.Discount.DiscountPercent,
-            product.Discount.StartDate,
-            product.Discount.EndDate,
-            product.Discount.IsActive
-        } : null,
-        Gemstones = product.ProductGemstones.Select(pg => new
-        {
-            Id = pg.Gemstone.Id,
-            Name = pg.Gemstone.Name,
-            PricePerCarat = pg.Gemstone.PricePerCarat,
-            Carats = pg.Carats
-        }).ToList(),
-        Reviews = product.Reviews.Select(r => new
-        {
-            r.Id,
-            r.Rating,
-            r.Comment,
-            r.ReviewDate,
-            Customer = new
-            {
-                r.Customer.Id,
-                Name = $"{r.Customer.FirstName} {r.Customer.LastName}",
-                r.Customer.Email
-            }
-        }).ToList(),
-        AverageRating = averageRating,
-        ReviewCount = product.Reviews.Count
-    };
+To make our API robust, we'll implement comprehensive error handling:
 
-    return Results.Ok(formattedProduct);
-})
-.WithName("GetProductById")
-.WithOpenApi();
-```
+1. Use try-catch blocks to catch any exceptions that might occur during query execution
+2. Log detailed error information for debugging
+3. Return appropriate HTTP status codes based on the type of error
+4. Include descriptive error messages in the response
+5. Avoid exposing sensitive information in error responses
 
-Now, the response includes a well-structured representation of the product with all its related data, as well as calculated fields like average rating and review count.
+This approach helps with debugging issues and provides clear feedback to clients when something goes wrong.
 
-## Optimizing the Query
+## Implementing Related Endpoints
 
-To optimize the query, we can use projection to select only the properties we need, rather than loading entire entities:
-
-```csharp
-// Get product by ID with optimized query
-app.MapGet("/products/{id}", async (int id, JewelryContext db) =>
-{
-    // Check if the product exists
-    var productExists = await db.Products.AnyAsync(p => p.Id == id);
-
-    if (!productExists)
-    {
-        return Results.NotFound();
-    }
-
-    // Retrieve the product with projection
-    var product = await db.Products
-        .AsNoTracking() // Improves performance for read-only queries
-        .Where(p => p.Id == id)
-        .Select(p => new
-        {
-            p.Id,
-            p.Name,
-            p.Description,
-            p.Price,
-            DiscountedPrice = p.Discount != null && p.Discount.IsActive
-                ? p.Price * (1 - p.Discount.DiscountPercent / 100)
-                : (decimal?)null,
-            p.StockQuantity,
-            p.Type,
-            Metal = new
-            {
-                Id = p.Metal.Id,
-                Name = p.Metal.Name,
-                PricePerGram = p.Metal.PricePerGram
-            },
-            Category = new
-            {
-                Id = p.Category.Id,
-                Name = p.Category.Name,
-                Description = p.Category.Description
-            },
-            Discount = p.Discount != null ? new
-            {
-                Id = p.Discount.Id,
-                Name = p.Discount.Name,
-                Description = p.Discount.Description,
-                DiscountPercent = p.Discount.DiscountPercent,
-                StartDate = p.Discount.StartDate,
-                EndDate = p.Discount.EndDate,
-                IsActive = p.Discount.IsActive
-            } : null,
-            Gemstones = p.ProductGemstones.Select(pg => new
-            {
-                Id = pg.Gemstone.Id,
-                Name = pg.Gemstone.Name,
-                PricePerCarat = pg.Gemstone.PricePerCarat,
-                Carats = pg.Carats
-            }).ToList(),
-            Reviews = p.Reviews.Select(r => new
-            {
-                r.Id,
-                r.Rating,
-                r.Comment,
-                r.ReviewDate,
-                Customer = new
-                {
-                    r.Customer.Id,
-                    Name = $"{r.Customer.FirstName} {r.Customer.LastName}",
-                    r.Customer.Email
-                }
-            }).ToList(),
-            AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
-            ReviewCount = p.Reviews.Count
-        })
-        .FirstOrDefaultAsync();
-
-    return Results.Ok(product);
-})
-.WithName("GetProductById")
-.WithOpenApi();
-```
-
-In this optimized version:
-- We first check if the product exists using a simple query
-- We use `AsNoTracking()` to improve performance for read-only queries
-- We use projection with `Select()` to retrieve only the properties we need, rather than loading entire entities
-- We perform the projection in the database query, rather than in memory
-
-## Adding Error Handling
-
-Let's add more robust error handling to our endpoint:
-
-```csharp
-// Get product by ID with error handling
-app.MapGet("/products/{id}", async (int id, JewelryContext db) =>
-{
-    try
-    {
-        // Check if the product exists
-        var productExists = await db.Products.AnyAsync(p => p.Id == id);
-
-        if (!productExists)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
-
-        // Retrieve the product with projection
-        var product = await db.Products
-            .AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => new
-            {
-                p.Id,
-                p.Name,
-                p.Description,
-                p.Price,
-                DiscountedPrice = p.Discount != null && p.Discount.IsActive
-                    ? p.Price * (1 - p.Discount.DiscountPercent / 100)
-                    : (decimal?)null,
-                p.StockQuantity,
-                p.Type,
-                Metal = new
-                {
-                    Id = p.Metal.Id,
-                    Name = p.Metal.Name,
-                    PricePerGram = p.Metal.PricePerGram
-                },
-                Category = new
-                {
-                    Id = p.Category.Id,
-                    Name = p.Category.Name,
-                    Description = p.Category.Description
-                },
-                Discount = p.Discount != null ? new
-                {
-                    Id = p.Discount.Id,
-                    Name = p.Discount.Name,
-                    Description = p.Discount.Description,
-                    DiscountPercent = p.Discount.DiscountPercent,
-                    StartDate = p.Discount.StartDate,
-                    EndDate = p.Discount.EndDate,
-                    IsActive = p.Discount.IsActive
-                } : null,
-                Gemstones = p.ProductGemstones.Select(pg => new
-                {
-                    Id = pg.Gemstone.Id,
-                    Name = pg.Gemstone.Name,
-                    PricePerCarat = pg.Gemstone.PricePerCarat,
-                    Carats = pg.Carats
-                }).ToList(),
-                Reviews = p.Reviews.Select(r => new
-                {
-                    r.Id,
-                    r.Rating,
-                    r.Comment,
-                    r.ReviewDate,
-                    Customer = new
-                    {
-                        r.Customer.Id,
-                        Name = $"{r.Customer.FirstName} {r.Customer.LastName}",
-                        r.Customer.Email
-                    }
-                }).ToList(),
-                AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0,
-                ReviewCount = p.Reviews.Count
-            })
-            .FirstOrDefaultAsync();
-
-        return Results.Ok(product);
-    }
-    catch (Exception ex)
-    {
-        // Log the exception
-        Console.WriteLine($"Error retrieving product: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while retrieving the product",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("GetProductById")
-.WithOpenApi();
-```
-
-Now, the endpoint includes proper error handling:
-- It returns a 404 Not Found response with a descriptive message if the product doesn't exist
-- It catches any exceptions that might occur during the query and returns a 500 Internal Server Error response with details about the error
-
-## Adding Related Endpoints
-
-Let's add some related endpoints to provide more ways to access product information:
+To provide more ways to access product information, we'll implement several related endpoints:
 
 ### Get Product Reviews
 
-```csharp
-// Get product reviews
-app.MapGet("/products/{id}/reviews", async (int id, JewelryContext db) =>
-{
-    try
-    {
-        // Check if the product exists
-        var productExists = await db.Products.AnyAsync(p => p.Id == id);
-
-        if (!productExists)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
-
-        // Retrieve the product reviews
-        var reviews = await db.Reviews
-            .AsNoTracking()
-            .Where(r => r.ProductId == id)
-            .Select(r => new
-            {
-                r.Id,
-                r.Rating,
-                r.Comment,
-                r.ReviewDate,
-                Customer = new
-                {
-                    r.Customer.Id,
-                    Name = $"{r.Customer.FirstName} {r.Customer.LastName}",
-                    r.Customer.Email
-                }
-            })
-            .ToListAsync();
-
-        // Calculate average rating
-        double averageRating = reviews.Any()
-            ? reviews.Average(r => r.Rating)
-            : 0;
-
-        return Results.Ok(new
-        {
-            Reviews = reviews,
-            AverageRating = averageRating,
-            ReviewCount = reviews.Count
-        });
-    }
-    catch (Exception ex)
-    {
-        // Log the exception
-        Console.WriteLine($"Error retrieving product reviews: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while retrieving the product reviews",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("GetProductReviews")
-.WithOpenApi();
-```
+This endpoint will retrieve all reviews for a specific product:
+1. Define a route handler for GET /products/{id}/reviews
+2. Use a SQL query with JOINs to retrieve reviews and customer information
+3. Format the response to include review details and customer information
+4. Calculate and include the average rating
 
 ### Get Product Gemstones
 
-```csharp
-// Get product gemstones
-app.MapGet("/products/{id}/gemstones", async (int id, JewelryContext db) =>
-{
-    try
-    {
-        // Check if the product exists
-        var productExists = await db.Products.AnyAsync(p => p.Id == id);
-
-        if (!productExists)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
-
-        // Retrieve the product gemstones
-        var gemstones = await db.ProductGemstones
-            .AsNoTracking()
-            .Where(pg => pg.ProductId == id)
-            .Select(pg => new
-            {
-                Id = pg.Gemstone.Id,
-                Name = pg.Gemstone.Name,
-                PricePerCarat = pg.Gemstone.PricePerCarat,
-                Carats = pg.Carats,
-                TotalValue = pg.Carats * pg.Gemstone.PricePerCarat
-            })
-            .ToListAsync();
-
-        return Results.Ok(gemstones);
-    }
-    catch (Exception ex)
-    {
-        // Log the exception
-        Console.WriteLine($"Error retrieving product gemstones: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while retrieving the product gemstones",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("GetProductGemstones")
-.WithOpenApi();
-```
+This endpoint will retrieve all gemstones for a specific product:
+1. Define a route handler for GET /products/{id}/gemstones
+2. Use a SQL query with JOINs to retrieve gemstone details and carat information
+3. Format the response to include gemstone details and calculated values
+4. Calculate and include the total gemstone value
 
 ### Check Product Availability
 
-```csharp
-// Check product availability
-app.MapGet("/products/{id}/availability", async (int id, JewelryContext db) =>
-{
-    try
-    {
-        // Check if the product exists and retrieve its stock quantity
-        var product = await db.Products
-            .AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => new { p.Id, p.Name, p.StockQuantity })
-            .FirstOrDefaultAsync();
+This endpoint will provide availability information for a specific product:
+1. Define a route handler for GET /products/{id}/availability
+2. Use a SQL query to retrieve the product's stock quantity
+3. Determine availability status based on stock quantity
+4. Format the response to include availability information
 
-        if (product == null)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
-
-        // Determine availability status
-        string status;
-        if (product.StockQuantity > 10)
-        {
-            status = "In Stock";
-        }
-        else if (product.StockQuantity > 0)
-        {
-            status = "Low Stock";
-        }
-        else
-        {
-            status = "Out of Stock";
-        }
-
-        return Results.Ok(new
-        {
-            product.Id,
-            product.Name,
-            product.StockQuantity,
-            Status = status,
-            IsAvailable = product.StockQuantity > 0
-        });
-    }
-    catch (Exception ex)
-    {
-        // Log the exception
-        Console.WriteLine($"Error checking product availability: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while checking product availability",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("CheckProductAvailability")
-.WithOpenApi();
-```
+Each of these endpoints provides focused information about a specific aspect of a product, making it easier for clients to get exactly what they need.
 
 ## Conclusion
 
-In this chapter, you've learned how to implement and enhance the endpoint for retrieving a single product by ID in the Jewelry Junction API. You've included related data in the response, handled cases where the product doesn't exist, formatted the response data, and implemented error handling. You've also added related endpoints to provide more ways to access product information.
+In this chapter, you've learned how to implement and enhance the endpoint for retrieving a single product by ID in the Jewelry Junction API. You've included related data in the response, handled cases where the product doesn't exist, formatted the response data, and implemented error handling. You've also implemented related endpoints to provide more ways to access product information.
 
 In the next chapter, we'll implement the endpoint for creating a new order, which will involve more complex operations like transactions and validation.
 

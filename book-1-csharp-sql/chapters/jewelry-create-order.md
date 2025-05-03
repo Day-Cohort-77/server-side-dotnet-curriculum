@@ -26,643 +26,106 @@ Since these operations need to be atomic (all succeed or all fail), we'll use a 
 
 ## Implementing the Endpoint
 
-Let's implement the endpoint for creating a new order:
+For our order creation endpoint, we'll implement a POST request handler at the "/orders" route. This endpoint will:
 
-```csharp
-// Create a new order
-app.MapPost("/orders", async (Order order, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
+1. Define a route handler for POST /orders
+2. Parse the request body to extract order information
+3. Validate the order data
+4. Begin a database transaction
+5. Create the order and order items
+6. Update product stock quantities
+7. Calculate the total order amount
+8. Commit the transaction if all operations succeed
+9. Return the created order with its details
+10. Roll back the transaction if any operation fails
 
-    try
-    {
-        // Validate customer exists
-        var customer = await db.Customers.FindAsync(order.CustomerId);
-        if (customer == null)
-        {
-            return Results.BadRequest(new { Message = $"Customer with ID {order.CustomerId} not found" });
-        }
+The implementation will use the DatabaseService to execute the necessary SQL commands within a transaction.
 
-        // Set order date to current date if not provided
-        if (order.OrderDate == default)
-        {
-            order.OrderDate = DateTime.Now;
-        }
+## Validating Order Data
 
-        // Set initial status if not provided
-        if (string.IsNullOrEmpty(order.Status))
-        {
-            order.Status = "Pending";
-        }
+Before processing an order, we need to validate the data to ensure it's complete and valid:
 
-        // Validate order items
-        if (order.OrderItems == null || !order.OrderItems.Any())
-        {
-            return Results.BadRequest(new { Message = "Order must contain at least one item" });
-        }
+1. Verify that the customer exists by querying the customers table
+2. Check that the order contains at least one item
+3. Verify that each product exists by querying the products table
+4. Check that there's sufficient stock for each product
+5. Validate that quantities are positive
 
-        // Validate products and check stock
-        decimal totalAmount = 0;
-        foreach (var item in order.OrderItems)
-        {
-            var product = await db.Products
-                .Include(p => p.Discount)
-                .FirstOrDefaultAsync(p => p.Id == item.ProductId);
+This validation helps prevent invalid orders from being processed and provides clear error messages to clients.
 
-            if (product == null)
-            {
-                return Results.BadRequest(new { Message = $"Product with ID {item.ProductId} not found" });
-            }
+## Using Transactions
 
-            if (product.StockQuantity < item.Quantity)
-            {
-                return Results.BadRequest(new { Message = $"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {item.Quantity}" });
-            }
+To ensure data consistency, we'll use a database transaction that encompasses all the operations involved in creating an order:
 
-            // Calculate item price (considering discounts)
-            decimal unitPrice = product.Price;
-            if (product.Discount != null && product.Discount.IsActive)
-            {
-                unitPrice = product.Price * (1 - product.Discount.DiscountPercent / 100);
-            }
+1. Begin a transaction using BEGIN TRANSACTION
+2. Execute all SQL commands (INSERT, UPDATE) within the transaction
+3. Commit the transaction using COMMIT if all commands succeed
+4. Roll back the transaction using ROLLBACK if any command fails
 
-            // Set the unit price in the order item
-            item.UnitPrice = unitPrice;
+This approach ensures that either all parts of the order creation succeed, or none of them do, preventing partial updates that could leave the database in an inconsistent state.
 
-            // Add to total amount
-            totalAmount += unitPrice * item.Quantity;
+## Creating the Order and Order Items
 
-            // Update product stock quantity
-            product.StockQuantity -= item.Quantity;
-        }
+The core of our implementation will:
 
-        // Set the total amount
-        order.TotalAmount = totalAmount;
+1. Insert a new record into the orders table with customer ID, order date, and initial status
+2. Retrieve the generated order ID
+3. For each item in the order:
+   - Calculate the unit price (considering any active discounts)
+   - Insert a record into the order_items table
+   - Update the product's stock quantity
 
-        // Add the order to the database
-        db.Orders.Add(order);
-        await db.SaveChangesAsync();
+These operations will be performed using parameterized SQL commands to prevent SQL injection.
 
-        // Commit the transaction
-        await transaction.CommitAsync();
+## Calculating the Total Amount
 
-        // Return the created order
-        return Results.Created($"/orders/{order.Id}", order);
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
+To calculate the total order amount:
 
-        // Log the exception
-        Console.WriteLine($"Error creating order: {ex.Message}");
+1. Sum the (unit price × quantity) for each order item
+2. Update the total_amount column in the orders table with this sum
 
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while creating the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("CreateOrder")
-.WithOpenApi();
-```
+This calculation ensures that the order total accurately reflects the prices at the time of purchase, including any applicable discounts.
 
-This endpoint:
-1. Begins a transaction to ensure data consistency
-2. Validates that the customer exists
-3. Sets default values for order date and status if not provided
-4. Validates that the order contains at least one item
-5. Validates that all products exist and have sufficient stock
-6. Calculates the unit price for each item, considering discounts
-7. Updates product stock quantities
-8. Calculates the total order amount
-9. Adds the order to the database
-10. Commits the transaction
-11. Returns the created order
+## Handling Edge Cases
 
-If any step fails, the transaction is rolled back, ensuring that no partial changes are made to the database.
+Our implementation will handle various edge cases:
 
-## Enhancing the Endpoint
+1. Products with insufficient stock
+2. Invalid product IDs
+3. Invalid customer ID
+4. Empty order (no items)
+5. Database errors during transaction
 
-Let's enhance the endpoint to provide a more structured response and to include more information about the created order:
+For each case, we'll provide appropriate error responses with clear messages to help clients understand what went wrong.
 
-```csharp
-// Create a new order with enhanced response
-app.MapPost("/orders", async (Order order, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
+## Formatting the Response
 
-    try
-    {
-        // Validate customer exists
-        var customer = await db.Customers.FindAsync(order.CustomerId);
-        if (customer == null)
-        {
-            return Results.BadRequest(new { Message = $"Customer with ID {order.CustomerId} not found" });
-        }
+After successfully creating an order, we'll format a comprehensive response that includes:
 
-        // Set order date to current date if not provided
-        if (order.OrderDate == default)
-        {
-            order.OrderDate = DateTime.Now;
-        }
+1. Basic order information (ID, date, status, total amount)
+2. Customer information
+3. Detailed information about each order item:
+   - Product details (name, type, metal, category)
+   - Pricing information (original price, discount amount, unit price)
+   - Quantity and subtotal
+4. Summary information (item count, creation timestamp)
 
-        // Set initial status if not provided
-        if (string.IsNullOrEmpty(order.Status))
-        {
-            order.Status = "Pending";
-        }
+This detailed response provides clients with all the information they need to display an order confirmation.
 
-        // Validate order items
-        if (order.OrderItems == null || !order.OrderItems.Any())
-        {
-            return Results.BadRequest(new { Message = "Order must contain at least one item" });
-        }
+## Implementing Request Validation
 
-        // Validate products and check stock
-        decimal totalAmount = 0;
-        var orderItemDetails = new List<object>();
+To make our API more robust, we'll implement request validation:
 
-        foreach (var item in order.OrderItems)
-        {
-            var product = await db.Products
-                .Include(p => p.Discount)
-                .Include(p => p.Metal)
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == item.ProductId);
+1. Define a clear request structure that clients must follow
+2. Validate that all required fields are present
+3. Check that data types are correct
+4. Validate business rules (e.g., quantities must be positive)
 
-            if (product == null)
-            {
-                return Results.BadRequest(new { Message = $"Product with ID {item.ProductId} not found" });
-            }
-
-            if (product.StockQuantity < item.Quantity)
-            {
-                return Results.BadRequest(new { Message = $"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {item.Quantity}" });
-            }
-
-            // Calculate item price (considering discounts)
-            decimal unitPrice = product.Price;
-            decimal? discountAmount = null;
-
-            if (product.Discount != null && product.Discount.IsActive)
-            {
-                discountAmount = product.Price * (product.Discount.DiscountPercent / 100);
-                unitPrice = product.Price - discountAmount.Value;
-            }
-
-            // Set the unit price in the order item
-            item.UnitPrice = unitPrice;
-
-            // Add to total amount
-            totalAmount += unitPrice * item.Quantity;
-
-            // Update product stock quantity
-            product.StockQuantity -= item.Quantity;
-
-            // Add item details for the response
-            orderItemDetails.Add(new
-            {
-                item.Id,
-                item.ProductId,
-                ProductName = product.Name,
-                ProductType = product.Type,
-                Metal = product.Metal.Name,
-                Category = product.Category.Name,
-                OriginalPrice = product.Price,
-                DiscountAmount = discountAmount,
-                item.UnitPrice,
-                item.Quantity,
-                Subtotal = unitPrice * item.Quantity
-            });
-        }
-
-        // Set the total amount
-        order.TotalAmount = totalAmount;
-
-        // Add the order to the database
-        db.Orders.Add(order);
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        // Prepare the response
-        var response = new
-        {
-            order.Id,
-            order.OrderDate,
-            order.Status,
-            order.TotalAmount,
-            Customer = new
-            {
-                customer.Id,
-                Name = $"{customer.FirstName} {customer.LastName}",
-                customer.Email,
-                customer.Phone,
-                customer.Address
-            },
-            Items = orderItemDetails,
-            ItemCount = order.OrderItems.Count,
-            CreatedAt = DateTime.Now
-        };
-
-        // Return the created order
-        return Results.Created($"/orders/{order.Id}", response);
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error creating order: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while creating the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("CreateOrder")
-.WithOpenApi();
-```
-
-This enhanced endpoint provides a more structured response that includes:
-- Basic order information (ID, date, status, total amount)
-- Customer information
-- Detailed information about each order item, including product details and pricing
-- Summary information (item count, creation timestamp)
-
-## Implementing Order Validation
-
-To make our code more maintainable, let's extract the order validation logic into a separate method:
-
-```csharp
-// Validate order
-private static async Task<(bool IsValid, string? ErrorMessage, Customer? Customer)> ValidateOrderAsync(Order order, JewelryContext db)
-{
-    // Validate customer exists
-    var customer = await db.Customers.FindAsync(order.CustomerId);
-    if (customer == null)
-    {
-        return (false, $"Customer with ID {order.CustomerId} not found", null);
-    }
-
-    // Validate order items
-    if (order.OrderItems == null || !order.OrderItems.Any())
-    {
-        return (false, "Order must contain at least one item", null);
-    }
-
-    return (true, null, customer);
-}
-
-// Validate order items
-private static async Task<(bool IsValid, string? ErrorMessage, List<(OrderItem Item, Product Product, decimal UnitPrice, decimal? DiscountAmount)> ValidItems)> ValidateOrderItemsAsync(List<OrderItem> orderItems, JewelryContext db)
-{
-    var validItems = new List<(OrderItem Item, Product Product, decimal UnitPrice, decimal? DiscountAmount)>();
-
-    foreach (var item in orderItems)
-    {
-        var product = await db.Products
-            .Include(p => p.Discount)
-            .Include(p => p.Metal)
-            .Include(p => p.Category)
-            .FirstOrDefaultAsync(p => p.Id == item.ProductId);
-
-        if (product == null)
-        {
-            return (false, $"Product with ID {item.ProductId} not found", validItems);
-        }
-
-        if (product.StockQuantity < item.Quantity)
-        {
-            return (false, $"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {item.Quantity}", validItems);
-        }
-
-        // Calculate item price (considering discounts)
-        decimal unitPrice = product.Price;
-        decimal? discountAmount = null;
-
-        if (product.Discount != null && product.Discount.IsActive)
-        {
-            discountAmount = product.Price * (product.Discount.DiscountPercent / 100);
-            unitPrice = product.Price - discountAmount.Value;
-        }
-
-        validItems.Add((item, product, unitPrice, discountAmount));
-    }
-
-    return (true, null, validItems);
-}
-```
-
-Now, let's update our endpoint to use these validation methods:
-
-```csharp
-// Create a new order with validation methods
-app.MapPost("/orders", async (Order order, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
-
-    try
-    {
-        // Set order date to current date if not provided
-        if (order.OrderDate == default)
-        {
-            order.OrderDate = DateTime.Now;
-        }
-
-        // Set initial status if not provided
-        if (string.IsNullOrEmpty(order.Status))
-        {
-            order.Status = "Pending";
-        }
-
-        // Validate order
-        var (isOrderValid, orderErrorMessage, customer) = await ValidateOrderAsync(order, db);
-        if (!isOrderValid)
-        {
-            return Results.BadRequest(new { Message = orderErrorMessage });
-        }
-
-        // Validate order items
-        var (areItemsValid, itemsErrorMessage, validItems) = await ValidateOrderItemsAsync(order.OrderItems, db);
-        if (!areItemsValid)
-        {
-            return Results.BadRequest(new { Message = itemsErrorMessage });
-        }
-
-        // Process order items
-        decimal totalAmount = 0;
-        var orderItemDetails = new List<object>();
-
-        foreach (var (item, product, unitPrice, discountAmount) in validItems)
-        {
-            // Set the unit price in the order item
-            item.UnitPrice = unitPrice;
-
-            // Add to total amount
-            totalAmount += unitPrice * item.Quantity;
-
-            // Update product stock quantity
-            product.StockQuantity -= item.Quantity;
-
-            // Add item details for the response
-            orderItemDetails.Add(new
-            {
-                item.Id,
-                item.ProductId,
-                ProductName = product.Name,
-                ProductType = product.Type,
-                Metal = product.Metal.Name,
-                Category = product.Category.Name,
-                OriginalPrice = product.Price,
-                DiscountAmount = discountAmount,
-                item.UnitPrice,
-                item.Quantity,
-                Subtotal = unitPrice * item.Quantity
-            });
-        }
-
-        // Set the total amount
-        order.TotalAmount = totalAmount;
-
-        // Add the order to the database
-        db.Orders.Add(order);
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        // Prepare the response
-        var response = new
-        {
-            order.Id,
-            order.OrderDate,
-            order.Status,
-            order.TotalAmount,
-            Customer = new
-            {
-                customer.Id,
-                Name = $"{customer.FirstName} {customer.LastName}",
-                customer.Email,
-                customer.Phone,
-                customer.Address
-            },
-            Items = orderItemDetails,
-            ItemCount = order.OrderItems.Count,
-            CreatedAt = DateTime.Now
-        };
-
-        // Return the created order
-        return Results.Created($"/orders/{order.Id}", response);
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error creating order: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while creating the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("CreateOrder")
-.WithOpenApi();
-```
-
-This approach makes the code more maintainable and easier to understand by separating the validation logic from the main endpoint logic.
-
-## Implementing a Request Model
-
-To further improve our API, let's create a request model for creating orders. This will allow us to separate the API contract from our internal data model:
-
-```csharp
-// Order creation request model
-public class CreateOrderRequest
-{
-    public int CustomerId { get; set; }
-    public List<CreateOrderItemRequest> Items { get; set; } = new List<CreateOrderItemRequest>();
-}
-
-public class CreateOrderItemRequest
-{
-    public int ProductId { get; set; }
-    public int Quantity { get; set; }
-}
-```
-
-Now, let's update our endpoint to use this request model:
-
-```csharp
-// Create a new order with request model
-app.MapPost("/orders", async (CreateOrderRequest request, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
-
-    try
-    {
-        // Validate customer exists
-        var customer = await db.Customers.FindAsync(request.CustomerId);
-        if (customer == null)
-        {
-            return Results.BadRequest(new { Message = $"Customer with ID {request.CustomerId} not found" });
-        }
-
-        // Validate order items
-        if (request.Items == null || !request.Items.Any())
-        {
-            return Results.BadRequest(new { Message = "Order must contain at least one item" });
-        }
-
-        // Create order
-        var order = new Order
-        {
-            CustomerId = request.CustomerId,
-            OrderDate = DateTime.Now,
-            Status = "Pending",
-            OrderItems = new List<OrderItem>()
-        };
-
-        // Process order items
-        decimal totalAmount = 0;
-        var orderItemDetails = new List<object>();
-
-        foreach (var itemRequest in request.Items)
-        {
-            var product = await db.Products
-                .Include(p => p.Discount)
-                .Include(p => p.Metal)
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == itemRequest.ProductId);
-
-            if (product == null)
-            {
-                return Results.BadRequest(new { Message = $"Product with ID {itemRequest.ProductId} not found" });
-            }
-
-            if (product.StockQuantity < itemRequest.Quantity)
-            {
-                return Results.BadRequest(new { Message = $"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {itemRequest.Quantity}" });
-            }
-
-            // Calculate item price (considering discounts)
-            decimal unitPrice = product.Price;
-            decimal? discountAmount = null;
-
-            if (product.Discount != null && product.Discount.IsActive)
-            {
-                discountAmount = product.Price * (product.Discount.DiscountPercent / 100);
-                unitPrice = product.Price - discountAmount.Value;
-            }
-
-            // Create order item
-            var orderItem = new OrderItem
-            {
-                ProductId = itemRequest.ProductId,
-                Quantity = itemRequest.Quantity,
-                UnitPrice = unitPrice
-            };
-
-            // Add to order
-            order.OrderItems.Add(orderItem);
-
-            // Add to total amount
-            totalAmount += unitPrice * itemRequest.Quantity;
-
-            // Update product stock quantity
-            product.StockQuantity -= itemRequest.Quantity;
-
-            // Add item details for the response
-            orderItemDetails.Add(new
-            {
-                ProductId = product.Id,
-                ProductName = product.Name,
-                ProductType = product.Type,
-                Metal = product.Metal.Name,
-                Category = product.Category.Name,
-                OriginalPrice = product.Price,
-                DiscountAmount = discountAmount,
-                UnitPrice = unitPrice,
-                Quantity = itemRequest.Quantity,
-                Subtotal = unitPrice * itemRequest.Quantity
-            });
-        }
-
-        // Set the total amount
-        order.TotalAmount = totalAmount;
-
-        // Add the order to the database
-        db.Orders.Add(order);
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        // Prepare the response
-        var response = new
-        {
-            order.Id,
-            order.OrderDate,
-            order.Status,
-            order.TotalAmount,
-            Customer = new
-            {
-                customer.Id,
-                Name = $"{customer.FirstName} {customer.LastName}",
-                customer.Email,
-                customer.Phone,
-                customer.Address
-            },
-            Items = orderItemDetails,
-            ItemCount = order.OrderItems.Count,
-            CreatedAt = DateTime.Now
-        };
-
-        // Return the created order
-        return Results.Created($"/orders/{order.Id}", response);
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error creating order: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while creating the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("CreateOrder")
-.WithOpenApi();
-```
-
-Using a request model provides several benefits:
-- It separates the API contract from the internal data model
-- It makes the API more flexible and easier to evolve
-- It provides a clear interface for clients to understand what data is required
-- It allows for validation specific to the API contract
+This validation happens before any database operations, preventing invalid requests from affecting the database.
 
 ## Conclusion
 
-In this chapter, you've learned how to implement the endpoint for creating a new order in the Jewelry Junction API. You've used transactions to ensure data consistency, validated the order data before processing, updated related data, and handled errors and edge cases. You've also learned how to structure the response to provide useful information to clients and how to use request models to separate the API contract from the internal data model.
+In this chapter, you've learned how to implement the endpoint for creating a new order in the Jewelry Junction API. You've used transactions to ensure data consistency, validated the order data before processing, updated related data, and handled errors and edge cases. You've also learned how to structure the response to provide useful information to clients.
 
 In the next chapter, we'll implement the endpoint for deleting an order, which will involve similar concepts like transactions and validation.
 

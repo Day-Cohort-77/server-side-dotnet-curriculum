@@ -23,504 +23,109 @@ Since these operations need to be atomic (all succeed or all fail), we'll use a 
 
 ## Implementing the Endpoint
 
-Let's implement the endpoint for deleting an order:
+For our order deletion endpoint, we'll implement a DELETE request handler at the "/orders/{id}" route. This endpoint will:
 
-```csharp
-// Delete an order
-app.MapDelete("/orders/{id}", async (int id, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
+1. Define a route handler for DELETE /orders/{id}
+2. Extract the order ID from the URL path
+3. Begin a database transaction
+4. Retrieve the order and its items
+5. Validate that the order exists and can be deleted
+6. Restore product stock quantities
+7. Delete order items
+8. Delete the order
+9. Commit the transaction if all operations succeed
+10. Return a success response
+11. Roll back the transaction if any operation fails
 
-    try
-    {
-        // Find the order with its items
-        var order = await db.Orders
-            .Include(o => o.OrderItems)
-            .FirstOrDefaultAsync(o => o.Id == id);
+The implementation will use the DatabaseService to execute the necessary SQL commands within a transaction.
 
-        if (order == null)
-        {
-            return Results.NotFound(new { Message = $"Order with ID {id} not found" });
-        }
+## Validating the Order
 
-        // Check if the order can be deleted (e.g., only pending orders can be deleted)
-        if (order.Status != "Pending")
-        {
-            return Results.BadRequest(new { Message = $"Cannot delete order with status '{order.Status}'. Only pending orders can be deleted." });
-        }
+Before deleting an order, we need to validate that it exists and can be deleted:
 
-        // Restore product stock quantities
-        foreach (var item in order.OrderItems)
-        {
-            var product = await db.Products.FindAsync(item.ProductId);
-            if (product != null)
-            {
-                product.StockQuantity += item.Quantity;
-            }
-        }
+1. Query the database to check if an order with the specified ID exists
+2. Verify that the order is in a state that allows deletion (e.g., only pending orders can be deleted)
+3. Return appropriate error responses if validation fails
 
-        // Remove order items
-        db.OrderItems.RemoveRange(order.OrderItems);
+This validation prevents the deletion of orders that don't exist or shouldn't be deleted.
 
-        // Remove the order
-        db.Orders.Remove(order);
+## Restoring Product Stock Quantities
 
-        // Save changes
-        await db.SaveChangesAsync();
+When an order is deleted, we need to restore the stock quantities of the products that were part of the order:
 
-        // Commit the transaction
-        await transaction.CommitAsync();
+1. Retrieve all order items associated with the order
+2. For each order item:
+   - Retrieve the product
+   - Increase the product's stock quantity by the order item quantity
+   - Update the product record in the database
 
-        return Results.Ok(new { Message = $"Order with ID {id} has been deleted" });
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
+This ensures that the inventory is correctly adjusted when an order is deleted.
 
-        // Log the exception
-        Console.WriteLine($"Error deleting order: {ex.Message}");
+## Using Transactions
 
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while deleting the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("DeleteOrder")
-.WithOpenApi();
-```
+To ensure data consistency, we'll use a database transaction that encompasses all the operations involved in deleting an order:
 
-This endpoint:
-1. Begins a transaction to ensure data consistency
-2. Finds the order with its items
-3. Checks if the order exists and can be deleted
-4. Restores product stock quantities for all items in the order
-5. Removes order items associated with the order
-6. Removes the order itself
-7. Commits the transaction
+1. Begin a transaction using BEGIN TRANSACTION
+2. Execute all SQL commands (SELECT, UPDATE, DELETE) within the transaction
+3. Commit the transaction using COMMIT if all commands succeed
+4. Roll back the transaction using ROLLBACK if any command fails
 
-If any step fails, the transaction is rolled back, ensuring that no partial changes are made to the database.
+This approach ensures that either all parts of the order deletion succeed, or none of them do, preventing partial updates that could leave the database in an inconsistent state.
 
-## Enhancing the Endpoint
+## Enhancing the Response
 
-Let's enhance the endpoint to provide more information about the deleted order and to handle more edge cases:
+To provide more information about the deleted order, we'll enhance our response:
 
-```csharp
-// Delete an order with enhanced response
-app.MapDelete("/orders/{id}", async (int id, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
+1. Retrieve detailed information about the order and its items before deletion
+2. Format a response that includes:
+   - Basic order information (ID, date, status, total amount)
+   - Customer information
+   - Order item details
+   - Summary information (item count)
 
-    try
-    {
-        // Find the order with its items and customer
-        var order = await db.Orders
-            .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-            .Include(o => o.Customer)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
-        if (order == null)
-        {
-            return Results.NotFound(new { Message = $"Order with ID {id} not found" });
-        }
-
-        // Check if the order can be deleted (e.g., only pending orders can be deleted)
-        if (order.Status != "Pending")
-        {
-            return Results.BadRequest(new { Message = $"Cannot delete order with status '{order.Status}'. Only pending orders can be deleted." });
-        }
-
-        // Prepare response data before deletion
-        var orderDetails = new
-        {
-            order.Id,
-            order.OrderDate,
-            order.Status,
-            order.TotalAmount,
-            Customer = new
-            {
-                order.Customer.Id,
-                Name = $"{order.Customer.FirstName} {order.Customer.LastName}",
-                order.Customer.Email
-            },
-            Items = order.OrderItems.Select(oi => new
-            {
-                oi.Id,
-                oi.ProductId,
-                ProductName = oi.Product.Name,
-                oi.Quantity,
-                oi.UnitPrice,
-                Subtotal = oi.Quantity * oi.UnitPrice
-            }).ToList(),
-            ItemCount = order.OrderItems.Count
-        };
-
-        // Restore product stock quantities
-        foreach (var item in order.OrderItems)
-        {
-            var product = await db.Products.FindAsync(item.ProductId);
-            if (product != null)
-            {
-                product.StockQuantity += item.Quantity;
-            }
-        }
-
-        // Remove order items
-        db.OrderItems.RemoveRange(order.OrderItems);
-
-        // Remove the order
-        db.Orders.Remove(order);
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        return Results.Ok(new
-        {
-            Message = $"Order with ID {id} has been deleted",
-            DeletedOrder = orderDetails
-        });
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error deleting order: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while deleting the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("DeleteOrder")
-.WithOpenApi();
-```
-
-This enhanced endpoint provides more information about the deleted order, including customer details and item details. It also includes the total amount and item count.
+This detailed response helps clients understand what was deleted and can be useful for displaying confirmation messages or maintaining audit trails.
 
 ## Implementing Soft Delete
 
 In many real-world applications, it's preferable to implement "soft delete" rather than actually removing records from the database. This involves marking records as deleted rather than physically removing them, which allows for data recovery and audit trails.
 
-Let's modify our approach to implement soft delete for orders:
+To implement soft delete for orders:
 
-1. First, let's add a `IsDeleted` property to the `Order` class:
+1. Add an is_deleted column to the orders table
+2. Add a deleted_at timestamp column to track when the order was deleted
+3. Instead of deleting the order, update these columns:
+   - Set is_deleted to true
+   - Set deleted_at to the current timestamp
+   - Change the order status to "Cancelled"
+4. Update all queries to filter out deleted orders (WHERE is_deleted = false)
 
-```csharp
-public class Order
-{
-    public int Id { get; set; }
-    public DateTime OrderDate { get; set; }
-    public decimal TotalAmount { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public bool IsDeleted { get; set; } = false;
-    public DateTime? DeletedAt { get; set; }
-
-    // Relationships
-    public int CustomerId { get; set; }
-    public Customer? Customer { get; set; }
-    public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-}
-```
-
-2. Now, let's update our endpoint to implement soft delete:
-
-```csharp
-// Soft delete an order
-app.MapDelete("/orders/{id}", async (int id, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
-
-    try
-    {
-        // Find the order with its items and customer
-        var order = await db.Orders
-            .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-            .Include(o => o.Customer)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
-        if (order == null)
-        {
-            return Results.NotFound(new { Message = $"Order with ID {id} not found" });
-        }
-
-        // Check if the order is already deleted
-        if (order.IsDeleted)
-        {
-            return Results.BadRequest(new { Message = $"Order with ID {id} is already deleted" });
-        }
-
-        // Check if the order can be deleted (e.g., only pending orders can be deleted)
-        if (order.Status != "Pending")
-        {
-            return Results.BadRequest(new { Message = $"Cannot delete order with status '{order.Status}'. Only pending orders can be deleted." });
-        }
-
-        // Prepare response data before deletion
-        var orderDetails = new
-        {
-            order.Id,
-            order.OrderDate,
-            order.Status,
-            order.TotalAmount,
-            Customer = new
-            {
-                order.Customer.Id,
-                Name = $"{order.Customer.FirstName} {order.Customer.LastName}",
-                order.Customer.Email
-            },
-            Items = order.OrderItems.Select(oi => new
-            {
-                oi.Id,
-                oi.ProductId,
-                ProductName = oi.Product.Name,
-                oi.Quantity,
-                oi.UnitPrice,
-                Subtotal = oi.Quantity * oi.UnitPrice
-            }).ToList(),
-            ItemCount = order.OrderItems.Count
-        };
-
-        // Restore product stock quantities
-        foreach (var item in order.OrderItems)
-        {
-            var product = await db.Products.FindAsync(item.ProductId);
-            if (product != null)
-            {
-                product.StockQuantity += item.Quantity;
-            }
-        }
-
-        // Mark the order as deleted
-        order.IsDeleted = true;
-        order.DeletedAt = DateTime.Now;
-        order.Status = "Cancelled";
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        return Results.Ok(new
-        {
-            Message = $"Order with ID {id} has been deleted",
-            DeletedOrder = orderDetails
-        });
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error deleting order: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while deleting the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("DeleteOrder")
-.WithOpenApi();
-```
-
-3. We also need to update our queries to filter out deleted orders:
-
-```csharp
-// Get all orders (excluding deleted orders)
-app.MapGet("/orders", async (JewelryContext db) =>
-    await db.Orders
-        .Where(o => !o.IsDeleted)
-        .Include(o => o.Customer)
-        .Include(o => o.OrderItems)
-        .ToListAsync())
-    .WithName("GetAllOrders")
-    .WithOpenApi();
-
-// Get order by ID (excluding deleted orders)
-app.MapGet("/orders/{id}", async (int id, JewelryContext db) =>
-{
-    var order = await db.Orders
-        .Where(o => !o.IsDeleted)
-        .Include(o => o.Customer)
-        .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Product)
-        .FirstOrDefaultAsync(o => o.Id == id);
-
-    return order != null ? Results.Ok(order) : Results.NotFound();
-})
-.WithName("GetOrderById")
-.WithOpenApi();
-```
+This approach preserves the order history while still allowing for "deletion" from the user's perspective.
 
 ## Implementing Hard Delete with Confirmation
 
-In some cases, you might want to allow hard deletion of orders, but with an additional confirmation step to prevent accidental deletions. Let's implement an endpoint for hard deletion with confirmation:
+For cases where permanent deletion is necessary, we can implement a separate endpoint that requires confirmation:
 
-```csharp
-// Hard delete an order with confirmation
-app.MapDelete("/orders/{id}/hard", async (int id, string confirmation, JewelryContext db) =>
-{
-    // Check if confirmation is provided
-    if (string.IsNullOrEmpty(confirmation) || confirmation != "CONFIRM_DELETE")
-    {
-        return Results.BadRequest(new { Message = "Confirmation is required. Please provide 'CONFIRM_DELETE' as the confirmation parameter." });
-    }
+1. Define a route handler for DELETE /orders/{id}/hard
+2. Require a confirmation parameter with a specific value
+3. Perform the same validation and transaction handling as the soft delete endpoint
+4. Physically delete the order items and order from the database
 
-    using var transaction = await db.Database.BeginTransactionAsync();
-
-    try
-    {
-        // Find the order with its items
-        var order = await db.Orders
-            .Include(o => o.OrderItems)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
-        if (order == null)
-        {
-            return Results.NotFound(new { Message = $"Order with ID {id} not found" });
-        }
-
-        // Restore product stock quantities
-        foreach (var item in order.OrderItems)
-        {
-            var product = await db.Products.FindAsync(item.ProductId);
-            if (product != null)
-            {
-                product.StockQuantity += item.Quantity;
-            }
-        }
-
-        // Remove order items
-        db.OrderItems.RemoveRange(order.OrderItems);
-
-        // Remove the order
-        db.Orders.Remove(order);
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        return Results.Ok(new { Message = $"Order with ID {id} has been permanently deleted" });
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error deleting order: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while deleting the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("HardDeleteOrder")
-.WithOpenApi();
-```
-
-This endpoint requires a confirmation parameter with the value "CONFIRM_DELETE" to proceed with the hard deletion. This helps prevent accidental deletions.
+This approach helps prevent accidental permanent deletions by requiring explicit confirmation.
 
 ## Implementing a Restore Endpoint
 
-If we're using soft delete, it's also useful to provide an endpoint to restore deleted orders:
+To complement the soft delete functionality, we can implement an endpoint to restore deleted orders:
 
-```csharp
-// Restore a deleted order
-app.MapPost("/orders/{id}/restore", async (int id, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
+1. Define a route handler for POST /orders/{id}/restore
+2. Verify that the order exists and is marked as deleted
+3. Check if there's sufficient stock available for all items in the order
+4. Begin a transaction
+5. Update the order to clear the is_deleted flag and deleted_at timestamp
+6. Restore the order status to its original value
+7. Deduct product stock quantities again
+8. Commit the transaction
 
-    try
-    {
-        // Find the order
-        var order = await db.Orders
-            .Include(o => o.OrderItems)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
-        if (order == null)
-        {
-            return Results.NotFound(new { Message = $"Order with ID {id} not found" });
-        }
-
-        // Check if the order is deleted
-        if (!order.IsDeleted)
-        {
-            return Results.BadRequest(new { Message = $"Order with ID {id} is not deleted" });
-        }
-
-        // Deduct product stock quantities again
-        foreach (var item in order.OrderItems)
-        {
-            var product = await db.Products.FindAsync(item.ProductId);
-            if (product != null)
-            {
-                // Check if there's enough stock
-                if (product.StockQuantity < item.Quantity)
-                {
-                    return Results.BadRequest(new { Message = $"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Required: {item.Quantity}" });
-                }
-
-                product.StockQuantity -= item.Quantity;
-            }
-        }
-
-        // Restore the order
-        order.IsDeleted = false;
-        order.DeletedAt = null;
-        order.Status = "Pending";
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        return Results.Ok(new { Message = $"Order with ID {id} has been restored" });
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error restoring order: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while restoring the order",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("RestoreOrder")
-.WithOpenApi();
-```
-
-This endpoint allows restoring a deleted order, but only if there's enough stock available for all items in the order.
+This restoration process essentially reverses the soft delete operation, but with an important check to ensure there's still sufficient inventory available.
 
 ## Conclusion
 

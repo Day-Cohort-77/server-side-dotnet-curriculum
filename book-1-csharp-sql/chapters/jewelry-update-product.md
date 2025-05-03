@@ -24,633 +24,100 @@ Let's implement an endpoint that addresses these considerations.
 
 ## Implementing the Basic Endpoint
 
-Let's start by implementing a basic endpoint for updating a product:
+For our product update endpoint, we'll implement a PUT request handler at the "/products/{id}" route. This basic implementation will:
 
-```csharp
-// Update a product
-app.MapPut("/products/{id}", async (int id, Product updatedProduct, JewelryContext db) =>
-{
-    try
-    {
-        // Find the product
-        var product = await db.Products.FindAsync(id);
+1. Define a route handler for PUT /products/{id}
+2. Extract the product ID from the URL path
+3. Parse the request body to extract updated product information
+4. Verify that the product exists
+5. Update the product in the database
+6. Return the updated product
 
-        if (product == null)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
-
-        // Update product properties
-        product.Name = updatedProduct.Name;
-        product.Description = updatedProduct.Description;
-        product.Price = updatedProduct.Price;
-        product.StockQuantity = updatedProduct.StockQuantity;
-        product.Type = updatedProduct.Type;
-        product.MetalId = updatedProduct.MetalId;
-        product.CategoryId = updatedProduct.CategoryId;
-        product.DiscountId = updatedProduct.DiscountId;
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        return Results.Ok(product);
-    }
-    catch (Exception ex)
-    {
-        // Log the exception
-        Console.WriteLine($"Error updating product: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while updating the product",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("UpdateProduct")
-.WithOpenApi();
-```
-
-This basic endpoint:
-1. Finds the product by ID
-2. Updates the product properties with the values from the request
-3. Saves the changes to the database
-4. Returns the updated product
-
-However, this implementation has several limitations:
-- It doesn't validate the updated data
-- It doesn't handle updates to related data (e.g., gemstones)
-- It doesn't check if the related entities (metal, category, discount) exist
-
-Let's enhance the endpoint to address these limitations.
+The implementation will use the DatabaseService to execute the necessary SQL commands.
 
 ## Implementing Data Validation
 
-First, let's add validation for the updated data:
+Before updating a product, we need to validate the data to ensure it's complete and valid:
 
-```csharp
-// Update a product with validation
-app.MapPut("/products/{id}", async (int id, Product updatedProduct, JewelryContext db) =>
-{
-    try
-    {
-        // Find the product
-        var product = await db.Products.FindAsync(id);
+1. Verify that the product exists by querying the products table
+2. Validate required fields (name, price, etc.)
+3. Check that numeric values are valid (price > 0, stock quantity >= 0)
+4. Verify that related entities (metal, category, discount) exist if referenced
 
-        if (product == null)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
-
-        // Validate the updated data
-        if (string.IsNullOrWhiteSpace(updatedProduct.Name))
-        {
-            return Results.BadRequest(new { Message = "Product name is required" });
-        }
-
-        if (updatedProduct.Price <= 0)
-        {
-            return Results.BadRequest(new { Message = "Product price must be greater than 0" });
-        }
-
-        if (updatedProduct.StockQuantity < 0)
-        {
-            return Results.BadRequest(new { Message = "Product stock quantity cannot be negative" });
-        }
-
-        // Validate that the related entities exist
-        var metalExists = await db.Metals.AnyAsync(m => m.Id == updatedProduct.MetalId);
-        if (!metalExists)
-        {
-            return Results.BadRequest(new { Message = $"Metal with ID {updatedProduct.MetalId} not found" });
-        }
-
-        var categoryExists = await db.Categories.AnyAsync(c => c.Id == updatedProduct.CategoryId);
-        if (!categoryExists)
-        {
-            return Results.BadRequest(new { Message = $"Category with ID {updatedProduct.CategoryId} not found" });
-        }
-
-        if (updatedProduct.DiscountId.HasValue)
-        {
-            var discountExists = await db.Discounts.AnyAsync(d => d.Id == updatedProduct.DiscountId.Value);
-            if (!discountExists)
-            {
-                return Results.BadRequest(new { Message = $"Discount with ID {updatedProduct.DiscountId.Value} not found" });
-            }
-        }
-
-        // Update product properties
-        product.Name = updatedProduct.Name;
-        product.Description = updatedProduct.Description;
-        product.Price = updatedProduct.Price;
-        product.StockQuantity = updatedProduct.StockQuantity;
-        product.Type = updatedProduct.Type;
-        product.MetalId = updatedProduct.MetalId;
-        product.CategoryId = updatedProduct.CategoryId;
-        product.DiscountId = updatedProduct.DiscountId;
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        return Results.Ok(product);
-    }
-    catch (Exception ex)
-    {
-        // Log the exception
-        Console.WriteLine($"Error updating product: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while updating the product",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("UpdateProduct")
-.WithOpenApi();
-```
-
-Now, the endpoint validates:
-- That the product name is not empty
-- That the product price is greater than 0
-- That the product stock quantity is not negative
-- That the related entities (metal, category, discount) exist
+This validation helps prevent invalid data from being stored in the database and provides clear error messages to clients.
 
 ## Handling Related Data
 
-Next, let's enhance the endpoint to handle updates to related data, specifically the gemstones associated with the product:
+Products in our jewelry store have relationships with other entities, particularly gemstones. Updating a product might involve changing its associated gemstones, which requires special handling:
 
-```csharp
-// Update a product with related data
-app.MapPut("/products/{id}", async (int id, ProductUpdateRequest request, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
+1. Begin a database transaction
+2. Update the basic product information in the products table
+3. Handle gemstone associations:
+   - Delete existing associations from the product_gemstones table
+   - Insert new associations based on the updated data
+4. Commit the transaction if all operations succeed
+5. Roll back the transaction if any operation fails
 
-    try
-    {
-        // Find the product with its gemstones
-        var product = await db.Products
-            .Include(p => p.ProductGemstones)
-            .FirstOrDefaultAsync(p => p.Id == id);
+This approach ensures that related data is updated atomically with the product itself, maintaining data consistency.
 
-        if (product == null)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
+## Using Transactions
 
-        // Validate the updated data
-        if (string.IsNullOrWhiteSpace(request.Name))
-        {
-            return Results.BadRequest(new { Message = "Product name is required" });
-        }
+To ensure data consistency when updating a product and its related data, we'll use a database transaction:
 
-        if (request.Price <= 0)
-        {
-            return Results.BadRequest(new { Message = "Product price must be greater than 0" });
-        }
+1. Begin a transaction using BEGIN TRANSACTION
+2. Execute all SQL commands (UPDATE, DELETE, INSERT) within the transaction
+3. Commit the transaction using COMMIT if all commands succeed
+4. Roll back the transaction using ROLLBACK if any command fails
 
-        if (request.StockQuantity < 0)
-        {
-            return Results.BadRequest(new { Message = "Product stock quantity cannot be negative" });
-        }
-
-        // Validate that the related entities exist
-        var metalExists = await db.Metals.AnyAsync(m => m.Id == request.MetalId);
-        if (!metalExists)
-        {
-            return Results.BadRequest(new { Message = $"Metal with ID {request.MetalId} not found" });
-        }
-
-        var categoryExists = await db.Categories.AnyAsync(c => c.Id == request.CategoryId);
-        if (!categoryExists)
-        {
-            return Results.BadRequest(new { Message = $"Category with ID {request.CategoryId} not found" });
-        }
-
-        if (request.DiscountId.HasValue)
-        {
-            var discountExists = await db.Discounts.AnyAsync(d => d.Id == request.DiscountId.Value);
-            if (!discountExists)
-            {
-                return Results.BadRequest(new { Message = $"Discount with ID {request.DiscountId.Value} not found" });
-            }
-        }
-
-        // Update product properties
-        product.Name = request.Name;
-        product.Description = request.Description;
-        product.Price = request.Price;
-        product.StockQuantity = request.StockQuantity;
-        product.Type = request.Type;
-        product.MetalId = request.MetalId;
-        product.CategoryId = request.CategoryId;
-        product.DiscountId = request.DiscountId;
-
-        // Handle gemstones
-        if (request.Gemstones != null)
-        {
-            // Remove existing gemstones
-            db.ProductGemstones.RemoveRange(product.ProductGemstones);
-
-            // Add new gemstones
-            foreach (var gemstoneRequest in request.Gemstones)
-            {
-                // Validate that the gemstone exists
-                var gemstoneExists = await db.Gemstones.AnyAsync(g => g.Id == gemstoneRequest.GemstoneId);
-                if (!gemstoneExists)
-                {
-                    return Results.BadRequest(new { Message = $"Gemstone with ID {gemstoneRequest.GemstoneId} not found" });
-                }
-
-                // Validate carats
-                if (gemstoneRequest.Carats <= 0)
-                {
-                    return Results.BadRequest(new { Message = "Gemstone carats must be greater than 0" });
-                }
-
-                // Add the gemstone to the product
-                var productGemstone = new ProductGemstone
-                {
-                    ProductId = product.Id,
-                    GemstoneId = gemstoneRequest.GemstoneId,
-                    Carats = gemstoneRequest.Carats
-                };
-
-                product.ProductGemstones.Add(productGemstone);
-            }
-        }
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        // Return the updated product with its gemstones
-        var updatedProduct = await db.Products
-            .Include(p => p.Metal)
-            .Include(p => p.Category)
-            .Include(p => p.Discount)
-            .Include(p => p.ProductGemstones)
-                .ThenInclude(pg => pg.Gemstone)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        return Results.Ok(updatedProduct);
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error updating product: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while updating the product",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("UpdateProduct")
-.WithOpenApi();
-
-// Product update request model
-public class ProductUpdateRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
-    public string Type { get; set; } = string.Empty;
-    public int MetalId { get; set; }
-    public int CategoryId { get; set; }
-    public int? DiscountId { get; set; }
-    public List<GemstoneRequest>? Gemstones { get; set; }
-}
-
-public class GemstoneRequest
-{
-    public int GemstoneId { get; set; }
-    public decimal Carats { get; set; }
-}
-```
-
-In this enhanced endpoint:
-1. We use a transaction to ensure data consistency
-2. We include the product's gemstones when retrieving it
-3. We use a custom request model (`ProductUpdateRequest`) that includes a list of gemstones
-4. We handle updates to gemstones by removing the existing ones and adding the new ones
-5. We validate that the gemstones exist and that the carats are valid
-6. We return the updated product with all its related data
+This approach prevents partial updates that could leave the database in an inconsistent state.
 
 ## Formatting the Response
 
-Let's enhance the endpoint further to format the response in a more user-friendly way:
+After successfully updating a product, we'll format a comprehensive response that includes:
 
-```csharp
-// Update a product with formatted response
-app.MapPut("/products/{id}", async (int id, ProductUpdateRequest request, JewelryContext db) =>
-{
-    using var transaction = await db.Database.BeginTransactionAsync();
+1. Basic product information (ID, name, description, price, etc.)
+2. Calculated fields like discounted price
+3. Related entity information (metal, category, discount)
+4. Gemstone information with calculated values
+5. A timestamp indicating when the update occurred
 
-    try
-    {
-        // Find the product with its gemstones
-        var product = await db.Products
-            .Include(p => p.ProductGemstones)
-            .FirstOrDefaultAsync(p => p.Id == id);
+This detailed response provides clients with all the information they need about the updated product.
 
-        if (product == null)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
+## Handling Errors
 
-        // Validate the updated data
-        if (string.IsNullOrWhiteSpace(request.Name))
-        {
-            return Results.BadRequest(new { Message = "Product name is required" });
-        }
+Our implementation will include robust error handling:
 
-        if (request.Price <= 0)
-        {
-            return Results.BadRequest(new { Message = "Product price must be greater than 0" });
-        }
+1. Use try-catch blocks to catch any exceptions during query execution
+2. Return appropriate HTTP status codes:
+   - 404 Not Found if the product doesn't exist
+   - 400 Bad Request if the data is invalid
+   - 500 Internal Server Error for unexpected errors
+3. Include descriptive error messages in the response
+4. Log detailed error information for debugging
 
-        if (request.StockQuantity < 0)
-        {
-            return Results.BadRequest(new { Message = "Product stock quantity cannot be negative" });
-        }
-
-        // Validate that the related entities exist
-        var metalExists = await db.Metals.AnyAsync(m => m.Id == request.MetalId);
-        if (!metalExists)
-        {
-            return Results.BadRequest(new { Message = $"Metal with ID {request.MetalId} not found" });
-        }
-
-        var categoryExists = await db.Categories.AnyAsync(c => c.Id == request.CategoryId);
-        if (!categoryExists)
-        {
-            return Results.BadRequest(new { Message = $"Category with ID {request.CategoryId} not found" });
-        }
-
-        if (request.DiscountId.HasValue)
-        {
-            var discountExists = await db.Discounts.AnyAsync(d => d.Id == request.DiscountId.Value);
-            if (!discountExists)
-            {
-                return Results.BadRequest(new { Message = $"Discount with ID {request.DiscountId.Value} not found" });
-            }
-        }
-
-        // Update product properties
-        product.Name = request.Name;
-        product.Description = request.Description;
-        product.Price = request.Price;
-        product.StockQuantity = request.StockQuantity;
-        product.Type = request.Type;
-        product.MetalId = request.MetalId;
-        product.CategoryId = request.CategoryId;
-        product.DiscountId = request.DiscountId;
-
-        // Handle gemstones
-        if (request.Gemstones != null)
-        {
-            // Remove existing gemstones
-            db.ProductGemstones.RemoveRange(product.ProductGemstones);
-
-            // Add new gemstones
-            foreach (var gemstoneRequest in request.Gemstones)
-            {
-                // Validate that the gemstone exists
-                var gemstoneExists = await db.Gemstones.AnyAsync(g => g.Id == gemstoneRequest.GemstoneId);
-                if (!gemstoneExists)
-                {
-                    return Results.BadRequest(new { Message = $"Gemstone with ID {gemstoneRequest.GemstoneId} not found" });
-                }
-
-                // Validate carats
-                if (gemstoneRequest.Carats <= 0)
-                {
-                    return Results.BadRequest(new { Message = "Gemstone carats must be greater than 0" });
-                }
-
-                // Add the gemstone to the product
-                var productGemstone = new ProductGemstone
-                {
-                    ProductId = product.Id,
-                    GemstoneId = gemstoneRequest.GemstoneId,
-                    Carats = gemstoneRequest.Carats
-                };
-
-                product.ProductGemstones.Add(productGemstone);
-            }
-        }
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        // Commit the transaction
-        await transaction.CommitAsync();
-
-        // Retrieve the updated product with all related data
-        var updatedProduct = await db.Products
-            .AsNoTracking()
-            .Include(p => p.Metal)
-            .Include(p => p.Category)
-            .Include(p => p.Discount)
-            .Include(p => p.ProductGemstones)
-                .ThenInclude(pg => pg.Gemstone)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        // Format the response
-        var response = new
-        {
-            updatedProduct.Id,
-            updatedProduct.Name,
-            updatedProduct.Description,
-            updatedProduct.Price,
-            DiscountedPrice = updatedProduct.Discount != null && updatedProduct.Discount.IsActive
-                ? updatedProduct.Price * (1 - updatedProduct.Discount.DiscountPercent / 100)
-                : (decimal?)null,
-            updatedProduct.StockQuantity,
-            updatedProduct.Type,
-            Metal = new
-            {
-                updatedProduct.Metal.Id,
-                updatedProduct.Metal.Name,
-                updatedProduct.Metal.PricePerGram
-            },
-            Category = new
-            {
-                updatedProduct.Category.Id,
-                updatedProduct.Category.Name,
-                updatedProduct.Category.Description
-            },
-            Discount = updatedProduct.Discount != null ? new
-            {
-                updatedProduct.Discount.Id,
-                updatedProduct.Discount.Name,
-                updatedProduct.Discount.Description,
-                updatedProduct.Discount.DiscountPercent,
-                updatedProduct.Discount.StartDate,
-                updatedProduct.Discount.EndDate,
-                updatedProduct.Discount.IsActive
-            } : null,
-            Gemstones = updatedProduct.ProductGemstones.Select(pg => new
-            {
-                Id = pg.Gemstone.Id,
-                Name = pg.Gemstone.Name,
-                PricePerCarat = pg.Gemstone.PricePerCarat,
-                Carats = pg.Carats,
-                TotalValue = pg.Carats * pg.Gemstone.PricePerCarat
-            }).ToList(),
-            UpdatedAt = DateTime.Now
-        };
-
-        return Results.Ok(response);
-    }
-    catch (Exception ex)
-    {
-        // Rollback the transaction
-        await transaction.RollbackAsync();
-
-        // Log the exception
-        Console.WriteLine($"Error updating product: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while updating the product",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("UpdateProduct")
-.WithOpenApi();
-```
-
-Now, the endpoint returns a well-formatted response that includes:
-- Basic product information
-- Calculated fields like discounted price
-- Formatted information about related entities (metal, category, discount)
-- Detailed information about gemstones, including the total value of each gemstone
-- A timestamp indicating when the update occurred
+This approach helps clients understand what went wrong and provides valuable information for debugging issues.
 
 ## Implementing Partial Updates
 
-In many cases, clients may want to update only specific fields of a product, rather than providing all fields. Let's implement a PATCH endpoint for partial updates:
+In many cases, clients may want to update only specific fields of a product, rather than providing all fields. To support this, we'll implement a PATCH endpoint:
 
-```csharp
-// Partially update a product
-app.MapPatch("/products/{id}", async (int id, JsonPatchDocument<Product> patchDoc, JewelryContext db) =>
-{
-    try
-    {
-        // Find the product
-        var product = await db.Products.FindAsync(id);
+1. Define a route handler for PATCH /products/{id}
+2. Parse the request body to extract the fields to update
+3. Build a dynamic SQL UPDATE statement that only updates the specified fields
+4. Execute the statement and return the updated product
 
-        if (product == null)
-        {
-            return Results.NotFound(new { Message = $"Product with ID {id} not found" });
-        }
+This approach is more flexible than the PUT endpoint, as it allows clients to update only the fields they need to change.
 
-        // Apply the patch
-        patchDoc.ApplyTo(product);
+## Handling Concurrent Updates
 
-        // Validate the updated product
-        if (string.IsNullOrWhiteSpace(product.Name))
-        {
-            return Results.BadRequest(new { Message = "Product name is required" });
-        }
+To handle concurrent updates and prevent data loss, we can implement optimistic concurrency control:
 
-        if (product.Price <= 0)
-        {
-            return Results.BadRequest(new { Message = "Product price must be greater than 0" });
-        }
+1. Add a version or timestamp column to the products table
+2. Include this value in responses and require it in update requests
+3. Check that the version hasn't changed before applying updates
+4. Return an error if the version has changed, indicating that someone else has updated the product
 
-        if (product.StockQuantity < 0)
-        {
-            return Results.BadRequest(new { Message = "Product stock quantity cannot be negative" });
-        }
-
-        // Validate that the related entities exist
-        if (product.MetalId != 0)
-        {
-            var metalExists = await db.Metals.AnyAsync(m => m.Id == product.MetalId);
-            if (!metalExists)
-            {
-                return Results.BadRequest(new { Message = $"Metal with ID {product.MetalId} not found" });
-            }
-        }
-
-        if (product.CategoryId != 0)
-        {
-            var categoryExists = await db.Categories.AnyAsync(c => c.Id == product.CategoryId);
-            if (!categoryExists)
-            {
-                return Results.BadRequest(new { Message = $"Category with ID {product.CategoryId} not found" });
-            }
-        }
-
-        if (product.DiscountId.HasValue)
-        {
-            var discountExists = await db.Discounts.AnyAsync(d => d.Id == product.DiscountId.Value);
-            if (!discountExists)
-            {
-                return Results.BadRequest(new { Message = $"Discount with ID {product.DiscountId.Value} not found" });
-            }
-        }
-
-        // Save changes
-        await db.SaveChangesAsync();
-
-        return Results.Ok(product);
-    }
-    catch (Exception ex)
-    {
-        // Log the exception
-        Console.WriteLine($"Error updating product: {ex.Message}");
-
-        // Return a 500 Internal Server Error response
-        return Results.Problem(
-            title: "An error occurred while updating the product",
-            detail: ex.Message,
-            statusCode: 500
-        );
-    }
-})
-.WithName("PatchProduct")
-.WithOpenApi();
-```
-
-To use this endpoint, you'll need to add the `Microsoft.AspNetCore.JsonPatch` package to your project:
-
-```bash
-dotnet add package Microsoft.AspNetCore.JsonPatch
-```
-
-And you'll need to add the necessary services to your application:
-
-```csharp
-builder.Services.AddControllers().AddNewtonsoftJson();
-```
-
-With this endpoint, clients can send a JSON Patch document to update specific fields of a product. For example:
-
-```json
-[
-  { "op": "replace", "path": "/name", "value": "New Product Name" },
-  { "op": "replace", "path": "/price", "value": 29.99 }
-]
-```
-
-This would update only the name and price of the product, leaving other fields unchanged.
+This approach helps prevent multiple users from overwriting each other's changes.
 
 ## Conclusion
 

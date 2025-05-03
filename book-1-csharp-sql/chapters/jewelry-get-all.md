@@ -14,710 +14,98 @@ By the end of this chapter, you should be able to:
 
 ## Implementing the Basic Endpoint
 
-We've already implemented a basic endpoint for retrieving all products in the previous chapter. Let's review and enhance it:
+We'll start by implementing a basic endpoint for retrieving all products. This endpoint will:
 
-```csharp
-// Get all products with related data
-app.MapGet("/products", async (JewelryContext db) =>
-    await db.Products
-        .Include(p => p.Metal)
-        .Include(p => p.Category)
-        .Include(p => p.Discount)
-        .ToListAsync())
-    .WithName("GetAllProducts")
-    .WithOpenApi();
-```
+1. Define a route handler for GET /products
+2. Use the DatabaseService to execute a SQL query that retrieves all products
+3. Map the database results to Product objects
+4. Return the list of products as a JSON response
 
-This endpoint retrieves all products from the database, including related metal, category, and discount data. However, it has several limitations:
-- It returns all products without any filtering
-- There's no sorting capability
-- It doesn't handle pagination, which could be problematic with large datasets
-- The response format might include more data than needed
-
-Let's address these limitations one by one.
+The SQL query will be simple at first, just selecting all columns from the products table.
 
 ## Adding Filtering Capabilities
 
-First, let's add filtering capabilities to our endpoint. We'll allow filtering by category, metal, price range, and whether the product is discounted:
+To make our API more flexible, we'll enhance the endpoint to support filtering based on various criteria:
 
-```csharp
-// Get all products with filtering
-app.MapGet("/products", async (
-    JewelryContext db,
-    int? categoryId,
-    int? metalId,
-    decimal? minPrice,
-    decimal? maxPrice,
-    bool? discounted) =>
-{
-    var query = db.Products
-        .Include(p => p.Metal)
-        .Include(p => p.Category)
-        .Include(p => p.Discount)
-        .AsQueryable();
+1. Category (filter by category_id)
+2. Metal (filter by metal_id)
+3. Price range (filter by min_price and max_price)
+4. Discount status (filter by discounted flag)
 
-    // Apply filters
-    if (categoryId.HasValue)
-    {
-        query = query.Where(p => p.CategoryId == categoryId.Value);
-    }
+The implementation will:
+1. Accept query parameters for each filter
+2. Build a dynamic SQL query with WHERE clauses based on the provided parameters
+3. Use parameterized queries to prevent SQL injection
+4. Apply the filters in the database rather than in memory for better performance
 
-    if (metalId.HasValue)
-    {
-        query = query.Where(p => p.MetalId == metalId.Value);
-    }
-
-    if (minPrice.HasValue)
-    {
-        query = query.Where(p => p.Price >= minPrice.Value);
-    }
-
-    if (maxPrice.HasValue)
-    {
-        query = query.Where(p => p.Price <= maxPrice.Value);
-    }
-
-    if (discounted.HasValue && discounted.Value)
-    {
-        query = query.Where(p => p.DiscountId != null && p.Discount.IsActive);
-    }
-
-    var products = await query.ToListAsync();
-    return Results.Ok(products);
-})
-.WithName("GetAllProducts")
-.WithOpenApi();
-```
-
-Now, users can filter products by adding query parameters to the URL, such as:
-- `/products?categoryId=1` - Get all products in category 1
-- `/products?minPrice=100&maxPrice=500` - Get all products with a price between $100 and $500
-- `/products?discounted=true` - Get all products with an active discount
+This approach allows clients to request only the products that match specific criteria, making the API more efficient and useful.
 
 ## Implementing Sorting
 
-Next, let's add sorting capabilities to our endpoint. We'll allow sorting by name, price, and stock quantity:
+Next, we'll add sorting capabilities to our endpoint. This will allow clients to specify the order in which products should be returned:
 
-```csharp
-// Get all products with filtering and sorting
-app.MapGet("/products", async (
-    JewelryContext db,
-    int? categoryId,
-    int? metalId,
-    decimal? minPrice,
-    decimal? maxPrice,
-    bool? discounted,
-    string? sortBy,
-    bool? sortDesc) =>
-{
-    var query = db.Products
-        .Include(p => p.Metal)
-        .Include(p => p.Category)
-        .Include(p => p.Discount)
-        .AsQueryable();
+1. By name (alphabetical)
+2. By price (low to high or high to low)
+3. By stock quantity (low to high or high to low)
 
-    // Apply filters
-    if (categoryId.HasValue)
-    {
-        query = query.Where(p => p.CategoryId == categoryId.Value);
-    }
+The implementation will:
+1. Accept sortBy and sortDirection query parameters
+2. Add an ORDER BY clause to the SQL query based on these parameters
+3. Provide a default sort order (by ID) if no sort parameter is specified
 
-    if (metalId.HasValue)
-    {
-        query = query.Where(p => p.MetalId == metalId.Value);
-    }
-
-    if (minPrice.HasValue)
-    {
-        query = query.Where(p => p.Price >= minPrice.Value);
-    }
-
-    if (maxPrice.HasValue)
-    {
-        query = query.Where(p => p.Price <= maxPrice.Value);
-    }
-
-    if (discounted.HasValue && discounted.Value)
-    {
-        query = query.Where(p => p.DiscountId != null && p.Discount.IsActive);
-    }
-
-    // Apply sorting
-    if (!string.IsNullOrEmpty(sortBy))
-    {
-        bool isDescending = sortDesc ?? false;
-
-        query = sortBy.ToLower() switch
-        {
-            "name" => isDescending
-                ? query.OrderByDescending(p => p.Name)
-                : query.OrderBy(p => p.Name),
-            "price" => isDescending
-                ? query.OrderByDescending(p => p.Price)
-                : query.OrderBy(p => p.Price),
-            "stock" => isDescending
-                ? query.OrderByDescending(p => p.StockQuantity)
-                : query.OrderBy(p => p.StockQuantity),
-            _ => query.OrderBy(p => p.Id) // Default sorting
-        };
-    }
-    else
-    {
-        // Default sorting by ID
-        query = query.OrderBy(p => p.Id);
-    }
-
-    var products = await query.ToListAsync();
-    return Results.Ok(products);
-})
-.WithName("GetAllProducts")
-.WithOpenApi();
-```
-
-Now, users can sort products by adding query parameters to the URL, such as:
-- `/products?sortBy=name` - Sort products by name (ascending)
-- `/products?sortBy=price&sortDesc=true` - Sort products by price (descending)
-- `/products?sortBy=stock` - Sort products by stock quantity (ascending)
+This sorting functionality gives clients control over how the data is organized in the response.
 
 ## Adding Pagination
 
-To handle large result sets, let's add pagination to our endpoint:
+To handle large result sets efficiently, we'll implement pagination. This prevents performance issues when the database contains many products and reduces the amount of data transferred over the network.
 
-```csharp
-// Get all products with filtering, sorting, and pagination
-app.MapGet("/products", async (
-    JewelryContext db,
-    int? categoryId,
-    int? metalId,
-    decimal? minPrice,
-    decimal? maxPrice,
-    bool? discounted,
-    string? sortBy,
-    bool? sortDesc,
-    int page = 1,
-    int pageSize = 10) =>
-{
-    var query = db.Products
-        .Include(p => p.Metal)
-        .Include(p => p.Category)
-        .Include(p => p.Discount)
-        .AsQueryable();
+The pagination implementation will:
+1. Accept page and pageSize parameters with default values
+2. Use SQL's LIMIT and OFFSET clauses to retrieve only the requested page of results
+3. Include a count of total matching products
+4. Calculate pagination metadata (total pages, has next page, has previous page)
 
-    // Apply filters
-    if (categoryId.HasValue)
-    {
-        query = query.Where(p => p.CategoryId == categoryId.Value);
-    }
-
-    if (metalId.HasValue)
-    {
-        query = query.Where(p => p.MetalId == metalId.Value);
-    }
-
-    if (minPrice.HasValue)
-    {
-        query = query.Where(p => p.Price >= minPrice.Value);
-    }
-
-    if (maxPrice.HasValue)
-    {
-        query = query.Where(p => p.Price <= maxPrice.Value);
-    }
-
-    if (discounted.HasValue && discounted.Value)
-    {
-        query = query.Where(p => p.DiscountId != null && p.Discount.IsActive);
-    }
-
-    // Get total count for pagination
-    var totalCount = await query.CountAsync();
-
-    // Apply sorting
-    if (!string.IsNullOrEmpty(sortBy))
-    {
-        bool isDescending = sortDesc ?? false;
-
-        query = sortBy.ToLower() switch
-        {
-            "name" => isDescending
-                ? query.OrderByDescending(p => p.Name)
-                : query.OrderBy(p => p.Name),
-            "price" => isDescending
-                ? query.OrderByDescending(p => p.Price)
-                : query.OrderBy(p => p.Price),
-            "stock" => isDescending
-                ? query.OrderByDescending(p => p.StockQuantity)
-                : query.OrderBy(p => p.StockQuantity),
-            _ => query.OrderBy(p => p.Id) // Default sorting
-        };
-    }
-    else
-    {
-        // Default sorting by ID
-        query = query.OrderBy(p => p.Id);
-    }
-
-    // Apply pagination
-    var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-    var products = await query
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .ToListAsync();
-
-    // Create pagination metadata
-    var pagination = new
-    {
-        TotalCount = totalCount,
-        TotalPages = totalPages,
-        CurrentPage = page,
-        PageSize = pageSize,
-        HasPrevious = page > 1,
-        HasNext = page < totalPages
-    };
-
-    return Results.Ok(new
-    {
-        Products = products,
-        Pagination = pagination
-    });
-})
-.WithName("GetAllProducts")
-.WithOpenApi();
-```
-
-Now, users can paginate through the results by adding query parameters to the URL, such as:
-- `/products?page=2` - Get the second page of products
-- `/products?page=3&pageSize=20` - Get the third page with 20 products per page
-
-The response now includes pagination metadata, which helps clients navigate through the result set.
+This approach helps clients navigate through large datasets efficiently without overwhelming the server or the client.
 
 ## Formatting the Response
 
-The current response includes all properties of the product, including navigation properties. This might result in a large response with more data than needed. Let's format the response to include only the necessary information:
+The default response from our database query might include more data than needed or might not be structured in the most useful way. We'll enhance the response format to:
 
-```csharp
-// Get all products with filtering, sorting, pagination, and response formatting
-app.MapGet("/products", async (
-    JewelryContext db,
-    int? categoryId,
-    int? metalId,
-    decimal? minPrice,
-    decimal? maxPrice,
-    bool? discounted,
-    string? sortBy,
-    bool? sortDesc,
-    int page = 1,
-    int pageSize = 10) =>
-{
-    var query = db.Products
-        .Include(p => p.Metal)
-        .Include(p => p.Category)
-        .Include(p => p.Discount)
-        .AsQueryable();
+1. Include only the necessary product information
+2. Add calculated fields like discounted price
+3. Include basic information about related entities (metal, category, discount)
+4. Structure the response in a consistent and intuitive way
+5. Include pagination metadata
 
-    // Apply filters
-    if (categoryId.HasValue)
-    {
-        query = query.Where(p => p.CategoryId == categoryId.Value);
-    }
-
-    if (metalId.HasValue)
-    {
-        query = query.Where(p => p.MetalId == metalId.Value);
-    }
-
-    if (minPrice.HasValue)
-    {
-        query = query.Where(p => p.Price >= minPrice.Value);
-    }
-
-    if (maxPrice.HasValue)
-    {
-        query = query.Where(p => p.Price <= maxPrice.Value);
-    }
-
-    if (discounted.HasValue && discounted.Value)
-    {
-        query = query.Where(p => p.DiscountId != null && p.Discount.IsActive);
-    }
-
-    // Get total count for pagination
-    var totalCount = await query.CountAsync();
-
-    // Apply sorting
-    if (!string.IsNullOrEmpty(sortBy))
-    {
-        bool isDescending = sortDesc ?? false;
-
-        query = sortBy.ToLower() switch
-        {
-            "name" => isDescending
-                ? query.OrderByDescending(p => p.Name)
-                : query.OrderBy(p => p.Name),
-            "price" => isDescending
-                ? query.OrderByDescending(p => p.Price)
-                : query.OrderBy(p => p.Price),
-            "stock" => isDescending
-                ? query.OrderByDescending(p => p.StockQuantity)
-                : query.OrderBy(p => p.StockQuantity),
-            _ => query.OrderBy(p => p.Id) // Default sorting
-        };
-    }
-    else
-    {
-        // Default sorting by ID
-        query = query.OrderBy(p => p.Id);
-    }
-
-    // Apply pagination
-    var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-    var products = await query
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .ToListAsync();
-
-    // Format the response
-    var formattedProducts = products.Select(p => new
-    {
-        p.Id,
-        p.Name,
-        p.Description,
-        p.Price,
-        DiscountedPrice = p.Discount != null && p.Discount.IsActive
-            ? p.Price * (1 - p.Discount.DiscountPercent / 100)
-            : (decimal?)null,
-        p.StockQuantity,
-        p.Type,
-        Metal = new
-        {
-            p.Metal.Id,
-            p.Metal.Name
-        },
-        Category = new
-        {
-            p.Category.Id,
-            p.Category.Name
-        },
-        Discount = p.Discount != null ? new
-        {
-            p.Discount.Id,
-            p.Discount.Name,
-            p.Discount.DiscountPercent,
-            p.Discount.IsActive
-        } : null
-    });
-
-    // Create pagination metadata
-    var pagination = new
-    {
-        TotalCount = totalCount,
-        TotalPages = totalPages,
-        CurrentPage = page,
-        PageSize = pageSize,
-        HasPrevious = page > 1,
-        HasNext = page < totalPages
-    };
-
-    return Results.Ok(new
-    {
-        Products = formattedProducts,
-        Pagination = pagination
-    });
-})
-.WithName("GetAllProducts")
-.WithOpenApi();
-```
-
-Now, the response includes only the necessary information about each product, with nested objects for related entities like metal, category, and discount.
+This formatting makes the API response more concise and easier to consume by clients.
 
 ## Optimizing Database Queries
 
-To optimize database queries, we can use projection to select only the properties we need, rather than loading entire entities:
+To improve performance, we'll optimize our database queries using several techniques:
 
-```csharp
-// Get all products with filtering, sorting, pagination, response formatting, and query optimization
-app.MapGet("/products", async (
-    JewelryContext db,
-    int? categoryId,
-    int? metalId,
-    decimal? minPrice,
-    decimal? maxPrice,
-    bool? discounted,
-    string? sortBy,
-    bool? sortDesc,
-    int page = 1,
-    int pageSize = 10) =>
-{
-    var query = db.Products
-        .AsNoTracking() // Improves performance for read-only queries
-        .AsQueryable();
+1. Using SQL JOINs to retrieve related data in a single query
+2. Selecting only the columns we need instead of using SELECT *
+3. Adding appropriate WHERE clauses early in the query
+4. Using indexes on commonly filtered columns
+5. Implementing efficient pagination with LIMIT and OFFSET
 
-    // Apply filters
-    if (categoryId.HasValue)
-    {
-        query = query.Where(p => p.CategoryId == categoryId.Value);
-    }
+These optimizations help ensure that our API remains performant even with large datasets and complex queries.
 
-    if (metalId.HasValue)
-    {
-        query = query.Where(p => p.MetalId == metalId.Value);
-    }
+## Implementing the Enhanced Endpoint
 
-    if (minPrice.HasValue)
-    {
-        query = query.Where(p => p.Price >= minPrice.Value);
-    }
+Putting it all together, our enhanced endpoint will:
 
-    if (maxPrice.HasValue)
-    {
-        query = query.Where(p => p.Price <= maxPrice.Value);
-    }
+1. Accept multiple query parameters for filtering, sorting, and pagination
+2. Build a dynamic SQL query based on these parameters
+3. Execute the query efficiently using parameterized statements
+4. Format the response with the appropriate structure and pagination metadata
+5. Handle errors gracefully with appropriate status codes and messages
 
-    if (discounted.HasValue && discounted.Value)
-    {
-        query = query.Where(p => p.DiscountId != null && p.Discount.IsActive);
-    }
-
-    // Get total count for pagination
-    var totalCount = await query.CountAsync();
-
-    // Apply sorting
-    if (!string.IsNullOrEmpty(sortBy))
-    {
-        bool isDescending = sortDesc ?? false;
-
-        query = sortBy.ToLower() switch
-        {
-            "name" => isDescending
-                ? query.OrderByDescending(p => p.Name)
-                : query.OrderBy(p => p.Name),
-            "price" => isDescending
-                ? query.OrderByDescending(p => p.Price)
-                : query.OrderBy(p => p.Price),
-            "stock" => isDescending
-                ? query.OrderByDescending(p => p.StockQuantity)
-                : query.OrderBy(p => p.StockQuantity),
-            _ => query.OrderBy(p => p.Id) // Default sorting
-        };
-    }
-    else
-    {
-        // Default sorting by ID
-        query = query.OrderBy(p => p.Id);
-    }
-
-    // Apply pagination and projection
-    var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-    var products = await query
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(p => new
-        {
-            p.Id,
-            p.Name,
-            p.Description,
-            p.Price,
-            DiscountedPrice = p.Discount != null && p.Discount.IsActive
-                ? p.Price * (1 - p.Discount.DiscountPercent / 100)
-                : (decimal?)null,
-            p.StockQuantity,
-            p.Type,
-            Metal = new
-            {
-                Id = p.Metal.Id,
-                Name = p.Metal.Name
-            },
-            Category = new
-            {
-                Id = p.Category.Id,
-                Name = p.Category.Name
-            },
-            Discount = p.Discount != null ? new
-            {
-                Id = p.Discount.Id,
-                Name = p.Discount.Name,
-                DiscountPercent = p.Discount.DiscountPercent,
-                IsActive = p.Discount.IsActive
-            } : null
-        })
-        .ToListAsync();
-
-    // Create pagination metadata
-    var pagination = new
-    {
-        TotalCount = totalCount,
-        TotalPages = totalPages,
-        CurrentPage = page,
-        PageSize = pageSize,
-        HasPrevious = page > 1,
-        HasNext = page < totalPages
-    };
-
-    return Results.Ok(new
-    {
-        Products = products,
-        Pagination = pagination
-    });
-})
-.WithName("GetAllProducts")
-.WithOpenApi();
-```
-
-In this optimized version:
-- We use `AsNoTracking()` to improve performance for read-only queries
-- We use projection with `Select()` to retrieve only the properties we need, rather than loading entire entities
-- We perform the projection in the database query, rather than in memory
-
-## Adding Search Functionality
-
-Finally, let's add search functionality to our endpoint:
-
-```csharp
-// Get all products with filtering, sorting, pagination, response formatting, query optimization, and search
-app.MapGet("/products", async (
-    JewelryContext db,
-    string? search,
-    int? categoryId,
-    int? metalId,
-    decimal? minPrice,
-    decimal? maxPrice,
-    bool? discounted,
-    string? sortBy,
-    bool? sortDesc,
-    int page = 1,
-    int pageSize = 10) =>
-{
-    var query = db.Products
-        .AsNoTracking()
-        .AsQueryable();
-
-    // Apply search
-    if (!string.IsNullOrEmpty(search))
-    {
-        search = search.ToLower();
-        query = query.Where(p =>
-            p.Name.ToLower().Contains(search) ||
-            p.Description.ToLower().Contains(search) ||
-            p.Type.ToLower().Contains(search));
-    }
-
-    // Apply filters
-    if (categoryId.HasValue)
-    {
-        query = query.Where(p => p.CategoryId == categoryId.Value);
-    }
-
-    if (metalId.HasValue)
-    {
-        query = query.Where(p => p.MetalId == metalId.Value);
-    }
-
-    if (minPrice.HasValue)
-    {
-        query = query.Where(p => p.Price >= minPrice.Value);
-    }
-
-    if (maxPrice.HasValue)
-    {
-        query = query.Where(p => p.Price <= maxPrice.Value);
-    }
-
-    if (discounted.HasValue && discounted.Value)
-    {
-        query = query.Where(p => p.DiscountId != null && p.Discount.IsActive);
-    }
-
-    // Get total count for pagination
-    var totalCount = await query.CountAsync();
-
-    // Apply sorting
-    if (!string.IsNullOrEmpty(sortBy))
-    {
-        bool isDescending = sortDesc ?? false;
-
-        query = sortBy.ToLower() switch
-        {
-            "name" => isDescending
-                ? query.OrderByDescending(p => p.Name)
-                : query.OrderBy(p => p.Name),
-            "price" => isDescending
-                ? query.OrderByDescending(p => p.Price)
-                : query.OrderBy(p => p.Price),
-            "stock" => isDescending
-                ? query.OrderByDescending(p => p.StockQuantity)
-                : query.OrderBy(p => p.StockQuantity),
-            _ => query.OrderBy(p => p.Id) // Default sorting
-        };
-    }
-    else
-    {
-        // Default sorting by ID
-        query = query.OrderBy(p => p.Id);
-    }
-
-    // Apply pagination and projection
-    var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-    var products = await query
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(p => new
-        {
-            p.Id,
-            p.Name,
-            p.Description,
-            p.Price,
-            DiscountedPrice = p.Discount != null && p.Discount.IsActive
-                ? p.Price * (1 - p.Discount.DiscountPercent / 100)
-                : (decimal?)null,
-            p.StockQuantity,
-            p.Type,
-            Metal = new
-            {
-                Id = p.Metal.Id,
-                Name = p.Metal.Name
-            },
-            Category = new
-            {
-                Id = p.Category.Id,
-                Name = p.Category.Name
-            },
-            Discount = p.Discount != null ? new
-            {
-                Id = p.Discount.Id,
-                Name = p.Discount.Name,
-                DiscountPercent = p.Discount.DiscountPercent,
-                IsActive = p.Discount.IsActive
-            } : null
-        })
-        .ToListAsync();
-
-    // Create pagination metadata
-    var pagination = new
-    {
-        TotalCount = totalCount,
-        TotalPages = totalPages,
-        CurrentPage = page,
-        PageSize = pageSize,
-        HasPrevious = page > 1,
-        HasNext = page < totalPages
-    };
-
-    return Results.Ok(new
-    {
-        Products = products,
-        Pagination = pagination
-    });
-})
-.WithName("GetAllProducts")
-.WithOpenApi();
-```
-
-Now, users can search for products by adding a `search` query parameter to the URL, such as:
-- `/products?search=diamond` - Search for products with "diamond" in the name, description, or type
+The implementation will use the DatabaseService to execute the SQL queries and map the results to our model objects.
 
 ## Conclusion
 
-In this chapter, you've learned how to implement and enhance the endpoint for retrieving all products in the Jewelry Junction API. You've added filtering, sorting, pagination, search functionality, and response formatting. You've also learned how to optimize database queries for better performance.
+In this chapter, you've learned how to implement and enhance the endpoint for retrieving all products in the Jewelry Junction API. You've added filtering, sorting, pagination, and response formatting. You've also learned how to optimize database queries for better performance.
 
 In the next chapter, we'll implement the endpoint for retrieving a single product by ID, including its related data.
 
@@ -728,4 +116,4 @@ Enhance your Get All Products endpoint by:
 2. Adding a filter for products by gemstone (e.g., `?gemstoneId=1` for products with a specific gemstone)
 3. Adding a sort option for average rating (e.g., `?sortBy=rating`)
 4. Adding a filter for products with a minimum average rating (e.g., `?minRating=4`)
-5. Implementing a more advanced search that also searches in metal and category names
+5. Implementing a more advanced search that looks for keywords in product names and descriptions
