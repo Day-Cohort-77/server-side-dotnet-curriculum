@@ -21,17 +21,42 @@ SQL provides several types of joins to combine data from multiple tables:
 
 In our Jewelry Junction API, we'll primarily use INNER JOINs and LEFT JOINs to retrieve related data.
 
-## Implementing a Product Details Endpoint
+## Updating the Product Details Endpoint
 
-First, we'll implement an endpoint that retrieves detailed information about a product, including its metal, category, discount, gemstones, and reviews. This endpoint will:
+Your current single product endpoint retrieves the basic information about the product, but now you will utilize the powerful `JOIN` operation in SQL to provide more details to the response body.
 
-1. Define a route handler for GET /products/{id}/details
-2. Use a SQL query with multiple JOINs to retrieve all related data in a single query:
+1. Open the route handler for GET `/products/{id}`
+2. Update the existing SQL query with multiple JOINs to retrieve all related data in a single query:
    - JOIN with metals table to get metal details
    - JOIN with categories table to get category details
    - LEFT JOIN with discounts table to get discount details (if any)
    - LEFT JOIN with product_gemstones and gemstones tables to get gemstone details
    - LEFT JOIN with reviews and customers tables to get review details
+   ```sql
+   --Don't ever use the `*` character in your SELECT clause
+   SELECT
+       p.id AS product_id,
+       p.name AS product_name,
+       p.description AS product_description,
+       p.price AS product_price,
+       m.name AS metal_name,
+       c.name AS category_name,
+       d.name AS discount_name,
+       g.name AS gemstone_name,
+       pg.carat_weight AS gemstone_carat_weight,
+       r.rating AS review_rating,
+       r.comment AS review_comment,
+       cu.name AS reviewer_name
+   FROM products p
+   INNER JOIN metals m ON p.metal_id = m.id
+   INNER JOIN categories c ON p.category_id = c.id
+   LEFT JOIN discounts d ON p.discount_id = d.id
+   LEFT JOIN product_gemstones pg ON p.id = pg.product_id
+   LEFT JOIN gemstones g ON pg.gemstone_id = g.id
+   LEFT JOIN reviews r ON p.id = r.product_id
+   LEFT JOIN customers cu ON r.customer_id = cu.id;
+   WHERE p.id = @productId;
+   ```
 
 3. Calculate derived values:
    - Average rating based on reviews
@@ -46,7 +71,7 @@ This comprehensive endpoint provides clients with all the information they need 
 
 Next, we'll implement a search endpoint that allows filtering products based on various criteria, including related data. This endpoint will:
 
-1. Define a route handler for GET /products/search
+1. Define a route handler for GET `/products/search`
 2. Accept multiple query parameters for filtering:
    - Name/description (text search)
    - Product type
@@ -67,7 +92,7 @@ This flexible search endpoint allows clients to find products that match specifi
 
 To provide business insights, we'll implement a sales report endpoint that joins order data with product data. This endpoint will:
 
-1. Define a route handler for GET /reports/sales
+1. Define a route handler for GET `/reports/sales`
 2. Accept date range parameters (start date, end date)
 3. Accept a grouping parameter to specify how to aggregate the data
 4. Use a SQL query with multiple JOINs to retrieve orders, order items, products, categories, and metals
@@ -89,7 +114,7 @@ This reporting endpoint provides valuable business insights that can help with i
 
 To support customer account features, we'll implement an endpoint that retrieves a customer's order history. This endpoint will:
 
-1. Define a route handler for GET /customers/{id}/orders
+1. Define a route handler for GET `/customers/{id}/orders`
 2. Verify the customer exists
 3. Use a SQL query with JOINs to retrieve:
    - All orders for the customer
@@ -107,7 +132,7 @@ This endpoint provides a comprehensive view of a customer's purchase history, wh
 
 To enhance the shopping experience, we'll implement a product recommendations endpoint based on a customer's order history. This endpoint will:
 
-1. Define a route handler for GET /customers/{id}/recommendations
+1. Define a route handler for GET `/customers/{id}/` recommendations
 2. Analyze a customer's previous orders to determine preferences:
    - Identify categories they've purchased from
    - Identify metals they've shown interest in
@@ -120,24 +145,6 @@ To enhance the shopping experience, we'll implement a product recommendations en
 6. Format the response to include product details and a reason for each recommendation
 
 This recommendation engine provides personalized product suggestions that can increase cross-selling opportunities and enhance the customer experience.
-
-## Optimizing Queries
-
-When working with complex joins and queries, it's important to optimize them for performance. We'll explore several techniques:
-
-1. **Selecting specific columns**: Instead of using SELECT *, specify only the columns you need
-2. **Using indexes**: Ensure that columns used in JOIN and WHERE clauses are properly indexed
-3. **Filtering early**: Apply WHERE clauses before JOINs to reduce the number of rows processed
-4. **Using appropriate join types**: Choose the right type of join for each relationship
-5. **Implementing pagination**: Use LIMIT and OFFSET to retrieve only the data needed for the current page
-6. **Avoiding subqueries when possible**: Use JOINs instead of subqueries when appropriate
-
-We'll update our product search endpoint to demonstrate these optimization techniques:
-- Adding pagination parameters (page number, page size)
-- Using LIMIT and OFFSET in the SQL query
-- Including pagination metadata in the response
-
-These optimizations ensure that our API remains performant even with large datasets and complex queries.
 
 ## Conclusion
 

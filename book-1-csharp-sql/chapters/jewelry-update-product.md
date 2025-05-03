@@ -1,135 +1,256 @@
 # Update a Product
 
-In this chapter, we'll implement the endpoint for updating a product in our Jewelry Junction API. This will involve validation, handling of related data, and ensuring data consistency.
+In this chapter, we'll implement the endpoint for updating a product in our Jewelry Junction API. This will be our first experience with PUT operations, which allow us to update existing resources.
 
 ## Learning Objectives
 
 By the end of this chapter, you should be able to:
 - Implement a PUT endpoint to update a product
 - Validate the product data before updating
-- Handle updates to related data
-- Implement proper error handling
+- Update a product in the database
 - Return appropriate responses
 
-## Understanding the Product Update Process
+## Understanding PUT Requests
 
-Updating a product involves several considerations:
-1. Validating that the product exists
-2. Validating the updated data
-3. Handling updates to related data (e.g., gemstones)
-4. Ensuring data consistency
-5. Returning the updated product
+In REST APIs, PUT requests are used to update existing resources. When we make a PUT request, we're asking the server to replace the current version of a resource with the new version we're providing.
 
-Let's implement an endpoint that addresses these considerations.
+For our product update endpoint, we'll:
+1. Receive a PUT request with the product ID in the URL and the updated product data in the request body
+2. Check if the product exists
+3. Update the product in the database
+4. Return the updated product
 
 ## Implementing the Basic Endpoint
 
-For our product update endpoint, we'll implement a PUT request handler at the "/products/{id}" route. This basic implementation will:
+Let's start by implementing a simple endpoint that updates a product. We'll add this to our `Program.cs` file:
 
-1. Define a route handler for PUT /products/{id}
-2. Extract the product ID from the URL path
-3. Parse the request body to extract updated product information
-4. Verify that the product exists
-5. Update the product in the database
-6. Return the updated product
+```csharp
+// PUT /products/{id} - Update a product
+app.MapPut("/products/{id}", async (int id, Product updatedProduct, DatabaseService db) =>
+{
+    try
+    {
+        // Check if the product exists
+        var existingProduct = await db.GetProductByIdAsync(id);
+        if (existingProduct == null)
+        {
+            return Results.NotFound($"Product with ID {id} not found");
+        }
 
-The implementation will use the DatabaseService to execute the necessary SQL commands.
+        // Set the ID from the route parameter
+        updatedProduct.Id = id;
 
-## Implementing Data Validation
+        // Update the product
+        var result = await db.UpdateProductAsync(updatedProduct);
 
-Before updating a product, we need to validate the data to ensure it's complete and valid:
+        // Return the updated product
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"An error occurred while updating the product: {ex.Message}");
+    }
+})
+.WithName("UpdateProduct")
+.WithOpenApi();
+```
 
-1. Verify that the product exists by querying the products table
-2. Validate required fields (name, price, etc.)
-3. Check that numeric values are valid (price > 0, stock quantity >= 0)
-4. Verify that related entities (metal, category, discount) exist if referenced
+This endpoint:
+- Maps to PUT requests at the `/products/{id}` URL
+- Takes the product ID from the URL and the updated product data from the request body
+- Checks if the product exists
+- Updates the product using our `DatabaseService`
+- Returns the updated product
 
-This validation helps prevent invalid data from being stored in the database and provides clear error messages to clients.
+## Implementing the Database Method
 
-## Handling Related Data
+Now, let's implement the `UpdateProductAsync` method in our `DatabaseService` class:
 
-Products in our jewelry store have relationships with other entities, particularly gemstones. Updating a product might involve changing its associated gemstones, which requires special handling:
+```csharp
+// Update a product
+public async Task<Product> UpdateProductAsync(Product product)
+{
+    using var connection = CreateConnection();
+    await connection.OpenAsync();
 
-1. Begin a database transaction
-2. Update the basic product information in the products table
-3. Handle gemstone associations:
-   - Delete existing associations from the product_gemstones table
-   - Insert new associations based on the updated data
-4. Commit the transaction if all operations succeed
-5. Roll back the transaction if any operation fails
+    // Create the SQL command to update the product
+    using var command = new NpgsqlCommand(
+        @"UPDATE products
+          SET name = @name,
+              description = @description,
+              price = @price,
+              stock_quantity = @stockQuantity,
+              metal_id = @metalId,
+              category_id = @categoryId,
+              discount_id = @discountId
+          WHERE id = @id",
+        connection);
 
-This approach ensures that related data is updated atomically with the product itself, maintaining data consistency.
+    // Add parameters to the command
+    command.Parameters.AddWithValue("@id", product.Id);
+    command.Parameters.AddWithValue("@name", product.Name);
+    command.Parameters.AddWithValue("@description", product.Description);
+    command.Parameters.AddWithValue("@price", product.Price);
+    command.Parameters.AddWithValue("@stockQuantity", product.StockQuantity);
 
-## Using Transactions
+    // Handle nullable foreign keys
+    if (product.MetalId.HasValue)
+    {
+        command.Parameters.AddWithValue("@metalId", product.MetalId.Value);
+    }
+    else
+    {
+        command.Parameters.AddWithValue("@metalId", DBNull.Value);
+    }
 
-To ensure data consistency when updating a product and its related data, we'll use a database transaction:
+    if (product.CategoryId.HasValue)
+    {
+        command.Parameters.AddWithValue("@categoryId", product.CategoryId.Value);
+    }
+    else
+    {
+        command.Parameters.AddWithValue("@categoryId", DBNull.Value);
+    }
 
-1. Begin a transaction using BEGIN TRANSACTION
-2. Execute all SQL commands (UPDATE, DELETE, INSERT) within the transaction
-3. Commit the transaction using COMMIT if all commands succeed
-4. Roll back the transaction using ROLLBACK if any command fails
+    if (product.DiscountId.HasValue)
+    {
+        command.Parameters.AddWithValue("@discountId", product.DiscountId.Value);
+    }
+    else
+    {
+        command.Parameters.AddWithValue("@discountId", DBNull.Value);
+    }
 
-This approach prevents partial updates that could leave the database in an inconsistent state.
+    // Execute the command
+    await command.ExecuteNonQueryAsync();
 
-## Formatting the Response
+    // Retrieve and return the updated product
+    return await GetProductByIdAsync(product.Id);
+}
+```
 
-After successfully updating a product, we'll format a comprehensive response that includes:
+This method:
+1. Creates a database connection
+2. Prepares an UPDATE SQL statement with parameters
+3. Sets parameter values from the product object
+4. Handles nullable foreign keys by using DBNull.Value when appropriate
+5. Executes the update command
+6. Retrieves and returns the updated product
 
-1. Basic product information (ID, name, description, price, etc.)
-2. Calculated fields like discounted price
-3. Related entity information (metal, category, discount)
-4. Gemstone information with calculated values
-5. A timestamp indicating when the update occurred
+## Adding Basic Validation
 
-This detailed response provides clients with all the information they need about the updated product.
+Before updating a product, we should validate the data to ensure it's complete and valid. Let's add some basic validation to our endpoint:
 
-## Handling Errors
+```csharp
+// PUT /products/{id} - Update a product
+app.MapPut("/products/{id}", async (int id, Product updatedProduct, DatabaseService db) =>
+{
+    try
+    {
+        // Check if the product exists
+        var existingProduct = await db.GetProductByIdAsync(id);
+        if (existingProduct == null)
+        {
+            return Results.NotFound($"Product with ID {id} not found");
+        }
 
-Our implementation will include robust error handling:
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(updatedProduct.Name))
+        {
+            return Results.BadRequest("Name is required");
+        }
 
-1. Use try-catch blocks to catch any exceptions during query execution
-2. Return appropriate HTTP status codes:
-   - 404 Not Found if the product doesn't exist
-   - 400 Bad Request if the data is invalid
-   - 500 Internal Server Error for unexpected errors
-3. Include descriptive error messages in the response
-4. Log detailed error information for debugging
+        if (string.IsNullOrWhiteSpace(updatedProduct.Description))
+        {
+            return Results.BadRequest("Description is required");
+        }
 
-This approach helps clients understand what went wrong and provides valuable information for debugging issues.
+        // Validate numeric values
+        if (updatedProduct.Price <= 0)
+        {
+            return Results.BadRequest("Price must be greater than zero");
+        }
 
-## Implementing Partial Updates
+        if (updatedProduct.StockQuantity < 0)
+        {
+            return Results.BadRequest("Stock quantity cannot be negative");
+        }
 
-In many cases, clients may want to update only specific fields of a product, rather than providing all fields. To support this, we'll implement a PATCH endpoint:
+        // Set the ID from the route parameter
+        updatedProduct.Id = id;
 
-1. Define a route handler for PATCH /products/{id}
-2. Parse the request body to extract the fields to update
-3. Build a dynamic SQL UPDATE statement that only updates the specified fields
-4. Execute the statement and return the updated product
+        // Update the product
+        var result = await db.UpdateProductAsync(updatedProduct);
 
-This approach is more flexible than the PUT endpoint, as it allows clients to update only the fields they need to change.
+        // Return the updated product
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"An error occurred while updating the product: {ex.Message}");
+    }
+})
+.WithName("UpdateProduct")
+.WithOpenApi();
+```
 
-## Handling Concurrent Updates
+This validation:
+1. Checks that required fields (name, description) are provided
+2. Validates numeric values (price > 0, stock quantity >= 0)
 
-To handle concurrent updates and prevent data loss, we can implement optimistic concurrency control:
+## Testing the Endpoint
 
-1. Add a version or timestamp column to the products table
-2. Include this value in responses and require it in update requests
-3. Check that the version hasn't changed before applying updates
-4. Return an error if the version has changed, indicating that someone else has updated the product
+Now that we've implemented our PUT endpoint, let's test it:
 
-This approach helps prevent multiple users from overwriting each other's changes.
+1. Start the API:
+   ```bash
+   dotnet run
+   ```
+
+2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
+
+3. Find the PUT `/products/{id}` endpoint and click on it
+
+4. Click the "Try it out" button
+
+5. Enter a product ID and a JSON request body with the updated product data:
+   ```json
+   {
+     "name": "Updated Diamond Ring",
+     "description": "A beautiful diamond ring with an updated design",
+     "price": 1299.99,
+     "stockQuantity": 5,
+     "metalId": 1,
+     "categoryId": 1,
+     "discountId": null
+   }
+   ```
+
+6. Click the "Execute" button
+
+7. You should see a 200 OK response with the updated product details
+
+## Understanding HTTP Status Codes
+
+Our endpoint returns different HTTP status codes depending on the result:
+
+- 200 OK: The product was updated successfully
+- 400 Bad Request: The request data is invalid (e.g., missing required fields)
+- 404 Not Found: The product with the specified ID doesn't exist
+- 500 Internal Server Error: An unexpected error occurred
+
+These status codes help the client understand what happened with their request.
 
 ## Conclusion
 
-In this chapter, you've learned how to implement endpoints for updating products in the Jewelry Junction API. You've explored different approaches to updates, including full updates and partial updates, and you've learned how to handle validation, related data, and response formatting.
+In this chapter, you've learned how to implement a PUT endpoint to update a product in the Jewelry Junction API. You've created a route handler that validates the input data, updates the product in the database, and returns the updated product.
 
-In the next chapter, we'll implement the endpoint for joining related data, which will involve more complex queries and data manipulation.
+This is a fundamental operation in RESTful APIs, and you'll use similar patterns for updating other resources in your applications.
 
 ## Practice Exercise
 
 Enhance your product update functionality by:
-1. Adding support for updating product images (URLs or file uploads)
-2. Implementing versioning to track changes to products over time
-3. Adding validation rules based on the product type (e.g., rings must have a size)
-4. Implementing a feature to clone a product (create a new product based on an existing one)
-5. Adding support for bulk updates (updating multiple products at once)
+1. Adding validation for foreign keys (check if metal, category, and discount exist)
+2. Implementing a simple logging mechanism to track product updates
+3. Adding the ability to update a product's gemstones
+4. Creating a simple client interface to test your PUT endpoint
