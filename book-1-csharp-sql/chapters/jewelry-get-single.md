@@ -1,6 +1,6 @@
 # Get Single Product
 
-In this chapter, we'll implement and enhance the endpoint for retrieving a single product by ID in our Jewelry Junction API. We'll explore how to include related data, handle errors, and format the response.
+In this chapter, we'll implement the endpoint for retrieving a single product by ID in our Jewelry Junction API. We'll explore how to include related data, handle errors, and format the response.
 
 ## Learning Objectives
 
@@ -13,11 +13,11 @@ By the end of this chapter, you should be able to:
 
 ## Implementing the Basic Endpoint
 
-We'll start by implementing a basic endpoint for retrieving a single product by ID. This endpoint will:
+We'll start by implementing a basic endpoint in the `ProductEndpoints.cs` module for retrieving a single product by ID. This endpoint will:
 
-1. Define a route handler for GET /products/{id}
+1. Define a route handler for GET `/products/{id}`
 2. Extract the product ID from the URL path
-3. Use the DatabaseService to execute a SQL query that retrieves the product with the specified ID
+3. Use the **DatabaseService** to execute a SQL query that retrieves the product with the specified ID
 4. Return the product as a JSON response if found, or a 404 Not Found response if not found
 
 The SQL query will select the product with the matching ID from the products table.
@@ -64,29 +64,16 @@ To make our API robust, we'll implement comprehensive error handling:
 
 This approach helps with debugging issues and provides clear feedback to clients when something goes wrong.
 
-## Implementing Related Endpoints
-
-To provide more ways to access product information, we'll implement a related endpoint:
-
-### Get Products By Style
-
-This endpoint will retrieve all products with a specific style:
-1. Define a route handler for GET /styles/{id}/products
-2. Use a SQL query with JOINs to retrieve products with the specified style
-3. Include related metal and gemstone information
-4. Format the response to include all product details
-
-Each of these endpoints provides focused information about a specific aspect of a product, making it easier for clients to get exactly what they need.
-
 ## Conclusion
 
-In this chapter, you've learned how to implement and enhance the endpoint for retrieving a single product by ID in the Jewelry Junction API. You've included related data in the response, handled cases where the product doesn't exist, formatted the response data, and implemented error handling. You've also implemented related endpoints to provide more ways to access product information.
+In this chapter, you've learned how to implement and enhance the endpoint for retrieving a single product by ID in the Jewelry Junction API. You've included related data in the response, handled cases where the product doesn't exist, formatted the response data, and implemented error handling.
 
 In the next chapter, we'll implement the endpoint for creating a new order, which will involve more complex operations like transactions and validation.
 
-## Practice Exercise
+## Optional Practice Exercises
 
 Enhance your Get Single Product endpoint by:
+
 1. Adding a parameter to control the inclusion of related data (e.g., `?includeMetal=true&includeGemstone=true&includeStyle=true`)
 2. Adding a calculated field for the total value of the product (base price + metal value + gemstone value)
 3. Creating a new endpoint that returns similar products (products with the same style or with the same metal)
