@@ -60,70 +60,47 @@ After deleting all associated order items, we can delete the order itself:
 
 This completes the order deletion process.
 
-## Enhancing the Response
-
-To provide more information about the deleted order, we'll enhance our response:
-
-1. Format a response that includes:
-   - Basic order information (ID, date, status, total amount)
-   - Order item details
-   - Summary information (item count)
-
-This detailed response helps clients understand what was deleted and can be useful for displaying confirmation messages or maintaining audit trails.
-
-## Implementing Soft Delete
-
-In many real-world applications, it's preferable to implement "soft delete" rather than actually removing records from the database. This involves marking records as deleted rather than physically removing them, which allows for data recovery and audit trails.
-
-To implement soft delete for orders:
-
-1. Add an is_deleted column to the orders table
-2. Add a deleted_at timestamp column to track when the order was deleted
-3. Instead of deleting the order, update these columns:
-   - Set is_deleted to true
-   - Set deleted_at to the current timestamp
-   - Change the order status to "Cancelled"
-4. Update all queries to filter out deleted orders (WHERE is_deleted = false)
-
-This approach preserves the order history while still allowing for "deletion" from the user's perspective.
-
-## Implementing Hard Delete with Confirmation
-
-For cases where permanent deletion is necessary, we can implement a separate endpoint that requires confirmation:
-
-1. Define a route handler for DELETE /orders/{id}/hard
-2. Require a confirmation parameter with a specific value
-3. Perform the same validation and transaction handling as the soft delete endpoint
-4. Physically delete the order items and order from the database
-
-This approach helps prevent accidental permanent deletions by requiring explicit confirmation.
-
-## Implementing a Restore Endpoint
-
-To complement the soft delete functionality, we can implement an endpoint to restore deleted orders:
-
-1. Define a route handler for POST /orders/{id}/restore
-2. Verify that the order exists and is marked as deleted
-3. Check if there's sufficient stock available for all items in the order
-4. Begin a transaction
-5. Update the order to clear the is_deleted flag and deleted_at timestamp
-6. Restore the order status to its original value
-7. Deduct product stock quantities again
-8. Commit the transaction
-
-This restoration process essentially reverses the soft delete operation, but with an important check to ensure there's still sufficient inventory available.
-
 ## Conclusion
 
 In this chapter, you've learned how to implement endpoints for deleting orders in the Jewelry Junction API. You've explored different approaches to deletion, including hard delete and soft delete, and you've learned how to handle transactions, restore product stock quantities, and implement proper error handling. You've also learned how to implement a restore endpoint for soft-deleted orders.
 
 In the next chapter, we'll implement the endpoint for updating a product, which will involve validation and handling of related data.
 
-## Practice Exercise
+## Optional Practice Exercises
 
-Enhance your order deletion functionality by:
-1. Adding an audit trail for order deletions (when it was deleted, why)
-2. Implementing a "recycle bin" feature that allows viewing and restoring deleted orders
-3. Adding support for partial order cancellation (cancelling specific items in an order)
-4. Implementing different deletion rules based on the order date (e.g., recent orders can be deleted, older orders cannot)
-5. Adding a feature to notify relevant parties when an order is deleted
+### Implementing Soft Delete
+
+In many real-world applications, it's preferable to implement "soft delete" rather than actually removing records from the database. This involves marking records as deleted rather than physically removing them, which allows for data recovery and audit trails.
+
+To implement soft delete for orders:
+
+1. Add an `IsDeleted` column to the orders table
+2. Add a `DeletedAt` timestamp column to track when the order was deleted
+3. Instead of deleting the order, update these columns:
+   - Set `IsDeleted` to true
+   - Set `DeletedAt` to the current timestamp
+   - Change the order status to "Cancelled"
+4. Update all queries to filter out deleted orders (WHERE `IsDeleted` = false)
+
+This approach preserves the order history while still allowing for "deletion" from the user's perspective.
+
+### Implementing a Restore Endpoint
+
+To complement the soft delete functionality, we can implement an endpoint to restore deleted orders:
+
+1. Define a route handler for POST `/orders/{id}/restore`
+2. Verify that the order exists and is marked as deleted
+3. Check if there's sufficient stock available for all items in the order
+4. Begin a transaction
+5. Update the order to clear the `IsDeleted` flag and `DeletedAt` timestamp
+6. Restore the order status to its original value
+7. Deduct product stock quantities again
+8. Commit the transaction
+
+This restoration process essentially reverses the soft delete operation, but with an important check to ensure there's still sufficient inventory available.
+
+
+### Additional Optional Features
+
+1. Adding support for partial order cancellation (cancelling specific items in an order)
+2. Implementing deletion rules based on the order date _(i.e., recent orders can be deleted, older orders cannot. You can pick any timespan for your implementation)_
