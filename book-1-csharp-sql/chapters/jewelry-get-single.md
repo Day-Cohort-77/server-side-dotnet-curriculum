@@ -22,13 +22,32 @@ We'll start by implementing a basic endpoint in the `ProductEndpoints.cs` module
 
 The SQL query will select the product with the matching ID from the products table.
 
-## Including Related Data
+## Product Details SQL JOIN
 
-A product in our jewelry store has relationships with other entities like metals, gemstones, and styles. To provide a complete view of a product, we'll enhance our endpoint to include this related data:
+You need to create a new `GetProductByIdAsync` task in your **DatabaseService** module. Your SQL for this task must utilize the powerful `JOIN` operation in SQL to provide more details to the response body.
 
-1. Use SQL JOINs to retrieve data from multiple related tables in a single query
-2. Join the products table with metals, gemstones, and styles tables
-3. Format the response to include all related data in a structured way
+Use the following SQL in the **NpgsqlCommand** for this task.
+```sql
+--Don't ever use the `*` character in your SELECT clause
+SELECT
+   p.id AS product_id,
+   p.name AS product_name,
+   p.description AS product_description,
+   p.price AS product_price,
+   m.id AS metal_id,
+   m.name AS metal_name,
+   m.price_per_gram AS metal_price_per_gram,
+   g.id AS gemstone_id,
+   g.name AS gemstone_name,
+   g.price_per_carat AS gemstone_price_per_carat,
+   s.id AS style_id,
+   s.name AS style_name
+FROM products p
+LEFT JOIN metals m ON p.metal_id = m.id
+LEFT JOIN gemstones g ON p.gemstone_id = g.id
+LEFT JOIN styles s ON p.style_id = s.id
+WHERE p.id = @productId;
+```
 
 This approach allows us to retrieve all the necessary data in a single database query, rather than making multiple roundtrips.
 
