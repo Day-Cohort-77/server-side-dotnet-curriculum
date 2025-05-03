@@ -24,12 +24,11 @@ The SQL query will select the product with the matching ID from the products tab
 
 ## Including Related Data
 
-A product in our jewelry store has relationships with other entities like metals, categories, discounts, and gemstones. To provide a complete view of a product, we'll enhance our endpoint to include this related data:
+A product in our jewelry store has relationships with other entities like metals, gemstones, and styles. To provide a complete view of a product, we'll enhance our endpoint to include this related data:
 
 1. Use SQL JOINs to retrieve data from multiple related tables in a single query
-2. Join the products table with metals, categories, discounts, and product_gemstones tables
-3. Further join product_gemstones with gemstones to get gemstone details
-4. Join with reviews and customers tables to include product reviews
+2. Join the products table with metals, gemstones, and styles tables
+3. Format the response to include all related data in a structured way
 
 This approach allows us to retrieve all the necessary data in a single database query, rather than making multiple roundtrips.
 
@@ -48,11 +47,8 @@ This approach provides clear feedback to clients when they request a resource th
 To provide a well-structured and useful response, we'll format the product data:
 
 1. Include basic product information (ID, name, description, price, etc.)
-2. Add calculated fields like discounted price
-3. Structure related data (metal, category, discount) as nested objects
-4. Format gemstone information with calculated values
-5. Include review information with customer details
-6. Add summary fields like average rating and total gemstone value
+2. Structure related data (metal, gemstone, style) as nested objects
+3. Add calculated fields like total value (based on metal price per gram and gemstone price per carat)
 
 This structured response makes it easier for clients to display product details without needing to make additional API calls or perform complex calculations.
 
@@ -70,31 +66,15 @@ This approach helps with debugging issues and provides clear feedback to clients
 
 ## Implementing Related Endpoints
 
-To provide more ways to access product information, we'll implement several related endpoints:
+To provide more ways to access product information, we'll implement a related endpoint:
 
-### Get Product Reviews
+### Get Products By Style
 
-This endpoint will retrieve all reviews for a specific product:
-1. Define a route handler for GET /products/{id}/reviews
-2. Use a SQL query with JOINs to retrieve reviews and customer information
-3. Format the response to include review details and customer information
-4. Calculate and include the average rating
-
-### Get Product Gemstones
-
-This endpoint will retrieve all gemstones for a specific product:
-1. Define a route handler for GET /products/{id}/gemstones
-2. Use a SQL query with JOINs to retrieve gemstone details and carat information
-3. Format the response to include gemstone details and calculated values
-4. Calculate and include the total gemstone value
-
-### Check Product Availability
-
-This endpoint will provide availability information for a specific product:
-1. Define a route handler for GET /products/{id}/availability
-2. Use a SQL query to retrieve the product's stock quantity
-3. Determine availability status based on stock quantity
-4. Format the response to include availability information
+This endpoint will retrieve all products with a specific style:
+1. Define a route handler for GET /styles/{id}/products
+2. Use a SQL query with JOINs to retrieve products with the specified style
+3. Include related metal and gemstone information
+4. Format the response to include all product details
 
 Each of these endpoints provides focused information about a specific aspect of a product, making it easier for clients to get exactly what they need.
 
@@ -107,8 +87,8 @@ In the next chapter, we'll implement the endpoint for creating a new order, whic
 ## Practice Exercise
 
 Enhance your Get Single Product endpoint by:
-1. Adding a parameter to control the inclusion of related data (e.g., `?includeReviews=true&includeGemstones=true`)
-2. Adding a parameter to specify the number of reviews to include (e.g., `?reviewCount=5` for the 5 most recent reviews)
-3. Adding a calculated field for the total value of the product (base price + gemstone value)
-4. Adding a field that indicates whether the product is on sale (has an active discount)
-5. Creating a new endpoint that returns similar products (products in the same category or with the same metal)
+1. Adding a parameter to control the inclusion of related data (e.g., `?includeMetal=true&includeGemstone=true&includeStyle=true`)
+2. Adding a calculated field for the total value of the product (base price + metal value + gemstone value)
+3. Creating a new endpoint that returns similar products (products with the same style or with the same metal)
+4. Adding an endpoint to get all products with a specific metal and gemstone combination
+5. Implementing an endpoint to get products sorted by price within a specific style

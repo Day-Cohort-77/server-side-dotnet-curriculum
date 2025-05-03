@@ -27,10 +27,10 @@ The SQL query will be simple at first, just selecting all columns from the produ
 
 To make our API more flexible, we'll enhance the endpoint to support filtering based on various criteria:
 
-1. Category (filter by category_id)
-2. Metal (filter by metal_id)
-3. Price range (filter by min_price and max_price)
-4. Discount status (filter by discounted flag)
+1. Metal (filter by metal_id)
+2. Gemstone (filter by gemstone_id)
+3. Style (filter by style_id)
+4. Price range (filter by min_price and max_price)
 
 The implementation will:
 1. Accept query parameters for each filter
@@ -46,7 +46,7 @@ Next, we'll add sorting capabilities to our endpoint. This will allow clients to
 
 1. By name (alphabetical)
 2. By price (low to high or high to low)
-3. By stock quantity (low to high or high to low)
+3. By metal (alphabetical)
 
 The implementation will:
 1. Accept sortBy and sortDirection query parameters
@@ -72,9 +72,8 @@ This approach helps clients navigate through large datasets efficiently without 
 The default response from our database query might include more data than needed or might not be structured in the most useful way. We'll enhance the response format to:
 
 1. Include only the necessary product information
-2. Add calculated fields like discounted price
-3. Include basic information about related entities (metal, category, discount)
-4. Structure the response in a consistent and intuitive way
+2. Include basic information about related entities (metal, gemstone, style)
+3. Structure the response in a consistent and intuitive way
 5. Include pagination metadata
 
 This formatting makes the API response more concise and easier to consume by clients.
@@ -112,8 +111,8 @@ In the next chapter, we'll implement the endpoint for retrieving a single produc
 ## Practice Exercise
 
 Enhance your Get All Products endpoint by:
-1. Adding a filter for products with low stock (e.g., `?lowStock=true` for products with stock quantity less than 5)
-2. Adding a filter for products by gemstone (e.g., `?gemstoneId=1` for products with a specific gemstone)
-3. Adding a sort option for average rating (e.g., `?sortBy=rating`)
-4. Adding a filter for products with a minimum average rating (e.g., `?minRating=4`)
-5. Implementing a more advanced search that looks for keywords in product names and descriptions
+1. Adding a filter for products by metal and gemstone combination (e.g., `?metalId=1&gemstoneId=2`)
+2. Adding a filter for products by style and price range (e.g., `?styleId=3&minPrice=100&maxPrice=500`)
+3. Adding a sort option for metal price (e.g., `?sortBy=metalPrice`)
+4. Implementing a more advanced search that looks for keywords in product names and descriptions
+5. Adding pagination to limit the number of results returned at once

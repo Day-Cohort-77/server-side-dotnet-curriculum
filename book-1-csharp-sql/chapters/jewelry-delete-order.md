@@ -6,20 +6,16 @@ In this chapter, we'll implement the endpoint for deleting an order in our Jewel
 
 By the end of this chapter, you should be able to:
 - Implement a DELETE endpoint to remove an order
-- Use transactions to ensure data consistency
-- Restore product stock quantities when an order is deleted
 - Handle errors and edge cases
 - Implement proper validation before deletion
+- Return appropriate responses
 
 ## Understanding the Order Deletion Process
 
-Deleting an order is not as simple as removing a record from the database. It involves several steps:
+Deleting an order involves several steps:
 1. Validating that the order exists and can be deleted
-2. Restoring product stock quantities for all items in the order
-3. Removing order items associated with the order
-4. Removing the order itself
-
-Since these operations need to be atomic (all succeed or all fail), we'll use a transaction to ensure data consistency.
+2. Removing order items associated with the order
+3. Removing the order itself
 
 ## Implementing the Endpoint
 
@@ -27,15 +23,11 @@ For our order deletion endpoint, we'll implement a DELETE request handler at the
 
 1. Define a route handler for DELETE /orders/{id}
 2. Extract the order ID from the URL path
-3. Begin a database transaction
-4. Retrieve the order and its items
-5. Validate that the order exists and can be deleted
-6. Restore product stock quantities
-7. Delete order items
-8. Delete the order
-9. Commit the transaction if all operations succeed
-10. Return a success response
-11. Roll back the transaction if any operation fails
+3. Retrieve the order and its items
+4. Validate that the order exists and can be deleted
+5. Delete order items
+6. Delete the order
+7. Return a success response
 
 The implementation will use the DatabaseService to execute the necessary SQL commands within a transaction.
 
@@ -44,42 +36,36 @@ The implementation will use the DatabaseService to execute the necessary SQL com
 Before deleting an order, we need to validate that it exists and can be deleted:
 
 1. Query the database to check if an order with the specified ID exists
-2. Verify that the order is in a state that allows deletion (e.g., only pending orders can be deleted)
+2. Verify that the order is in a state that allows deletion (e.g., only recent orders can be deleted)
 3. Return appropriate error responses if validation fails
 
 This validation prevents the deletion of orders that don't exist or shouldn't be deleted.
 
-## Restoring Product Stock Quantities
+## Deleting Order Items
 
-When an order is deleted, we need to restore the stock quantities of the products that were part of the order:
+Before deleting the order itself, we need to delete all associated order items:
 
 1. Retrieve all order items associated with the order
-2. For each order item:
-   - Retrieve the product
-   - Increase the product's stock quantity by the order item quantity
-   - Update the product record in the database
+2. Delete each order item from the database
 
-This ensures that the inventory is correctly adjusted when an order is deleted.
+This ensures that we don't leave orphaned order items in the database.
 
-## Using Transactions
+## Deleting the Order
 
-To ensure data consistency, we'll use a database transaction that encompasses all the operations involved in deleting an order:
+After deleting all associated order items, we can delete the order itself:
 
-1. Begin a transaction using BEGIN TRANSACTION
-2. Execute all SQL commands (SELECT, UPDATE, DELETE) within the transaction
-3. Commit the transaction using COMMIT if all commands succeed
-4. Roll back the transaction using ROLLBACK if any command fails
+1. Execute a DELETE SQL command to remove the order from the database
+2. Verify that the deletion was successful
+3. Return a success response to the client
 
-This approach ensures that either all parts of the order deletion succeed, or none of them do, preventing partial updates that could leave the database in an inconsistent state.
+This completes the order deletion process.
 
 ## Enhancing the Response
 
 To provide more information about the deleted order, we'll enhance our response:
 
-1. Retrieve detailed information about the order and its items before deletion
-2. Format a response that includes:
+1. Format a response that includes:
    - Basic order information (ID, date, status, total amount)
-   - Customer information
    - Order item details
    - Summary information (item count)
 
@@ -136,8 +122,8 @@ In the next chapter, we'll implement the endpoint for updating a product, which 
 ## Practice Exercise
 
 Enhance your order deletion functionality by:
-1. Adding an audit trail for order deletions (who deleted it, when, why)
+1. Adding an audit trail for order deletions (when it was deleted, why)
 2. Implementing a "recycle bin" feature that allows viewing and restoring deleted orders
-3. Adding a scheduled task to permanently delete orders that have been soft-deleted for more than 30 days
-4. Adding support for partial order cancellation (cancelling specific items in an order)
-5. Implementing different deletion rules based on the order status (e.g., pending orders can be deleted, shipped orders can only be marked as returned)
+3. Adding support for partial order cancellation (cancelling specific items in an order)
+4. Implementing different deletion rules based on the order date (e.g., recent orders can be deleted, older orders cannot)
+5. Adding a feature to notify relevant parties when an order is deleted

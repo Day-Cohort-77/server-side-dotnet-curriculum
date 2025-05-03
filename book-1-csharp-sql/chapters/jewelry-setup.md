@@ -13,13 +13,13 @@ By the end of this chapter, you should be able to:
 
 ## Project Overview
 
-Jewelry Junction is an online jewelry store that needs an API to manage its inventory and customer orders. The API will allow the store to:
+Jewelry Junction is an online jewelry store that needs an API to manage its products and customer orders. The API will allow the store to:
 
 - Manage products (rings, necklaces, bracelets, etc.)
-- Track inventory
 - Process customer orders
-- Manage metals (gold, silver, platinum) and gemstones (diamonds, rubies, emeralds, etc.)
-- Generate reports on sales and inventory
+- Manage metals (gold, silver, platinum)
+- Manage gemstones (diamonds, rubies, emeralds, etc.)
+- Manage styles (classic, modern, art deco, minimalist)
 
 Throughout this track, you'll build this API step by step, learning how to implement various features and best practices.
 
@@ -41,9 +41,8 @@ Before diving into implementation, it's important to understand the domain of ou
 - **Products**: The jewelry items for sale (rings, necklaces, bracelets, etc.)
 - **Metals**: The materials used to make the jewelry (gold, silver, platinum, etc.)
 - **Gemstones**: The precious stones used in the jewelry (diamonds, rubies, emeralds, etc.)
-- **Categories**: The types of jewelry (rings, necklaces, bracelets, etc.)
+- **Styles**: The design styles of jewelry (classic, modern, art deco, minimalist)
 - **Orders**: Customer purchases of products
-- **Customers**: People who place orders
 
 Understanding these entities and their relationships is crucial for designing an effective database schema.
 
@@ -51,21 +50,17 @@ Understanding these entities and their relationships is crucial for designing an
 
 Based on our domain understanding, we need to create several model classes to represent our entities:
 
-1. **Product**: Represents jewelry items with properties like Id, Name, Description, Price, StockQuantity, and Type. It will have foreign key references to Metal, Category, and optionally Discount.
+1. **Product**: Represents jewelry items with properties like Id, Name, Description, and Price. It will have foreign key references to Metal, Gemstone, and Style.
 
 2. **Metal**: Represents materials like gold, silver, and platinum with properties like Id, Name, and PricePerGram.
 
 3. **Gemstone**: Represents precious stones like diamonds, rubies, and emeralds with properties like Id, Name, and PricePerCarat.
 
-4. **ProductGemstone**: A join entity for the many-to-many relationship between Products and Gemstones, with properties like Id, ProductId, GemstoneId, and Carats.
+4. **Style**: Represents design styles like classic, modern, art deco, and minimalist with properties like Id and Name.
 
-5. **Category**: Represents product categories with properties like Id, Name, and Description.
+5. **Order**: Represents customer orders with properties like Id, OrderDate, TotalAmount, and Status.
 
-6. **Order**: Represents customer orders with properties like Id, OrderDate, TotalAmount, and Status. It will have a foreign key reference to Customer.
-
-7. **OrderItem**: Represents items within an order with properties like Id, OrderId, ProductId, Quantity, and UnitPrice.
-
-8. **Customer**: Represents people who place orders with properties like Id, FirstName, LastName, Email, Phone, and Address.
+6. **OrderItem**: Represents items within an order with properties like Id, OrderId, ProductId, Quantity, and UnitPrice.
 
 These models will be simple POCO (Plain Old CLR Object) classes without navigation properties, as we'll be using direct SQL queries instead of an ORM.
 
@@ -93,11 +88,11 @@ The SQL script will define tables for all our entities and establish the necessa
 
 To have some initial data to work with, we'll seed the database with:
 
-1. Categories (Rings, Necklaces, Bracelets, Earrings)
-2. Metals (Gold, Silver, Platinum)
-3. Gemstones (Diamond, Ruby, Emerald, Sapphire)
+1. Metals (Gold, Silver, Platinum)
+2. Gemstones (Diamond, Ruby, Emerald, Sapphire)
+3. Styles (Classic, Modern, Art Deco, Minimalist)
 4. Sample products
-5. Sample customers
+5. Sample orders
 
 This seed data will be added using SQL INSERT statements executed by the DatabaseService.
 

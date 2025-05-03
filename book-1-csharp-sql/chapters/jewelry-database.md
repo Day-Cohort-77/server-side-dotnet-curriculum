@@ -18,22 +18,15 @@ Let's review the database schema we defined in the previous chapter:
 - **Products**: The jewelry items for sale
 - **Metals**: The materials used to make the jewelry
 - **Gemstones**: The precious stones used in the jewelry
-- **ProductGemstones**: A join table for the many-to-many relationship between Products and Gemstones
+- **Styles**: The design styles of jewelry
 - **Orders**: Customer purchases of products
 - **OrderItems**: Items within an order
-- **Customers**: People who place orders
 
 This schema represents a typical e-commerce database with relationships between entities. Let's enhance it by adding some additional features.
 
 ## Enhancing the Database Schema
 
-Let's enhance our database schema by adding a few more entities and relationships:
-
-1. **Categories**: To categorize products (e.g., Rings, Necklaces, Bracelets)
-2. **Discounts**: To apply discounts to products
-3. **Reviews**: To allow customers to review products
-
-For each of these entities, we'll define the table structure with appropriate columns and relationships to other tables. We'll implement these using SQL CREATE TABLE statements rather than Entity Framework Core migrations.
+Our database schema is already well-structured for our needs. We'll implement it using SQL CREATE TABLE statements rather than Entity Framework Core migrations.
 
 ## Creating the Database Schema
 
@@ -44,16 +37,12 @@ To create our enhanced database schema, we'll write a SQL script that defines al
 3. Define primary keys, foreign keys, and other constraints
 
 The script will include CREATE TABLE statements for:
-- Categories
 - Metals
 - Gemstones
-- Discounts
+- Styles
 - Products
-- ProductGemstones
-- Customers
 - Orders
 - OrderItems
-- Reviews
 
 Each table will have appropriate columns with data types, constraints, and foreign key relationships.
 
@@ -72,14 +61,11 @@ The DatabaseService will be the central point for all database operations in our
 
 After creating the schema, we'll seed the database with initial data to work with. We'll create SQL INSERT statements for:
 
-1. Categories (Rings, Necklaces, Bracelets, Earrings)
-2. Metals (Gold, Silver, Platinum)
-3. Gemstones (Diamond, Ruby, Emerald, Sapphire)
-4. Discounts (Summer Sale, Clearance)
-5. Sample products with relationships to metals, categories, and discounts
-6. Sample product-gemstone relationships
-7. Sample customers
-8. Sample reviews
+1. Metals (Gold, Silver, Platinum)
+2. Gemstones (Diamond, Ruby, Emerald, Sapphire)
+3. Styles (Classic, Modern, Art Deco, Minimalist)
+4. Sample products with relationships to metals, gemstones, and styles
+5. Sample orders and order items
 
 This seed data will provide a realistic starting point for testing our API endpoints.
 
@@ -89,9 +75,9 @@ Now, we'll implement methods in our DatabaseService to perform common database o
 
 1. **GetAllProducts**: Retrieve all products with their related data
 2. **GetProductById**: Retrieve a single product by ID with its related data
-3. **GetProductsByCategory**: Retrieve products filtered by category
-4. **GetProductsByMetal**: Retrieve products filtered by metal
-5. **GetProductsWithDiscount**: Retrieve products that have an active discount
+3. **GetProductsByMetal**: Retrieve products filtered by metal
+4. **GetProductsByGemstone**: Retrieve products filtered by gemstone
+5. **GetProductsByStyle**: Retrieve products filtered by style
 
 These methods will use SQL queries with JOINs to retrieve related data in a single query, rather than making multiple database roundtrips.
 
@@ -106,16 +92,9 @@ To ensure data integrity, we'll implement validation in our database service met
 
 This validation will be performed before executing SQL commands to prevent invalid data from being stored in the database.
 
-## Handling Transactions
+## Implementing Data Access Methods
 
-For operations that affect multiple tables and need to be atomic (all succeed or all fail), we'll implement transaction handling:
-
-1. Begin a transaction
-2. Execute multiple SQL commands
-3. Commit the transaction if all commands succeed
-4. Roll back the transaction if any command fails
-
-This ensures data consistency even when performing complex operations that update multiple related tables.
+We'll implement methods in our DatabaseService to perform common database operations efficiently, ensuring that our API can retrieve and manipulate data as needed.
 
 ## Conclusion
 
@@ -126,9 +105,8 @@ In the next chapter, we'll implement endpoints for retrieving and managing produ
 ## Practice Exercise
 
 Enhance your Jewelry Junction database by:
-1. Adding a `Supplier` entity with columns for `id`, `name`, `contact_name`, `email`, and `phone`
-2. Creating a relationship between `products` and `suppliers` (a product is supplied by one supplier)
-3. Adding seed data for suppliers
-4. Implementing validation for the supplier data
-5. Creating methods in the DatabaseService to manage suppliers
-6. Adding a method to calculate the total value of products supplied by a specific supplier
+1. Adding a method to get products by price range
+2. Creating a method to search products by name
+3. Implementing a method to get the most popular products based on order history
+4. Adding a method to get all products with a specific metal and gemstone combination
+5. Creating a method to get all products of a specific style sorted by price

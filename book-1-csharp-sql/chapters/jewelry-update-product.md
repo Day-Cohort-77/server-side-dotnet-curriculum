@@ -76,14 +76,13 @@ public async Task<Product> UpdateProductAsync(Product product)
     // Create the SQL command to update the product
     using var command = new NpgsqlCommand(
         @"UPDATE products
-          SET name = @name,
-              description = @description,
-              price = @price,
-              stock_quantity = @stockQuantity,
-              metal_id = @metalId,
-              category_id = @categoryId,
-              discount_id = @discountId
-          WHERE id = @id",
+                   SET name = @name,
+                       description = @description,
+                       price = @price,
+                       metal_id = @metalId,
+                       gemstone_id = @gemstoneId,
+                       style_id = @styleId
+                   WHERE id = @id",
         connection);
 
     // Add parameters to the command
@@ -91,7 +90,6 @@ public async Task<Product> UpdateProductAsync(Product product)
     command.Parameters.AddWithValue("@name", product.Name);
     command.Parameters.AddWithValue("@description", product.Description);
     command.Parameters.AddWithValue("@price", product.Price);
-    command.Parameters.AddWithValue("@stockQuantity", product.StockQuantity);
 
     // Handle nullable foreign keys
     if (product.MetalId.HasValue)
@@ -103,22 +101,22 @@ public async Task<Product> UpdateProductAsync(Product product)
         command.Parameters.AddWithValue("@metalId", DBNull.Value);
     }
 
-    if (product.CategoryId.HasValue)
+    if (product.GemstoneId.HasValue)
     {
-        command.Parameters.AddWithValue("@categoryId", product.CategoryId.Value);
+        command.Parameters.AddWithValue("@gemstoneId", product.GemstoneId.Value);
     }
     else
     {
-        command.Parameters.AddWithValue("@categoryId", DBNull.Value);
+        command.Parameters.AddWithValue("@gemstoneId", DBNull.Value);
     }
 
-    if (product.DiscountId.HasValue)
+    if (product.StyleId.HasValue)
     {
-        command.Parameters.AddWithValue("@discountId", product.DiscountId.Value);
+        command.Parameters.AddWithValue("@styleId", product.StyleId.Value);
     }
     else
     {
-        command.Parameters.AddWithValue("@discountId", DBNull.Value);
+        command.Parameters.AddWithValue("@styleId", DBNull.Value);
     }
 
     // Execute the command
@@ -171,11 +169,6 @@ app.MapPut("/products/{id}", async (int id, Product updatedProduct, DatabaseServ
             return Results.BadRequest("Price must be greater than zero");
         }
 
-        if (updatedProduct.StockQuantity < 0)
-        {
-            return Results.BadRequest("Stock quantity cannot be negative");
-        }
-
         // Set the ID from the route parameter
         updatedProduct.Id = id;
 
@@ -219,10 +212,9 @@ Now that we've implemented our PUT endpoint, let's test it:
      "name": "Updated Diamond Ring",
      "description": "A beautiful diamond ring with an updated design",
      "price": 1299.99,
-     "stockQuantity": 5,
      "metalId": 1,
-     "categoryId": 1,
-     "discountId": null
+     "gemstoneId": 1,
+     "styleId": 2
    }
    ```
 
@@ -250,7 +242,8 @@ This is a fundamental operation in RESTful APIs, and you'll use similar patterns
 ## Practice Exercise
 
 Enhance your product update functionality by:
-1. Adding validation for foreign keys (check if metal, category, and discount exist)
+1. Adding validation for foreign keys (check if metal, gemstone, and style exist)
 2. Implementing a simple logging mechanism to track product updates
-3. Adding the ability to update a product's gemstones
+3. Adding the ability to update multiple products at once
 4. Creating a simple client interface to test your PUT endpoint
+5. Adding support for partial updates (only updating specific fields)

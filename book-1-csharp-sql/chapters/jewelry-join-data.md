@@ -26,12 +26,10 @@ In our Jewelry Junction API, we'll primarily use INNER JOINs and LEFT JOINs to r
 Your current single product endpoint retrieves the basic information about the product, but now you will utilize the powerful `JOIN` operation in SQL to provide more details to the response body.
 
 1. Open the route handler for GET `/products/{id}`
-2. Update the existing SQL query with multiple JOINs to retrieve all related data in a single query:
+2. Update the existing SQL query with JOINs to retrieve all related data in a single query:
    - JOIN with metals table to get metal details
-   - JOIN with categories table to get category details
-   - LEFT JOIN with discounts table to get discount details (if any)
-   - LEFT JOIN with product_gemstones and gemstones tables to get gemstone details
-   - LEFT JOIN with reviews and customers tables to get review details
+   - JOIN with gemstones table to get gemstone details
+   - JOIN with styles table to get style details
    ```sql
    --Don't ever use the `*` character in your SELECT clause
    SELECT
@@ -39,29 +37,25 @@ Your current single product endpoint retrieves the basic information about the p
        p.name AS product_name,
        p.description AS product_description,
        p.price AS product_price,
+       m.id AS metal_id,
        m.name AS metal_name,
-       c.name AS category_name,
-       d.name AS discount_name,
+       m.price_per_gram AS metal_price_per_gram,
+       g.id AS gemstone_id,
        g.name AS gemstone_name,
-       pg.carat_weight AS gemstone_carat_weight,
-       r.rating AS review_rating,
-       r.comment AS review_comment,
-       cu.name AS reviewer_name
+       g.price_per_carat AS gemstone_price_per_carat,
+       s.id AS style_id,
+       s.name AS style_name
    FROM products p
    INNER JOIN metals m ON p.metal_id = m.id
-   INNER JOIN categories c ON p.category_id = c.id
-   LEFT JOIN discounts d ON p.discount_id = d.id
-   LEFT JOIN product_gemstones pg ON p.id = pg.product_id
-   LEFT JOIN gemstones g ON pg.gemstone_id = g.id
-   LEFT JOIN reviews r ON p.id = r.product_id
-   LEFT JOIN customers cu ON r.customer_id = cu.id;
+   INNER JOIN gemstones g ON p.gemstone_id = g.id
+   INNER JOIN styles s ON p.style_id = s.id
    WHERE p.id = @productId;
    ```
 
 3. Calculate derived values:
-   - Average rating based on reviews
-   - Total gemstone value (sum of carats × price per carat)
-   - Discounted price (if a discount is active)
+   - Total metal value (based on metal price per gram)
+   - Total gemstone value (based on gemstone price per carat)
+   - Total product value (base price + metal value + gemstone value)
 
 4. Format the response to include all this information in a structured way
 
@@ -74,77 +68,63 @@ Next, we'll implement a search endpoint that allows filtering products based on 
 1. Define a route handler for GET `/products/search`
 2. Accept multiple query parameters for filtering:
    - Name/description (text search)
-   - Product type
-   - Category
    - Metal
    - Gemstone
+   - Style
    - Price range
-   - Stock status
-   - Discount status
-   - Minimum rating
 
 3. Build a dynamic SQL query with JOINs and WHERE clauses based on the provided parameters
 4. Execute the query and format the response
 
 This flexible search endpoint allows clients to find products that match specific criteria, making it easier to implement features like product filtering and search.
 
-## Implementing a Sales Report Endpoint
+## Implementing a Products by Style Endpoint
 
-To provide business insights, we'll implement a sales report endpoint that joins order data with product data. This endpoint will:
+To help customers browse products by style, we'll implement an endpoint that retrieves all products with a specific style:
 
-1. Define a route handler for GET `/reports/sales`
-2. Accept date range parameters (start date, end date)
-3. Accept a grouping parameter to specify how to aggregate the data
-4. Use a SQL query with multiple JOINs to retrieve orders, order items, products, categories, and metals
-5. Calculate summary metrics:
-   - Total sales amount
-   - Total items sold
-   - Average order value
-6. Group the data based on the specified parameter:
-   - By category
-   - By metal
-   - By product
-   - By date
-7. Calculate metrics for each group
-8. Format the response to include both summary metrics and grouped data
+1. Define a route handler for GET `/styles/{id}/products`
+2. Accept optional filter parameters (metal, price range)
+3. Use a SQL query with JOINs to retrieve products with the specified style
+4. Include related metal and gemstone information
+5. Format the response to include:
+   - Style information
+   - List of products with details
+   - Summary metrics (product count, price range)
 
-This reporting endpoint provides valuable business insights that can help with inventory planning, marketing decisions, and financial analysis.
+This endpoint makes it easy for clients to display products grouped by style, which is a common way for customers to browse jewelry.
 
-## Implementing a Customer Order History Endpoint
+## Implementing a Products by Metal and Gemstone Endpoint
 
-To support customer account features, we'll implement an endpoint that retrieves a customer's order history. This endpoint will:
+To help customers find products with specific material combinations, we'll implement an endpoint that retrieves products with a specific metal and gemstone:
 
-1. Define a route handler for GET `/customers/{id}/orders`
-2. Verify the customer exists
-3. Use a SQL query with JOINs to retrieve:
-   - All orders for the customer
-   - Order items for each order
-   - Product details for each order item
-4. Format the response to include:
-   - Customer information
-   - Order details (date, status, total amount)
-   - Product information for each order item
-   - Summary metrics (order count, total spent, average order value)
+1. Define a route handler for GET `/products/materials`
+2. Accept required parameters for metal ID and gemstone ID
+3. Accept optional parameters for style and price range
+4. Use a SQL query with JOINs to retrieve matching products
+5. Format the response to include:
+   - Metal and gemstone information
+   - List of products with details
+   - Summary metrics (product count, price range)
 
-This endpoint provides a comprehensive view of a customer's purchase history, which can be used for account pages, order tracking, and customer support.
+This endpoint makes it easy for clients to display products filtered by specific material combinations, which is useful for customers with specific preferences.
 
-## Implementing a Product Recommendations Endpoint
+## Implementing a Product Comparison Endpoint
 
-To enhance the shopping experience, we'll implement a product recommendations endpoint based on a customer's order history. This endpoint will:
+To help customers compare different products, we'll implement an endpoint that retrieves detailed information for multiple products:
 
-1. Define a route handler for GET `/customers/{id}/` recommendations
-2. Analyze a customer's previous orders to determine preferences:
-   - Identify categories they've purchased from
-   - Identify metals they've shown interest in
-3. Use a SQL query with JOINs to find products that:
-   - Match these preferences
-   - Haven't been purchased by the customer
-   - Are in stock
-4. Sort by rating to show the best products first
-5. Limit to a reasonable number of recommendations (10)
-6. Format the response to include product details and a reason for each recommendation
+1. Define a route handler for GET `/products/compare`
+2. Accept a list of product IDs as a query parameter
+3. Use a SQL query with JOINs to retrieve detailed information for each product
+4. Calculate comparative metrics:
+   - Price difference
+   - Value difference (total value of each product)
+   - Material quality comparison
+5. Format the response to include:
+   - Detailed information for each product
+   - Comparative metrics
+   - Recommendation based on value
 
-This recommendation engine provides personalized product suggestions that can increase cross-selling opportunities and enhance the customer experience.
+This endpoint makes it easy for clients to display product comparisons, which can help customers make informed purchasing decisions.
 
 ## Conclusion
 
@@ -155,8 +135,8 @@ These techniques are essential for building robust and efficient APIs that can h
 ## Practice Exercise
 
 Enhance your Jewelry Junction API by:
-1. Implementing an endpoint that retrieves the top-selling products for a given time period
-2. Creating an endpoint that provides inventory status reports (e.g., products with low stock, out-of-stock products)
-3. Implementing an endpoint that calculates the total value of the inventory
-4. Creating an endpoint that provides customer insights (e.g., top customers, customer purchase patterns)
-5. Implementing an endpoint that generates a report of products that haven't sold in a given time period
+1. Implementing an endpoint that retrieves products sorted by price within a specific style
+2. Creating an endpoint that provides products with similar characteristics to a given product
+3. Implementing an endpoint that calculates the total value of all products
+4. Creating an endpoint that retrieves products with a specific metal across all styles
+5. Implementing an endpoint that retrieves the most expensive and least expensive products for each style

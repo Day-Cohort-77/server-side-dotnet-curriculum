@@ -7,22 +7,18 @@ In this chapter, we'll implement the endpoint for creating a new order in our Je
 By the end of this chapter, you should be able to:
 - Implement a POST endpoint to create a new order
 - Validate the order data before processing
-- Use transactions to ensure data consistency
-- Update related data (product stock quantities)
+- Create order records in the database
 - Handle errors and edge cases
 - Return appropriate responses
 
 ## Understanding the Order Creation Process
 
-Creating an order is a complex operation that involves several steps:
-1. Validating the order data (customer exists, products exist, sufficient stock, etc.)
+Creating an order involves several steps:
+1. Validating the order data (products exist, etc.)
 2. Creating the order record
 3. Creating order item records for each product in the order
-4. Updating product stock quantities
-5. Calculating the total order amount
-6. Returning the created order with its items
-
-Since these operations need to be atomic (all succeed or all fail), we'll use a transaction to ensure data consistency.
+4. Calculating the total order amount
+5. Returning the created order with its items
 
 ## Implementing the Endpoint
 
@@ -31,13 +27,9 @@ For our order creation endpoint, we'll implement a POST request handler at the "
 1. Define a route handler for POST /orders
 2. Parse the request body to extract order information
 3. Validate the order data
-4. Begin a database transaction
-5. Create the order and order items
-6. Update product stock quantities
-7. Calculate the total order amount
-8. Commit the transaction if all operations succeed
-9. Return the created order with its details
-10. Roll back the transaction if any operation fails
+4. Create the order and order items
+5. Calculate the total order amount
+6. Return the created order with its details
 
 The implementation will use the DatabaseService to execute the necessary SQL commands within a transaction.
 
@@ -45,35 +37,22 @@ The implementation will use the DatabaseService to execute the necessary SQL com
 
 Before processing an order, we need to validate the data to ensure it's complete and valid:
 
-1. Verify that the customer exists by querying the customers table
-2. Check that the order contains at least one item
-3. Verify that each product exists by querying the products table
-4. Check that there's sufficient stock for each product
-5. Validate that quantities are positive
+1. Check that the order contains at least one item
+2. Verify that each product exists by querying the products table
+3. Validate that quantities are positive
 
 This validation helps prevent invalid orders from being processed and provides clear error messages to clients.
-
-## Using Transactions
-
-To ensure data consistency, we'll use a database transaction that encompasses all the operations involved in creating an order:
-
-1. Begin a transaction using BEGIN TRANSACTION
-2. Execute all SQL commands (INSERT, UPDATE) within the transaction
-3. Commit the transaction using COMMIT if all commands succeed
-4. Roll back the transaction using ROLLBACK if any command fails
-
-This approach ensures that either all parts of the order creation succeed, or none of them do, preventing partial updates that could leave the database in an inconsistent state.
 
 ## Creating the Order and Order Items
 
 The core of our implementation will:
 
-1. Insert a new record into the orders table with customer ID, order date, and initial status
+1. Insert a new record into the orders table with order date and initial status
 2. Retrieve the generated order ID
 3. For each item in the order:
-   - Calculate the unit price (considering any active discounts)
-   - Insert a record into the order_items table
-   - Update the product's stock quantity
+   - Insert a record into the order_items table with product ID, quantity, and unit price
+
+## Creating the Order and Order Items
 
 These operations will be performed using parameterized SQL commands to prevent SQL injection.
 
@@ -90,11 +69,9 @@ This calculation ensures that the order total accurately reflects the prices at 
 
 Our implementation will handle various edge cases:
 
-1. Products with insufficient stock
-2. Invalid product IDs
-3. Invalid customer ID
-4. Empty order (no items)
-5. Database errors during transaction
+1. Invalid product IDs
+2. Empty order (no items)
+3. Database errors
 
 For each case, we'll provide appropriate error responses with clear messages to help clients understand what went wrong.
 
@@ -103,10 +80,9 @@ For each case, we'll provide appropriate error responses with clear messages to 
 After successfully creating an order, we'll format a comprehensive response that includes:
 
 1. Basic order information (ID, date, status, total amount)
-2. Customer information
-3. Detailed information about each order item:
-   - Product details (name, type, metal, category)
-   - Pricing information (original price, discount amount, unit price)
+2. Detailed information about each order item:
+   - Product details (name, metal, gemstone, style)
+   - Pricing information (unit price)
    - Quantity and subtotal
 4. Summary information (item count, creation timestamp)
 
@@ -133,7 +109,7 @@ In the next chapter, we'll implement the endpoint for deleting an order, which w
 
 Enhance your Create Order endpoint by:
 1. Adding validation for the quantity (must be positive)
-2. Adding support for applying a discount code to the entire order
-3. Adding support for shipping information (address, shipping method, etc.)
-4. Implementing inventory reservation (temporarily reserve inventory during checkout)
-5. Adding support for payment information (payment method, transaction ID, etc.)
+2. Adding support for shipping information (address, shipping method, etc.)
+3. Adding support for payment information (payment method, transaction ID, etc.)
+4. Implementing a feature to calculate shipping costs based on order total
+5. Adding the ability to create an order with products of specific styles only
