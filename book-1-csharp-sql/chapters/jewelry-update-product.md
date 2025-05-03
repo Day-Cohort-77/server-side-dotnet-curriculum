@@ -20,51 +20,9 @@ For our product update endpoint, we'll:
 3. Update the product in the database
 4. Return the updated product
 
-## Implementing the Basic Endpoint
-
-Let's start by implementing a simple endpoint that updates a product. We'll add this to our `Program.cs` file:
-
-```csharp
-// PUT /products/{id} - Update a product
-app.MapPut("/products/{id}", async (int id, Product updatedProduct, DatabaseService db) =>
-{
-    try
-    {
-        // Check if the product exists
-        var existingProduct = await db.GetProductByIdAsync(id);
-        if (existingProduct == null)
-        {
-            return Results.NotFound($"Product with ID {id} not found");
-        }
-
-        // Set the ID from the route parameter
-        updatedProduct.Id = id;
-
-        // Update the product
-        var result = await db.UpdateProductAsync(updatedProduct);
-
-        // Return the updated product
-        return Results.Ok(result);
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"An error occurred while updating the product: {ex.Message}");
-    }
-})
-.WithName("UpdateProduct")
-.WithOpenApi();
-```
-
-This endpoint:
-- Maps to PUT requests at the `/products/{id}` URL
-- Takes the product ID from the URL and the updated product data from the request body
-- Checks if the product exists
-- Updates the product using our `DatabaseService`
-- Returns the updated product
-
 ## Implementing the Database Method
 
-Now, let's implement the `UpdateProductAsync` method in our `DatabaseService` class:
+First, implement the `UpdateProductAsync` method in your `DatabaseService` class:
 
 ```csharp
 // Update a product
@@ -90,34 +48,9 @@ public async Task<Product> UpdateProductAsync(Product product)
     command.Parameters.AddWithValue("@name", product.Name);
     command.Parameters.AddWithValue("@description", product.Description);
     command.Parameters.AddWithValue("@price", product.Price);
-
-    // Handle nullable foreign keys
-    if (product.MetalId.HasValue)
-    {
-        command.Parameters.AddWithValue("@metalId", product.MetalId.Value);
-    }
-    else
-    {
-        command.Parameters.AddWithValue("@metalId", DBNull.Value);
-    }
-
-    if (product.GemstoneId.HasValue)
-    {
-        command.Parameters.AddWithValue("@gemstoneId", product.GemstoneId.Value);
-    }
-    else
-    {
-        command.Parameters.AddWithValue("@gemstoneId", DBNull.Value);
-    }
-
-    if (product.StyleId.HasValue)
-    {
-        command.Parameters.AddWithValue("@styleId", product.StyleId.Value);
-    }
-    else
-    {
-        command.Parameters.AddWithValue("@styleId", DBNull.Value);
-    }
+    command.Parameters.AddWithValue("@metalId", product.MetalId.Value);
+    command.Parameters.AddWithValue("@gemstoneId", product.GemstoneId.Value);
+    command.Parameters.AddWithValue("@styleId", product.StyleId.Value);
 
     // Execute the command
     await command.ExecuteNonQueryAsync();
@@ -127,17 +60,9 @@ public async Task<Product> UpdateProductAsync(Product product)
 }
 ```
 
-This method:
-1. Creates a database connection
-2. Prepares an UPDATE SQL statement with parameters
-3. Sets parameter values from the product object
-4. Handles nullable foreign keys by using DBNull.Value when appropriate
-5. Executes the update command
-6. Retrieves and returns the updated product
+## Implementing the Basic Endpoint
 
-## Adding Basic Validation
-
-Before updating a product, we should validate the data to ensure it's complete and valid. Let's add some basic validation to our endpoint:
+Continue by implementing a simple endpoint that updates a product. You likely have a `Endpoints/ProductEndpoints.cs` module — or something similar. Add the following endpoint to that module.
 
 ```csharp
 // PUT /products/{id} - Update a product
@@ -152,31 +77,14 @@ app.MapPut("/products/{id}", async (int id, Product updatedProduct, DatabaseServ
             return Results.NotFound($"Product with ID {id} not found");
         }
 
-        // Validate required fields
-        if (string.IsNullOrWhiteSpace(updatedProduct.Name))
-        {
-            return Results.BadRequest("Name is required");
-        }
-
-        if (string.IsNullOrWhiteSpace(updatedProduct.Description))
-        {
-            return Results.BadRequest("Description is required");
-        }
-
-        // Validate numeric values
-        if (updatedProduct.Price <= 0)
-        {
-            return Results.BadRequest("Price must be greater than zero");
-        }
-
         // Set the ID from the route parameter
         updatedProduct.Id = id;
 
         // Update the product
         var result = await db.UpdateProductAsync(updatedProduct);
 
-        // Return the updated product
-        return Results.Ok(result);
+        // Signal success with a 204 status code on the response
+        return Results.NoContent();
     }
     catch (Exception ex)
     {
@@ -187,6 +95,35 @@ app.MapPut("/products/{id}", async (int id, Product updatedProduct, DatabaseServ
 .WithOpenApi();
 ```
 
+This endpoint:
+- Maps to PUT requests at the `/products/{id}` URL
+- Takes the product ID from the URL and the updated product data from the request body
+- Checks if the product exists
+- Updates the product using our `DatabaseService`
+
+## Adding Basic Validation
+
+Before updating a product, we should validate the data to ensure it's complete and valid. Let's add some basic validation to our endpoint. Add the following code after you check if the product exists, and before you set the `Id` property.
+
+```csharp
+// Validate required fields
+if (string.IsNullOrWhiteSpace(updatedProduct.Name))
+{
+   return Results.BadRequest("Name is required");
+}
+
+if (string.IsNullOrWhiteSpace(updatedProduct.Description))
+{
+   return Results.BadRequest("Description is required");
+}
+
+// Validate numeric values
+if (updatedProduct.Price <= 0)
+{
+   return Results.BadRequest("Price must be greater than zero");
+}
+```
+
 This validation:
 1. Checks that required fields (name, description) are provided
 2. Validates numeric values (price > 0, stock quantity >= 0)
@@ -195,18 +132,10 @@ This validation:
 
 Now that we've implemented our PUT endpoint, let's test it:
 
-1. Start the API:
-   ```bash
-   dotnet run
-   ```
-
-2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
-
-3. Find the PUT `/products/{id}` endpoint and click on it
-
-4. Click the "Try it out" button
-
-5. Enter a product ID and a JSON request body with the updated product data:
+1. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
+2. Find the PUT `/products/{id}` endpoint and click on it
+3. Click the "Try it out" button
+4. Enter a product ID and a JSON request body with the updated product data:
    ```json
    {
      "name": "Updated Diamond Ring",
@@ -217,21 +146,8 @@ Now that we've implemented our PUT endpoint, let's test it:
      "styleId": 2
    }
    ```
-
-6. Click the "Execute" button
-
-7. You should see a 200 OK response with the updated product details
-
-## Understanding HTTP Status Codes
-
-Our endpoint returns different HTTP status codes depending on the result:
-
-- 200 OK: The product was updated successfully
-- 400 Bad Request: The request data is invalid (e.g., missing required fields)
-- 404 Not Found: The product with the specified ID doesn't exist
-- 500 Internal Server Error: An unexpected error occurred
-
-These status codes help the client understand what happened with their request.
+5. Click the "Execute" button
+6. You should see a 204 response with the updated product details
 
 ## Conclusion
 
@@ -239,11 +155,10 @@ In this chapter, you've learned how to implement a PUT endpoint to update a prod
 
 This is a fundamental operation in RESTful APIs, and you'll use similar patterns for updating other resources in your applications.
 
-## Practice Exercise
+## Optional Practice Exercise
 
 Enhance your product update functionality by:
+
 1. Adding validation for foreign keys (check if metal, gemstone, and style exist)
-2. Implementing a simple logging mechanism to track product updates
-3. Adding the ability to update multiple products at once
-4. Creating a simple client interface to test your PUT endpoint
-5. Adding support for partial updates (only updating specific fields)
+2. Adding the ability to update multiple products at once
+3. Adding support for partial updates (only updating specific fields)
