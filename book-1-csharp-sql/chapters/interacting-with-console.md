@@ -224,8 +224,8 @@ Create a console application that:
 2. Asks the user for their favorite color
 3. Asks the user for their favorite number
 4. Displays a personalized message using all this information
-5. Tells the user if their name contains the letter 'a'
-6. Displays their name in reverse order (hint: you can use a loop or the `Reverse()` method with LINQ)
+5. Tells the user if their name `Contains()` the letter 'a'
+6. Displays their name in reverse order _(hint: you can use a loop or the `Reverse()` method after converting the string `ToCharArray()`)_
 
 ## Next Steps
 

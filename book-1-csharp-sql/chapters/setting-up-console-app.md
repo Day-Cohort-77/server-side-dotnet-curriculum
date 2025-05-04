@@ -128,12 +128,12 @@ The `Console.ReadLine()` method reads a line of text from the console. We store 
 
 Notice the use of string interpolation with the `$` symbol, which allows us to embed variables directly within string literals.
 
-## Practice Exercise
+## Optional Practice Exercise
 
 Modify your program to:
 1. Ask the user for their favorite color
 2. Display a message that includes their name and favorite color
-3. Add the current time (not just the date) to the output
+3. Research how to add the current time — not just the date — to the output _(e.g. Today's date is: 05/03/2025 20:51:51)_
 
 ## Next Steps
 
