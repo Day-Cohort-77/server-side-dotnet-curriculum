@@ -212,18 +212,6 @@ string[] colorArray = colorList.ToArray();
 You can create Lists of any type, including your own custom classes:
 
 ```csharp
-// Define a simple Person class
-public class Person
-{
-    public string Name { get; set; }
-    public int Age { get; set; }
-
-    public override string ToString()
-    {
-        return $"{Name} ({Age})";
-    }
-}
-
 // Create and use a List of Person objects
 List<Person> people = new List<Person>
 {
@@ -236,6 +224,19 @@ foreach (Person person in people)
 {
     Console.WriteLine(person);
 }
+
+// Define a simple Person class
+public class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+
+    public override string ToString()
+    {
+        return $"{Name} ({Age})";
+    }
+}
+
 ```
 
 ## Putting It All Together
@@ -342,10 +343,3 @@ Create a console application that:
 ## Next Steps
 
 In the next chapter, we'll explore dictionaries, another important collection type in C#. Dictionaries allow you to store key-value pairs and provide efficient lookups based on keys.
-
-Before moving on, make sure you're comfortable with:
-- Creating and initializing Lists
-- Adding, removing, and modifying elements in a List
-- Searching and sorting Lists
-- Iterating through Lists using loops
-- Converting between Lists and arrays
