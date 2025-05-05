@@ -245,18 +245,6 @@ foreach (string capital in capitals.Values)
 You can use any type as a key or value in a dictionary, including custom classes:
 
 ```csharp
-// Define a simple Person class
-public class Person
-{
-    public string Name { get; set; }
-    public int Age { get; set; }
-
-    public override string ToString()
-    {
-        return $"{Name} ({Age})";
-    }
-}
-
 // Create a dictionary with string keys and Person values
 Dictionary<string, Person> people = new Dictionary<string, Person>
 {
@@ -274,142 +262,41 @@ foreach (var pair in people)
 {
     Console.WriteLine($"ID: {pair.Key}, Person: {pair.Value}");
 }
+
+// Define a simple Person class
+public class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+
+    public override string ToString()
+    {
+        return $"{Name} ({Age})";
+    }
+}
+
 ```
 
 ## When to Use Dictionaries
 
 Dictionaries are ideal when:
+
 - You need to look up values based on a unique key
 - You need to check if a specific key exists
 - You need to associate values with identifiers
 - You need fast lookups (dictionaries provide O(1) average case lookup time)
 
 Lists are better when:
+
 - You need to maintain a specific order of elements
 - You need to access elements by index
 - You need to store duplicate values
 - You need to frequently iterate through all elements
 
-## Putting It All Together
-
-Let's create a simple contact management application that demonstrates working with dictionaries:
-
-```csharp
-Dictionary<string, string> contacts = new Dictionary<string, string>();
-bool running = true;
-
-Console.WriteLine("Contact Management Application");
-
-while (running)
-{
-    Console.WriteLine("\nOptions:");
-    Console.WriteLine("1. Add a contact");
-    Console.WriteLine("2. View all contacts");
-    Console.WriteLine("3. Search for a contact");
-    Console.WriteLine("4. Update a contact");
-    Console.WriteLine("5. Remove a contact");
-    Console.WriteLine("6. Exit");
-    Console.Write("Enter your choice (1-6): ");
-
-    string choice = Console.ReadLine();
-
-    switch (choice)
-    {
-        case "1":
-            Console.Write("Enter name: ");
-            string name = Console.ReadLine();
-
-            if (contacts.ContainsKey(name))
-            {
-                Console.WriteLine($"A contact with the name '{name}' already exists.");
-                Console.Write("Do you want to update it? (y/n): ");
-                if (Console.ReadLine().ToLower() != "y")
-                {
-                    break;
-                }
-            }
-
-            Console.Write("Enter phone number: ");
-            string phoneNumber = Console.ReadLine();
-            contacts[name] = phoneNumber;
-            Console.WriteLine("Contact added successfully!");
-            break;
-
-        case "2":
-            if (contacts.Count == 0)
-            {
-                Console.WriteLine("No contacts in the list.");
-            }
-            else
-            {
-                Console.WriteLine("\nContacts:");
-                foreach (var pair in contacts)
-                {
-                    Console.WriteLine($"{pair.Key}: {pair.Value}");
-                }
-            }
-            break;
-
-        case "3":
-            Console.Write("Enter name to search: ");
-            string searchName = Console.ReadLine();
-
-            if (contacts.TryGetValue(searchName, out string number))
-            {
-                Console.WriteLine($"{searchName}: {number}");
-            }
-            else
-            {
-                Console.WriteLine($"No contact found with the name '{searchName}'.");
-            }
-            break;
-
-        case "4":
-            Console.Write("Enter name to update: ");
-            string updateName = Console.ReadLine();
-
-            if (contacts.ContainsKey(updateName))
-            {
-                Console.Write("Enter new phone number: ");
-                string newNumber = Console.ReadLine();
-                contacts[updateName] = newNumber;
-                Console.WriteLine("Contact updated successfully!");
-            }
-            else
-            {
-                Console.WriteLine($"No contact found with the name '{updateName}'.");
-            }
-            break;
-
-        case "5":
-            Console.Write("Enter name to remove: ");
-            string removeName = Console.ReadLine();
-
-            if (contacts.Remove(removeName))
-            {
-                Console.WriteLine("Contact removed successfully!");
-            }
-            else
-            {
-                Console.WriteLine($"No contact found with the name '{removeName}'.");
-            }
-            break;
-
-        case "6":
-            running = false;
-            Console.WriteLine("Goodbye!");
-            break;
-
-        default:
-            Console.WriteLine("Invalid choice. Please try again.");
-            break;
-    }
-}
-```
-
 ## Practice Exercise
 
 Create a console application that:
+
 1. Creates a dictionary to store student grades (student name as key, grade as value)
 2. Allows the user to add, view, update, and remove student grades
 3. Calculates and displays the average grade
@@ -420,11 +307,3 @@ Create a console application that:
 ## Next Steps
 
 In the next chapter, we'll explore working with numbers in C#, including different numeric types, arithmetic operations, and mathematical functions.
-
-Before moving on, make sure you're comfortable with:
-- Creating and initializing dictionaries
-- Adding, removing, and modifying key-value pairs
-- Accessing values using keys
-- Checking if keys exist in a dictionary
-- Iterating through dictionary keys, values, and key-value pairs
-- Understanding when to use dictionaries versus other collection types
