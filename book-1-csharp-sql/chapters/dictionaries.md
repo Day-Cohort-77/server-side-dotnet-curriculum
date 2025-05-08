@@ -306,4 +306,4 @@ Create a console application that:
 
 ## Next Steps
 
-In the next chapter, we'll explore working with numbers in C#, including different numeric types, arithmetic operations, and mathematical functions.
+In the next chapter, we'll explore working with dates and times in C#.

@@ -15,9 +15,9 @@ You need to complete all of columns in 2 weeks. You want to be working on the fi
 | 3 | [Conditionals and Loops][3] | [Inheritance][8] <br/> <sub style="font-size:0.85rem;">\#inheritance</sub> | [PostgreSQL Basics][11] | [Initializing the Project and Database][33] | [Get All Products][18] |
 | 4 | [Lists and Collections][4] | [Properties and Encapsulation][9] <br/> <sub style="font-size:0.85rem;">\#properties</sub> | | [Seeding the Database][34] | [Get Single Product][19] |
 | 5 | [Dictionaries][5] | [Methods and Behaviors][10] <br/> <sub style="font-size:0.85rem;">\#methods</sub> | | [Getting Ships][35] | [Create New Order][20] |
-| 6 | [Working with Integers][25] | [Interfaces and Abstraction][15] <br/> <sub style="font-size:0.85rem;">\#interfaces</sub> | | [Get Docks][36] | [Delete an Order][21] |
-| 7 | [DateTime Handling][26] | | | [Create a Dock][37] | [Update a Product][22] |
-| 8 | [Exception Handling][27] | | | [Create a Ship][38] |  |
+| 6 | [DateTime Handling][26] | [Interfaces and Abstraction][15] <br/> <sub style="font-size:0.85rem;">\#interfaces</sub> | | [Get Docks][36] | [Delete an Order][21] |
+| 7 | [Exception Handling][27] | | | [Create a Dock][37] | [Update a Product][22] |
+| 8 |  | | | [Create a Ship][38] |  |
 | 9 | | | | [Create Haulers][39] | |
 | 10 | | | | [Decomission Ships][40] | |
 | 11 | | | | [Decomission Haulers][41] | |
