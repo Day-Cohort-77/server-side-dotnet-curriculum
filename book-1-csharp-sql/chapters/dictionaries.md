@@ -307,3 +307,5 @@ Create a console application that:
 ## Next Steps
 
 In the next chapter, we'll explore working with dates and times in C#.
+
+[Next Chapter: DateTime Handling](./foundations-datetime.md)

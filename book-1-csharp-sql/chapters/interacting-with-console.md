@@ -236,3 +236,5 @@ Before moving on, make sure you're comfortable with:
 - Getting input from the console
 - Displaying formatted output to the console
 - Parsing different data types from string input
+
+[Next Chapter: Conditionals and Loops](./conditionals-and-loops.md)

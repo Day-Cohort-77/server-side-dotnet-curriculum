@@ -530,3 +530,5 @@ Before moving on, make sure you're comfortable with:
 - Converting between numeric types
 - Handling numeric overflow and underflow
 - Formatting numeric output for display
+
+[Next Chapter: DateTime Handling](./foundations-datetime.md)

@@ -343,3 +343,5 @@ Create a console application that:
 ## Next Steps
 
 In the next chapter, we'll explore dictionaries, another important collection type in C#. Dictionaries allow you to store key-value pairs and provide efficient lookups based on keys.
+
+[Next Chapter: Dictionaries](./dictionaries.md)

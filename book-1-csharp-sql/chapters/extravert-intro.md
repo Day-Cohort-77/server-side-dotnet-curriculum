@@ -313,3 +313,5 @@ Modify the ExtraVert Garden application to:
 2. Enhance the `Plant` class with an additional property (e.g., `PlantedDate` or `Size`)
 3. Update the `DisplayInfo` method to show the new property
 4. Run the application and verify that the new plants and property are displayed correctly
+
+[Next Chapter: Plant Classes](./extravert-plant-classes.md)

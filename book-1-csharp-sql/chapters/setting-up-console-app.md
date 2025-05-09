@@ -146,3 +146,5 @@ Before moving on, make sure you're comfortable with:
 - Getting input from the user
 
 If you have any questions or issues, review this chapter or ask your instructor for help.
+
+[Next Chapter: Interacting with the Console](./interacting-with-console.md)

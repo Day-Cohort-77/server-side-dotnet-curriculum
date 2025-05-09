@@ -351,3 +351,5 @@ Before moving on, make sure you're comfortable with:
 - Implementing different types of loops
 - Using logical operators to combine conditions
 - Controlling loop execution with break and continue statements
+
+[Next Chapter: Lists and Collections](./thrown-for-a-loop-lists.md)
