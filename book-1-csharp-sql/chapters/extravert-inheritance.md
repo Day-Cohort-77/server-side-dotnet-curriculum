@@ -809,3 +809,5 @@ Enhance the ExtraVert Garden application by:
 4. Adding a method specific to cacti (e.g., `HandleWithCare`)
 5. Adding some cactus plants to the `SeedData` method
 6. Running the application and verifying that the cactus plants are displayed correctly with their care instructions
+
+[Next Chapter: Properties and Encapsulation](./extravert-properties.md)

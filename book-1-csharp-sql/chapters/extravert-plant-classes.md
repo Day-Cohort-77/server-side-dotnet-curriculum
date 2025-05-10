@@ -529,3 +529,6 @@ Enhance the ExtraVert Garden application by:
 4. Adding a method specific to herbs (e.g., `Harvest`)
 5. Adding some herb plants to the `SeedData` method
 6. Running the application and verifying that the herb plants are displayed correctly
+
+
+[Next Chapter: Inheritance](./extravert-inheritance.md)

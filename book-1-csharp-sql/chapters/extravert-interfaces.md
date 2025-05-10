@@ -9,745 +9,347 @@ By the end of this chapter, you should be able to:
 - Define and implement interfaces
 - Use interfaces to achieve polymorphism
 - Implement multiple interfaces in a single class
-- Understand default interface methods (C# 8.0+)
-- Apply the Interface Segregation Principle
-- Use interfaces for dependency injection
+- Understand default interface methods
 
 ## Understanding Interfaces
 
 An interface is a contract that defines a set of methods, properties, events, or indexers that a class must implement. Interfaces allow you to define what a class can do without specifying how it does it.
 
+> 💡 Interfaces are different from inheriting from a parent class in that a parent class has default implementations that the child automatically gets. An interface simply requires that a class **must** implement it.
+
 Key characteristics of interfaces:
 - They can contain method signatures, properties, events, and indexers, but not fields
-- They cannot contain implementation code (except for default interface methods in C# 8.0+)
+- They cannot contain implementation code
 - A class can implement multiple interfaces
 - Interfaces can inherit from other interfaces
 
 ## Creating an Interface
 
-Let's create an interface for plants that can be propagated:
+Let's create a simple interface for animals that can make sounds:
 
 ```csharp
-// Models/IPropagatable.cs
-using System;
-
+// Models/ISoundMaker.cs
 namespace ExtraVert.Models
 {
-    public interface IPropagatable
+    public interface ISoundMaker
     {
-        // Method signatures
-        void Propagate();
-        bool CanPropagate();
+        // Method signature
+        void MakeSound();
 
-        // Property signatures
-        string PropagationMethod { get; }
-        int PropagationSuccessRate { get; }
-
-        // Default method (C# 8.0+)
-        string GetPropagationInstructions() => $"Propagate using {PropagationMethod} method. Success rate: {PropagationSuccessRate}%.";
+        // Property signature
+        string SoundDescription { get; }
     }
 }
 ```
+
+This interface defines a contract that any class implementing `ISoundMaker` must provide:
+1. A `MakeSound()` method that performs the action of making a sound
+2. A `SoundDescription` property that describes the sound
+
 ## Implementing an Interface
 
-Now, let's update our plant classes to implement the `IPropagatable` interface. First, let's update the `SucculentPlant` class:
+Now, let's create a simple `Dog` class that implements the `ISoundMaker` interface:
 
 ```csharp
-// Models/SucculentPlant.cs
+// Models/Dog.cs
 using System;
 
 namespace ExtraVert.Models
 {
-    public class SucculentPlant : Plant, IPropagatable
+    public class Dog : ISoundMaker
     {
-        // Additional properties specific to succulent plants
-        public bool IsIndoor { get; set; }
-        public string WaterStorageOrgan { get; set; }
-        public bool IsToxicToPets { get; set; }
+        public string Name { get; set; }
+        public string Breed { get; set; }
 
-        // Properties from IPropagatable interface
-        public string PropagationMethod { get; private set; }
-        public int PropagationSuccessRate { get; private set; }
+        // Property from ISoundMaker interface
+        public string SoundDescription { get; private set; }
 
         // Constructor
-        public SucculentPlant(string name, string species, string lightNeeds, string waterNeeds,
-                             decimal price, bool isIndoor, string waterStorageOrgan, bool isToxicToPets)
-            : base(name, species, lightNeeds, waterNeeds, price)
+        public Dog(string name, string breed)
         {
-            IsIndoor = isIndoor;
-            WaterStorageOrgan = waterStorageOrgan;
-            IsToxicToPets = isToxicToPets;
-
-            // Initialize propagation properties
-            PropagationMethod = "Leaf or stem cutting";
-            PropagationSuccessRate = 90; // Succulents are generally easy to propagate
+            Name = name;
+            Breed = breed;
+            SoundDescription = "Woof! Woof!";
         }
 
-        // Override the DisplayInfo method to include succulent plant specific information
-        public override void DisplayInfo()
+        // Implement ISoundMaker.MakeSound method
+        public void MakeSound()
         {
-            // Call the base class DisplayInfo method
-            base.DisplayInfo();
-
-            // Add succulent plant specific information
-            Console.WriteLine($"Indoor: {(IsIndoor ? "Yes" : "No")}");
-            Console.WriteLine($"Water Storage Organ: {WaterStorageOrgan}");
-            Console.WriteLine($"Toxic to Pets: {(IsToxicToPets ? "Yes" : "No")}");
-
-            // Add propagation information if applicable
-            if (this is IPropagatable propagatable)
-            {
-                Console.WriteLine($"Propagation Method: {propagatable.PropagationMethod}");
-                Console.WriteLine($"Propagation Success Rate: {propagatable.PropagationSuccessRate}%");
-            }
+            Console.WriteLine($"{Name} says: {SoundDescription}");
         }
 
-        // Implement the abstract GetPlantType method
-        public override string GetPlantType()
+        // Dog-specific method
+        public void Fetch()
         {
-            return "Succulent Plant";
-        }
-
-        // Implement the abstract GetCareInstructions method
-        public override string GetCareInstructions()
-        {
-            return $"Provide {LightNeeds} light. Water sparingly - {WaterNeeds}. " +
-                   $"Allow soil to dry completely between waterings. " +
-                   $"Use well-draining soil to prevent root rot.";
-        }
-
-        // Override the Water method for succulents
-        public override void Water()
-        {
-            Console.WriteLine($"Watering {Name} sparingly - succulents need less water than other plants.");
-            LastWateredDate = DateTime.Now;
-        }
-
-        // Implement IPropagatable.Propagate method
-        public void Propagate()
-        {
-            Console.WriteLine($"Propagating {Name} by taking a leaf or stem cutting.");
-            Console.WriteLine("1. Cut a healthy leaf or stem segment.");
-            Console.WriteLine("2. Allow the cutting to callus over for a few days.");
-            Console.WriteLine("3. Place the cutting on well-draining soil.");
-            Console.WriteLine("4. Water sparingly until roots develop.");
-        }
-
-        // Implement IPropagatable.CanPropagate method
-        public bool CanPropagate()
-        {
-            // Most succulents can be propagated year-round, but let's add some logic
-            // For demonstration, let's say succulents can be propagated if they're at least 30 days old
-            return DaysSinceAcquisition >= 30;
+            Console.WriteLine($"{Name} is fetching the ball!");
         }
     }
 }
 ```
 
-Now, let's update the `FloweringPlant` class to implement the `IPropagatable` interface:
+Let's also create a `Cat` class that implements the same interface:
 
 ```csharp
-// Models/FloweringPlant.cs
+// Models/Cat.cs
 using System;
 
 namespace ExtraVert.Models
 {
-    public class FloweringPlant : Plant, IPropagatable
+    public class Cat : ISoundMaker
     {
-        // Additional properties specific to flowering plants
-        public string FlowerColor { get; set; }
-        public bool IsAnnual { get; set; }
-        public string BloomingSeason { get; set; }
+        public string Name { get; set; }
+        public string Color { get; set; }
 
-        // Properties from IPropagatable interface
-        public string PropagationMethod { get; private set; }
-        public int PropagationSuccessRate { get; private set; }
+        // Property from ISoundMaker interface
+        public string SoundDescription { get; private set; }
 
         // Constructor
-        public FloweringPlant(string name, string species, string lightNeeds, string waterNeeds,
-                             decimal price, string flowerColor, bool isAnnual, string bloomingSeason)
-            : base(name, species, lightNeeds, waterNeeds, price)
+        public Cat(string name, string color)
         {
-            FlowerColor = flowerColor;
-            IsAnnual = isAnnual;
-            BloomingSeason = bloomingSeason;
-
-            // Initialize propagation properties
-            PropagationMethod = IsAnnual ? "Seeds" : "Division or cuttings";
-            PropagationSuccessRate = IsAnnual ? 80 : 70; // Annual plants are often propagated by seeds
-
-            // Use the protected property from the base class
-            if (isAnnual)
-            {
-                // Annual plants typically need more fertilizer
-                NeedsFertilizer = true;
-            }
+            Name = name;
+            Color = color;
+            SoundDescription = "Meow! Meow!";
         }
 
-        // Override the DisplayInfo method to include flowering plant specific information
-        public override void DisplayInfo()
+        // Implement ISoundMaker.MakeSound method
+        public void MakeSound()
         {
-            // Call the base class DisplayInfo method
-            base.DisplayInfo();
-
-            // Add flowering plant specific information
-            Console.WriteLine($"Flower Color: {FlowerColor}");
-            Console.WriteLine($"Annual: {(IsAnnual ? "Yes" : "No")}");
-            Console.WriteLine($"Blooming Season: {BloomingSeason}");
-
-            // Add propagation information if applicable
-            if (this is IPropagatable propagatable)
-            {
-                Console.WriteLine($"Propagation Method: {propagatable.PropagationMethod}");
-                Console.WriteLine($"Propagation Success Rate: {propagatable.PropagationSuccessRate}%");
-            }
+            Console.WriteLine($"{Name} says: {SoundDescription}");
         }
 
-        // Implement the abstract GetPlantType method
-        public override string GetPlantType()
+        // Cat-specific method
+        public void Climb()
         {
-            return "Flowering Plant";
-        }
-
-        // Implement the abstract GetCareInstructions method
-        public override string GetCareInstructions()
-        {
-            string fertilizerInstructions = NeedsFertilizer
-                ? "Fertilize regularly during growing season."
-                : "Minimal fertilizer needed.";
-
-            return $"Provide {LightNeeds} light. Water {WaterNeeds}. " +
-                   $"Deadhead spent blooms to encourage more flowers. " +
-                   $"{fertilizerInstructions}";
-        }
-
-        // Add a method specific to flowering plants
-        public void Deadhead()
-        {
-            Console.WriteLine($"Deadheading {Name} to encourage more blooms.");
-
-            // After deadheading, the plant might need fertilizer
-            NeedsFertilizer = true;
-        }
-
-        // Implement IPropagatable.Propagate method
-        public void Propagate()
-        {
-            if (IsAnnual)
-            {
-                Console.WriteLine($"Propagating {Name} by collecting and sowing seeds.");
-                Console.WriteLine("1. Allow flowers to go to seed.");
-                Console.WriteLine("2. Collect seeds when they are mature.");
-                Console.WriteLine("3. Store seeds in a cool, dry place.");
-                Console.WriteLine("4. Sow seeds in appropriate growing medium during the next growing season.");
-            }
-            else
-            {
-                Console.WriteLine($"Propagating {Name} by division or cuttings.");
-                Console.WriteLine("1. Take a cutting from a healthy stem or divide the root ball.");
-                Console.WriteLine("2. For cuttings, dip in rooting hormone and plant in growing medium.");
-                Console.WriteLine("3. For divisions, replant each division in its own pot.");
-                Console.WriteLine("4. Keep soil moist until new growth appears.");
-## Creating a Propagation Service
-
-Now, let's create a service class that works with propagatable plants:
-
-```csharp
-// Services/PropagationService.cs
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using ExtraVert.Models;
-
-namespace ExtraVert.Services
-{
-    public class PropagationService
-    {
-        // Method that works with any IPropagatable object
-        public void PropagateIfPossible(IPropagatable plant)
-        {
-            if (plant.CanPropagate())
-            {
-                Console.WriteLine($"Propagating plant using {plant.PropagationMethod} method...");
-                plant.Propagate();
-                Console.WriteLine($"Expected success rate: {plant.PropagationSuccessRate}%");
-            }
-            else
-            {
-                Console.WriteLine("This plant cannot be propagated at this time.");
-                Console.WriteLine(plant.GetPropagationInstructions());
-            }
-        }
-
-        // Method that filters a list of plants to find those that can be propagated
-        public List<IPropagatable> GetPropagatablePlants(List<Plant> plants)
-        {
-            return plants
-                .OfType<IPropagatable>() // Filter to only IPropagatable plants
-                .Where(p => p.CanPropagate()) // Filter to only those that can be propagated now
-                .ToList();
-        }
-
-        // Method that provides propagation instructions for all propagatable plants
-        public void DisplayPropagationInstructions(List<Plant> plants)
-        {
-            var propagatablePlants = plants.OfType<IPropagatable>().ToList();
-
-            if (propagatablePlants.Count == 0)
-            {
-                Console.WriteLine("No propagatable plants found.");
-                return;
-            }
-
-            Console.WriteLine("Propagation Instructions:");
-            Console.WriteLine("------------------------");
-
-            foreach (var plant in propagatablePlants)
-            {
-                // We need to cast to access the Name property
-                var actualPlant = plant as Plant;
-                Console.WriteLine($"{actualPlant?.Name ?? "Unknown Plant"}:");
-                Console.WriteLine($"Method: {plant.PropagationMethod}");
-                Console.WriteLine($"Success Rate: {plant.PropagationSuccessRate}%");
-                Console.WriteLine($"Can Propagate Now: {(plant.CanPropagate() ? "Yes" : "No")}");
-                Console.WriteLine(plant.GetPropagationInstructions());
-                Console.WriteLine();
-            }
+            Console.WriteLine($"{Name} is climbing the tree!");
         }
     }
 }
 ```
 
-In this service class:
-- We've created methods that work with `IPropagatable` objects, regardless of their concrete type
-- We've used LINQ's `OfType<T>()` method to filter a list of plants to only those that implement `IPropagatable`
-- We've demonstrated how interfaces enable polymorphism by allowing different types of plants to be treated uniformly as `IPropagatable` objects
-
-## Creating Multiple Interfaces
-
-Let's create another interface for plants that can bloom:
+Lastly, also create a `Snake` class that **doesn't** implement the interface.
 
 ```csharp
-// Models/IBloomable.cs
+// Models/Snake.cs
 using System;
 
 namespace ExtraVert.Models
 {
-    public interface IBloomable
+    public class Snake
     {
-        // Method signatures
-        void Bloom();
-        bool IsInBloomingSeason();
-
-        // Property signatures
-        string BloomColor { get; }
-        string BloomingSeason { get; }
-
-        // Default method (C# 8.0+)
-        string GetBloomingInstructions() => $"This plant blooms in {BloomingSeason} with {BloomColor} flowers.";
-    }
-}
-```
-
-Now, let's update the `FloweringPlant` class to implement both `IPropagatable` and `IBloomable`:
-
-```csharp
-// Models/FloweringPlant.cs
-using System;
-
-namespace ExtraVert.Models
-{
-    public class FloweringPlant : Plant, IPropagatable, IBloomable
-    {
-        // Additional properties specific to flowering plants
-        public string FlowerColor { get; set; }
-        public bool IsAnnual { get; set; }
-        public string BloomingSeason { get; set; }
-
-        // Properties from IPropagatable interface
-        public string PropagationMethod { get; private set; }
-        public int PropagationSuccessRate { get; private set; }
-
-        // Properties from IBloomable interface
-        public string BloomColor => FlowerColor; // Implement IBloomable.BloomColor using existing property
-        string IBloomable.BloomingSeason => BloomingSeason; // Explicit interface implementation
+        public string Name { get; set; }
+        public string Color { get; set; }
 
         // Constructor
-        public FloweringPlant(string name, string species, string lightNeeds, string waterNeeds,
-                             decimal price, string flowerColor, bool isAnnual, string bloomingSeason)
-            : base(name, species, lightNeeds, waterNeeds, price)
+        public Snake(string name, string color)
         {
-            FlowerColor = flowerColor;
-            IsAnnual = isAnnual;
-            BloomingSeason = bloomingSeason;
-
-            // Initialize propagation properties
-            PropagationMethod = IsAnnual ? "Seeds" : "Division or cuttings";
-            PropagationSuccessRate = IsAnnual ? 80 : 70; // Annual plants are often propagated by seeds
-
-            // Use the protected property from the base class
-            if (isAnnual)
-            {
-                // Annual plants typically need more fertilizer
-                NeedsFertilizer = true;
-            }
+            Name = name;
+            Color = color;
         }
 
-        // Override the DisplayInfo method to include flowering plant specific information
-        public override void DisplayInfo()
+        // Snake-specific method
+        public void Slither()
         {
-            // Call the base class DisplayInfo method
-            base.DisplayInfo();
-
-            // Add flowering plant specific information
-            Console.WriteLine($"Flower Color: {FlowerColor}");
-            Console.WriteLine($"Annual: {(IsAnnual ? "Yes" : "No")}");
-            Console.WriteLine($"Blooming Season: {BloomingSeason}");
-
-            // Add propagation information if applicable
-            if (this is IPropagatable propagatable)
-            {
-                Console.WriteLine($"Propagation Method: {propagatable.PropagationMethod}");
-                Console.WriteLine($"Propagation Success Rate: {propagatable.PropagationSuccessRate}%");
-            }
-
-            // Add blooming information if applicable
-            if (this is IBloomable bloomable)
-            {
-                Console.WriteLine($"Blooming Season: {bloomable.BloomingSeason}");
-                Console.WriteLine($"Bloom Color: {bloomable.BloomColor}");
-                Console.WriteLine($"Currently Blooming: {(bloomable.IsInBloomingSeason() ? "Yes" : "No")}");
-            }
-        }
-
-        // Implement the abstract GetPlantType method
-        public override string GetPlantType()
-        {
-            return "Flowering Plant";
-        }
-
-        // Implement the abstract GetCareInstructions method
-        public override string GetCareInstructions()
-        {
-            string fertilizerInstructions = NeedsFertilizer
-                ? "Fertilize regularly during growing season."
-                : "Minimal fertilizer needed.";
-
-            return $"Provide {LightNeeds} light. Water {WaterNeeds}. " +
-                   $"Deadhead spent blooms to encourage more flowers. " +
-                   $"{fertilizerInstructions}";
-        }
-
-        // Add a method specific to flowering plants
-        public void Deadhead()
-        {
-            Console.WriteLine($"Deadheading {Name} to encourage more blooms.");
-
-            // After deadheading, the plant might need fertilizer
-            NeedsFertilizer = true;
-        }
-
-        // Implement IPropagatable.Propagate method
-        public void Propagate()
-        {
-            if (IsAnnual)
-            {
-                Console.WriteLine($"Propagating {Name} by collecting and sowing seeds.");
-                Console.WriteLine("1. Allow flowers to go to seed.");
-                Console.WriteLine("2. Collect seeds when they are mature.");
-                Console.WriteLine("3. Store seeds in a cool, dry place.");
-                Console.WriteLine("4. Sow seeds in appropriate growing medium during the next growing season.");
-            }
-            else
-            {
-                Console.WriteLine($"Propagating {Name} by division or cuttings.");
-                Console.WriteLine("1. Take a cutting from a healthy stem or divide the root ball.");
-                Console.WriteLine("2. For cuttings, dip in rooting hormone and plant in growing medium.");
-                Console.WriteLine("3. For divisions, replant each division in its own pot.");
-                Console.WriteLine("4. Keep soil moist until new growth appears.");
-            }
-        }
-
-        // Implement IPropagatable.CanPropagate method
-        public bool CanPropagate()
-        {
-            if (IsAnnual)
-            {
-                // Annual plants can be propagated by seed when they're flowering
-                return BloomingSeason.Contains(DateTime.Now.ToString("MMMM"), StringComparison.OrdinalIgnoreCase);
-            }
-            else
-            {
-                // Perennial plants can be propagated during their active growing season
-                return !BloomingSeason.Contains("Winter", StringComparison.OrdinalIgnoreCase);
-            }
-        }
-
-        // Implement IBloomable.Bloom method
-        public void Bloom()
-        {
-            Console.WriteLine($"{Name} is blooming with beautiful {BloomColor} flowers!");
-        }
-
-        // Implement IBloomable.IsInBloomingSeason method
-        public bool IsInBloomingSeason()
-        {
-            // Check if the current month is in the blooming season
-            return BloomingSeason.Contains(DateTime.Now.ToString("MMMM"), StringComparison.OrdinalIgnoreCase);
-        }
-    }
-}
-```
-## Creating a Blooming Service
-
-Now, let's create a service class that works with bloomable plants:
-
-```csharp
-// Services/BloomingService.cs
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using ExtraVert.Models;
-
-namespace ExtraVert.Services
-{
-    public class BloomingService
-    {
-        // Method that works with any IBloomable object
-        public void TriggerBloom(IBloomable plant)
-        {
-            if (plant.IsInBloomingSeason())
-            {
-                Console.WriteLine("Triggering bloom...");
-                plant.Bloom();
-            }
-            else
-            {
-                Console.WriteLine("This plant is not in its blooming season.");
-                Console.WriteLine(plant.GetBloomingInstructions());
-            }
-        }
-
-        // Method that filters a list of plants to find those that are currently blooming
-        public List<IBloomable> GetCurrentlyBloomingPlants(List<Plant> plants)
-        {
-            return plants
-                .OfType<IBloomable>() // Filter to only IBloomable plants
-                .Where(p => p.IsInBloomingSeason()) // Filter to only those that are in blooming season
-                .ToList();
-        }
-
-        // Method that provides blooming information for all bloomable plants
-        public void DisplayBloomingInformation(List<Plant> plants)
-        {
-            var bloomablePlants = plants.OfType<IBloomable>().ToList();
-
-            if (bloomablePlants.Count == 0)
-            {
-                Console.WriteLine("No bloomable plants found.");
-                return;
-            }
-
-            Console.WriteLine("Blooming Information:");
-            Console.WriteLine("--------------------");
-
-            foreach (var plant in bloomablePlants)
-            {
-                // We need to cast to access the Name property
-                var actualPlant = plant as Plant;
-                Console.WriteLine($"{actualPlant?.Name ?? "Unknown Plant"}:");
-                Console.WriteLine($"Bloom Color: {plant.BloomColor}");
-                Console.WriteLine($"Blooming Season: {plant.BloomingSeason}");
-                Console.WriteLine($"Currently Blooming: {(plant.IsInBloomingSeason() ? "Yes" : "No")}");
-                Console.WriteLine(plant.GetBloomingInstructions());
-                Console.WriteLine();
-            }
+            Console.WriteLine($"{Name} is slithering through the brush!");
         }
     }
 }
 ```
 
-## Interface Segregation Principle
+## Using Interfaces for Polymorphism
 
-The Interface Segregation Principle (ISP) is one of the SOLID principles of object-oriented design. It states that "Clients should not be forced to depend upon interfaces that they do not use."
-
-In our example, we've applied the ISP by creating separate interfaces for different behaviors:
-- `IPropagatable` for plants that can be propagated
-- `IBloomable` for plants that can bloom
-
-This allows classes to implement only the interfaces that are relevant to them. For example, a `SucculentPlant` might implement `IPropagatable` but not `IBloomable`, while a `FloweringPlant` might implement both.
-
-## Dependency Injection with Interfaces
-
-Interfaces are commonly used for dependency injection, a technique where dependencies are provided to a class rather than created by the class itself. This promotes loose coupling and makes code more testable.
-
-Let's create a `PlantManager` class that uses dependency injection:
+One of the main benefits of interfaces is that they enable polymorphism - the ability to group objects that share the same interface into collections in a sensible way. Let's create a simple service that works with any `ISoundMaker`:
 
 ```csharp
-// Services/PlantManager.cs
+// Services/SoundService.cs
 using System;
 using System.Collections.Generic;
 using ExtraVert.Models;
 
 namespace ExtraVert.Services
 {
-    // Interface for plant repositories
-    public interface IPlantRepository
+    public class SoundService
     {
-        List<Plant> GetAllPlants();
-        void AddPlant(Plant plant);
-        List<Plant> SearchPlants(string searchTerm);
-    }
-
-    // PlantManager class that depends on IPlantRepository
-    public class PlantManager
-    {
-        private readonly IPlantRepository _plantRepository;
-
-        // Constructor injection
-        public PlantManager(IPlantRepository plantRepository)
+        // This method works with any object that implements ISoundMaker
+        public void MakeSoundTwice(ISoundMaker soundMaker)
         {
-            _plantRepository = plantRepository;
+            Console.WriteLine("Making sound twice:");
+            soundMaker.MakeSound();
+            soundMaker.MakeSound();
         }
 
-        // Methods that use the injected repository
-        public List<Plant> GetAllPlants()
+        // This method works with a list of any objects that implement ISoundMaker
+        public void MakeAllSounds(List<ISoundMaker> soundMakers)
         {
-            return _plantRepository.GetAllPlants();
-        }
+            Console.WriteLine("All sounds:");
 
-        public void AddPlant(Plant plant)
-        {
-            _plantRepository.AddPlant(plant);
-        }
-
-        public List<Plant> SearchPlants(string searchTerm)
-        {
-            return _plantRepository.SearchPlants(searchTerm);
-        }
-
-        // Additional methods that use the repository
-        public List<Plant> GetPlantsByType(string plantType)
-        {
-            return _plantRepository.GetAllPlants().FindAll(p =>
-                p.GetPlantType().Equals(plantType, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public decimal GetTotalInventoryValue()
-        {
-            decimal total = 0;
-            foreach (var plant in _plantRepository.GetAllPlants())
+            foreach (var soundMaker in soundMakers)
             {
-                total += plant.Price;
+                soundMaker.MakeSound();
             }
-            return total;
         }
     }
 }
 ```
 
-Now, let's update our `PlantRepository` class to implement the `IPlantRepository` interface:
+## Using the Interface in a Program
+
+Here's how we might use these classes and interfaces in a program:
 
 ```csharp
-// Data/PlantRepository.cs
+// Program.cs
 using System;
 using System.Collections.Generic;
 using ExtraVert.Models;
 using ExtraVert.Services;
 
-namespace ExtraVert.Data
+namespace ExtraVert
 {
-    public class PlantRepository : IPlantRepository
+    class Program
     {
-        private List<Plant> _plants = new List<Plant>();
-
-        public List<Plant> GetAllPlants()
+        static void Main(string[] args)
         {
-            return _plants;
-        }
+            // Create some animals
+            Dog fido = new Dog("Fido", "Golden Retriever");
+            Cat whiskers = new Cat("Whiskers", "Tabby");
+            Snake skinny = new Snake("Skinny", "Copperhead");
 
-        public void AddPlant(Plant plant)
-        {
-            _plants.Add(plant);
-        }
+            // Use dog-specific method
+            fido.Fetch();
 
-        public List<Plant> SearchPlants(string searchTerm)
-        {
-            return _plants.FindAll(p =>
-                p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                p.Species.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                p.GetPlantType().Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
-        }
+            // Use cat-specific method
+            whiskers.Climb();
 
-        public void SeedData()
-        {
-            // Add sample plants (implementation omitted for brevity)
+            // Use snake-specific method
+            skinny.Slither();
+
+            // Create a list of only animals that make sounds
+            List<ISoundMaker> soundMakers = new List<ISoundMaker>
+            {
+                fido,    // Dog implements ISoundMaker
+                whiskers // Cat implements ISoundMaker
+            };
+
+            // Create the sound service
+            SoundService soundService = new SoundService();
+
+            // Make all sounds
+            soundService.MakeAllSounds(soundMakers);
+
+            // Make Fido's sound twice
+            soundService.MakeSoundTwice(fido);
+
+            Console.ReadLine();
         }
     }
 }
 ```
 
-## Interface Guidelines
+The output would be:
+```
+Fido is fetching the ball!
+Whiskers is climbing the tree!
+All sounds:
+Fido says: Woof! Woof!
+Whiskers says: Meow! Meow!
+Making sound twice:
+Fido says: Woof! Woof!
+Fido says: Woof! Woof!
+```
 
-Here are some guidelines for using interfaces effectively:
+## Multiple Interfaces
 
-1. **Keep interfaces focused**: Each interface should have a clear, specific purpose. Follow the Interface Segregation Principle.
+A class can implement multiple interfaces. Let's create another interface for animals that can move:
 
-2. **Name interfaces appropriately**: Interface names typically start with "I" followed by a descriptive name (e.g., `IPropagatable`, `IBloomable`).
+```csharp
+// Models/IMovable.cs
+namespace ExtraVert.Models
+{
+    public interface IMovable
+    {
+        void Move();
+        int Speed { get; }
+    }
+}
+```
 
-3. **Design for extensibility**: Interfaces should be designed to accommodate future changes without breaking existing code.
+Now, let's update the `Dog` class to implement both interfaces:
 
-4. **Use interfaces for abstraction**: Interfaces help abstract away implementation details, allowing you to focus on what an object does rather than how it does it.
+```csharp
+// Models/Dog.cs
+using System;
 
-5. **Use interfaces for polymorphism**: Interfaces enable polymorphism, allowing different types to be treated uniformly.
+namespace ExtraVert.Models
+{
+    public class Dog : ISoundMaker, IMovable
+    {
+        public string Name { get; set; }
+        public string Breed { get; set; }
 
-6. **Use interfaces for dependency injection**: Interfaces make it easier to swap out implementations, which is useful for testing and maintaining code.
+        // Property from ISoundMaker interface
+        public string SoundDescription { get; private set; }
 
-7. **Consider default interface methods**: In C# 8.0+, you can provide default implementations for interface methods, which can be useful for adding new methods to existing interfaces without breaking compatibility.
+        // Property from IMovable interface
+        public int Speed { get; private set; }
+
+        // Constructor
+        public Dog(string name, string breed)
+        {
+            Name = name;
+            Breed = breed;
+            SoundDescription = "Woof! Woof!";
+            Speed = 15; // mph
+        }
+
+        // Implement ISoundMaker.MakeSound method
+        public void MakeSound()
+        {
+            Console.WriteLine($"{Name} says: {SoundDescription}");
+        }
+
+        // Implement IMovable.Move method
+        public void Move()
+        {
+            Console.WriteLine($"{Name} is running at {Speed} mph!");
+        }
+
+        // Dog-specific method
+        public void Fetch()
+        {
+            Console.WriteLine($"{Name} is fetching the ball!");
+        }
+    }
+}
+```
+
+🧨 Your job is to have all 3 animal class implement the `IMovable` interface since cats and snakes can also move.
+
+## Interface Segregation Principle
+
+The Interface Segregation Principle (ISP) is a fundamental principle of object-oriented design. It states that _"Clients should not be forced to depend upon interfaces that they do not use."_
+
+In our example, we've applied the ISP by creating separate interfaces for different behaviors:
+- `ISoundMaker` for animals that can make sounds
+- `IMovable` for animals that can move
+
+This allows classes to implement only the interfaces that are relevant to them. For example, a `Plant` class might not implement either interface, while a `Dog` class might implement both.
 
 ## Next Steps
 
-In this chapter, we've explored interfaces and how they can be used to create more flexible, maintainable code. We've implemented interfaces for our plant classes, created service classes that work with interfaces, and learned about the Interface Segregation Principle and dependency injection.
+In this chapter, we've explored interfaces and how they can be used to create more flexible, maintainable code. We've implemented interfaces for our animal classes and created a service class that works with interfaces.
 
-In the next chapters, we'll explore SQL and database connectivity, which will allow us to persist our plant data beyond the lifetime of our application.
+In the next chapters, we'll explore SQL and database connectivity, which will allow us to persist our data beyond the lifetime of our application.
 
 Before moving on, make sure you're comfortable with:
 - Defining and implementing interfaces
 - Using interfaces to achieve polymorphism
 - Implementing multiple interfaces in a single class
-- Understanding the Interface Segregation Principle
-- Using interfaces for dependency injection
+- Understanding default interface methods
 
 ## Practice Exercise
 
-Enhance the ExtraVert Garden application by:
-1. Creating a new interface called `ISeasonal` with methods like `IsInSeason()` and properties like `ActiveSeason`
-2. Implementing the `ISeasonal` interface in appropriate plant classes
-3. Creating a `SeasonalService` class that works with `ISeasonal` objects
+Enhance the ExtraVert application by:
+1. Creating a new interface called `ITrainable` with methods like `Train()` and properties like `TrainingLevel`
+2. Implementing the `ITrainable` interface in the only in the `Dog` class
+3. Creating a `TrainingService` class that works with `ITrainable` objects
 4. Updating the program to use the new interface and service
-5. Running the application and verifying that the seasonal functionality works correctly
-            }
-        }
-
-        // Implement IPropagatable.CanPropagate method
-        public bool CanPropagate()
-        {
-            if (IsAnnual)
-            {
-                // Annual plants can be propagated by seed when they're flowering
-                return BloomingSeason.Contains(DateTime.Now.ToString("MMMM"), StringComparison.OrdinalIgnoreCase);
-            }
-            else
-            {
-                // Perennial plants can be propagated during their active growing season
-                return !BloomingSeason.Contains("Winter", StringComparison.OrdinalIgnoreCase);
-            }
-        }
-    }
-}
-```
-
-In this interface:
-- We've defined two method signatures: `Propagate` and `CanPropagate`
-- We've defined two property signatures: `PropagationMethod` and `PropagationSuccessRate`
-- We've included a default implementation for the `GetPropagationInstructions` method (C# 8.0+)
+5. Running the application and verifying that the training functionality works correctly

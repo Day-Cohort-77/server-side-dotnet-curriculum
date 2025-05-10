@@ -616,3 +616,5 @@ Enhance the ExtraVert Garden application by:
 4. Updating the `DisplayInfo` method to show the last watered date and days since last watered
 5. Updating the `Water` method to call the `WaterPlant` method
 6. Running the application and verifying that the watering information is displayed correctly
+
+[Next Chapter: Methods and Behaviors](./extravert-methods.md)

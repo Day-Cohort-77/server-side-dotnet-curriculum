@@ -755,3 +755,5 @@ Enhance the ExtraVert Garden application by:
 3. Adding a new extension method to the `PlantExtensions` class called `GetTimeUntilNextWatering` that calculates how many days until a plant needs to be watered again
 4. Updating the "Perform Plant Care" option in the program to include a "Prune all plants" option
 5. Running the application and verifying that the new methods work correctly
+
+[Next Chapter: Interfaces](./extravert-interfaces.md)
