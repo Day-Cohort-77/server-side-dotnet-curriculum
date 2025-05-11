@@ -2,14 +2,6 @@
 
 Welcome to the ExtraVert Garden project! In this series of chapters, you'll build a console application for managing a plant nursery. Through this project, you'll learn about object-oriented programming concepts in C#, including classes, inheritance, properties, methods, and interfaces.
 
-## Learning Objectives
-
-By the end of this chapter, you should be able to:
-- Set up a new console application project for the ExtraVert Garden
-- Understand the project requirements and structure
-- Create the initial project files and directories
-- Plan the class structure for the application
-
 ## Project Overview
 
 ExtraVert is a plant nursery that needs a management system to keep track of their inventory. The application will allow users to:
@@ -93,14 +85,17 @@ using System;
 
 namespace ExtraVert.Models
 {
+    // Define the custom type
     public class Plant
     {
+        // Define the properties that will be on each object of this type
         public string Name { get; set; }
         public string Species { get; set; }
         public string LightNeeds { get; set; }
         public string WaterNeeds { get; set; }
         public decimal Price { get; set; }
 
+        // The constructor (i.e. what happens when a new object is created)
         public Plant(string name, string species, string lightNeeds, string waterNeeds, decimal price)
         {
             Name = name;
@@ -110,7 +105,8 @@ namespace ExtraVert.Models
             Price = price;
         }
 
-        public virtual void DisplayInfo()
+        // A method that is available on every generated object
+        public void DisplayInfo()
         {
             Console.WriteLine($"Name: {Name}");
             Console.WriteLine($"Species: {Species}");
@@ -134,18 +130,22 @@ namespace ExtraVert.Data
 {
     public class PlantRepository
     {
+        // A collection of plants
         private List<Plant> _plants = new List<Plant>();
 
+        // A method that returns the list of plants
         public List<Plant> GetAllPlants()
         {
             return _plants;
         }
 
+        // A method to add a plant to the private list
         public void AddPlant(Plant plant)
         {
             _plants.Add(plant);
         }
 
+        // A method to insert some starter plants into the list
         public void SeedData()
         {
             // Add some sample plants
