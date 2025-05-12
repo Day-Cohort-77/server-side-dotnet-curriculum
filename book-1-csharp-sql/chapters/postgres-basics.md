@@ -24,58 +24,6 @@ Key features of PostgreSQL include:
 - Multi-version concurrency control
 - Strong standards compliance
 
-## Installing PostgreSQL
-
-If you haven't already installed PostgreSQL as part of the Book 1 installations, follow these steps:
-
-### Windows
-1. Visit the [PostgreSQL download page](https://www.postgresql.org/download/windows/)
-2. Download the installer from EnterpriseDB
-3. Run the installer and follow the prompts
-4. Remember the password you set for the postgres user
-5. Keep the default port (5432)
-6. Complete the installation
-
-### macOS
-1. The easiest way to install PostgreSQL on macOS is using Homebrew
-2. If you don't have Homebrew installed, install it first:
-   ```
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-3. Install PostgreSQL:
-   ```
-   brew install postgresql
-   ```
-4. Start the PostgreSQL service:
-   ```
-   brew services start postgresql
-   ```
-
-### Linux
-1. For Ubuntu/Debian:
-   ```
-   sudo apt update
-   sudo apt install postgresql postgresql-contrib
-   ```
-2. For Fedora:
-   ```
-   sudo dnf install postgresql-server postgresql-contrib
-   sudo systemctl enable postgresql
-   sudo postgresql-setup --initdb --unit postgresql
-   sudo systemctl start postgresql
-   ```
-
-## Installing pgAdmin
-
-pgAdmin is a popular administration and management tool for PostgreSQL. It provides a graphical interface to help you manage your databases.
-
-1. Visit the [pgAdmin download page](https://www.pgadmin.org/download/)
-2. Select your operating system
-3. Download and install the latest version
-4. Launch pgAdmin after installation
-5. You'll be prompted to set a master password for pgAdmin
-6. Connect to your PostgreSQL server using the credentials you set during PostgreSQL installation
-
 ## Connecting to PostgreSQL
 
 Once you have PostgreSQL and pgAdmin installed, you can connect to your PostgreSQL server:
@@ -138,8 +86,6 @@ CREATE TABLE plants (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     species VARCHAR(100) NOT NULL,
-    light_needs VARCHAR(50),
-    water_needs VARCHAR(50),
     price NUMERIC(10, 2) NOT NULL,
     acquisition_date DATE NOT NULL DEFAULT CURRENT_DATE
 );
@@ -149,8 +95,6 @@ This SQL command creates a table called "plants" with the following columns:
 - `id`: A unique identifier for each plant (auto-incrementing)
 - `name`: The name of the plant (required)
 - `species`: The species of the plant (required)
-- `light_needs`: The light requirements of the plant
-- `water_needs`: The water requirements of the plant
 - `price`: The price of the plant (required)
 - `acquisition_date`: The date the plant was acquired (defaults to the current date)
 
@@ -169,14 +113,14 @@ Now that we have a table, let's learn how to perform basic SQL operations: SELEC
 The INSERT statement adds new rows to a table:
 
 ```sql
-INSERT INTO plants (name, species, light_needs, water_needs, price)
-VALUES ('Snake Plant', 'Sansevieria trifasciata', 'Low to bright indirect', 'Low', 15.99);
+INSERT INTO plants (name, species, price)
+VALUES ('Snake Plant', 'Sansevieria trifasciata', 15.99);
 
-INSERT INTO plants (name, species, light_needs, water_needs, price)
-VALUES ('Monstera', 'Monstera deliciosa', 'Bright indirect', 'Moderate', 29.99);
+INSERT INTO plants (name, species, price)
+VALUES ('Monstera', 'Monstera deliciosa', 29.99);
 
-INSERT INTO plants (name, species, light_needs, water_needs, price)
-VALUES ('Peace Lily', 'Spathiphyllum', 'Low to bright indirect', 'Moderate', 19.99);
+INSERT INTO plants (name, species, price)
+VALUES ('Peace Lily', 'Spathiphyllum', 19.99);
 ```
 
 Note that we didn't specify the `id` or `acquisition_date` columns. The `id` is automatically generated because it's a SERIAL column, and the `acquisition_date` defaults to the current date.
@@ -195,9 +139,6 @@ SELECT name, species, price FROM plants;
 -- Select with a condition
 SELECT * FROM plants WHERE price < 20.00;
 
--- Select with multiple conditions
-SELECT * FROM plants WHERE light_needs LIKE '%indirect%' AND water_needs = 'Low';
-
 -- Select with ordering
 SELECT * FROM plants ORDER BY price DESC;
 
@@ -214,11 +155,6 @@ The UPDATE statement modifies existing rows in a table:
 UPDATE plants
 SET price = 17.99
 WHERE name = 'Snake Plant';
-
--- Update multiple rows
-UPDATE plants
-SET water_needs = 'Moderate to high'
-WHERE water_needs = 'Moderate';
 
 -- Update multiple columns
 UPDATE plants
@@ -298,13 +234,4 @@ In this chapter, you've learned the basics of PostgreSQL and SQL. You've install
 
 ## Next Steps
 
-In the next chapter, we'll explore how to connect our C# application to a PostgreSQL database using ADO.NET and the Npgsql provider.
-
-## Practice Exercise
-
-Enhance your understanding of PostgreSQL by:
-1. Creating a new table called `plant_care` with columns for `id`, `plant_id`, `care_date`, `care_type` (e.g., 'Watering', 'Fertilizing'), and `notes`
-2. Adding foreign key constraints to relate the `plant_care` table to the `plants` table
-3. Inserting some sample care records for your plants
-4. Writing SELECT queries to retrieve plants with their care records
-5. Writing a query to find plants that haven't been watered in the last 7 days
+In the next project, you will be creating an API project, and will connect to a Postgres database to manage the data.
