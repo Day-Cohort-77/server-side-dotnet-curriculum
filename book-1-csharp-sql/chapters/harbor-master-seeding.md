@@ -73,47 +73,16 @@ This method:
 
 ## Updating Program.cs to Seed the Database
 
-Now, let's update the `Program.cs` file to call our seeding method when the application starts:
+Now, let's update the `Program.cs` file to call our seeding method when the application starts. Add the following line of code right beneath the line where `InitializeDatabaseAsync();` is invoked.
 
-```csharp
-using HarborMaster.Services;
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Add database service
-builder.Services.AddSingleton<DatabaseService>();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-// Initialize and seed the database
-using (var scope = app.Services.CreateScope())
-{
-    var dbService = scope.ServiceProvider.GetRequiredService<DatabaseService>();
-    await dbService.InitializeDatabaseAsync();
-    await dbService.SeedDatabaseAsync();
-}
-
-// Define API endpoints
-app.MapGet("/", () => "Welcome to Harbor Master API!");
-
-app.Run();
+```cs
+await dbService.SeedDatabaseAsync();
 ```
 
-We've added the call to `dbService.SeedDatabaseAsync()` after initializing the database.
+Now when you restart the debugger to activate this code, it will perform two tasks.
+
+1. Initialize the database
+2. Add some starter data _(a.k.a. seeding)_ to the database
 
 ## Alternative Approach: Using a SQL Script
 
@@ -163,18 +132,16 @@ This approach keeps all your SQL logic in SQL files, which can be easier to mana
 
 Let's run the application to test our seeding logic:
 
-1. Start the API:
+1. Restart the debugger
 
-```bash
-dotnet run
-```
-
-2. Use pgAdmin or another PostgreSQL client to connect to your database and verify that the tables have been created and populated with data.
+2. Use pgAdmin to connect to your database and verify that the tables have been created and populated with data.
 
 3. You should see:
    - 3 records in the docks table
    - 3 records in the haulers table
    - 3 records in the ships table
+
+![use pgadmin to view data in tables](./images/verify-seeded-data.gif)
 
 ## Conclusion
 

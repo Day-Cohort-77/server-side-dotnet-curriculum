@@ -1,22 +1,13 @@
-# Harbor Master: Initializing the Project and Database
+# Harbor Master: Working with a database
 
-In this chapter, we'll set up the Harbor Master project from scratch. We'll create a minimal API project and establish a connection to a PostgreSQL database without using Entity Framework Core.
+In this chapter, you will establish a connection to a PostgreSQL database.
 
 ## Learning Objectives
 
 By the end of this chapter, you should be able to:
-- Create a minimal API project in ASP.NET Core
 - Set up a project structure with appropriate folders
 - Connect to a PostgreSQL database using Npgsql directly
 - Create a database schema with tables and relationships
-
-## Prerequisites
-
-Before starting this project, ensure you have:
-- .NET 8 SDK installed
-- PostgreSQL installed and running
-- pgAdmin or another PostgreSQL client tool
-- Basic understanding of C# and SQL
 
 ## Step 1: Creating the Minimal API Project
 
@@ -47,19 +38,18 @@ code .  # If using Visual Studio Code
 Let's organize our project by creating the necessary folders and files:
 
 1. Create the following folders:
-   - `Models` - For our data models
-   - `Services` - For database interaction
-   - `Endpoints` - For API endpoint definitions
+    ```sh
+    mkdir Models Services Endpoints
+    ```
 
 2. Add the Npgsql package to connect to PostgreSQL:
-
-```bash
-dotnet add package Npgsql
-```
+   ```sh
+   dotnet add package Npgsql
+   ```
 
 ## Step 3: Creating the Data Models
 
-Let's define our data models. Create the following files:
+Let's define our data models. When you get data from the database, new instances of these model classes will be created to represent that data in your logic.
 
 1. Create `Models/Ship.cs`:
 
@@ -108,7 +98,7 @@ namespace HarborMaster.Models
 
 Now, let's set up the database connection:
 
-1. Update `appsettings.json` to include the connection string:
+1. Update `appsettings.json` to include the connection string. Update `your_password` with the password that you created when you installed Postgres/pgAdmin.
 
 ```json
 {
@@ -124,8 +114,6 @@ Now, let's set up the database connection:
   "AllowedHosts": "*"
 }
 ```
-
-Replace `your_password` with your actual PostgreSQL password.
 
 2. Create a database service to handle database operations. Create `Services/DatabaseService.cs`:
 
@@ -206,7 +194,7 @@ CREATE TABLE ships (
 );
 ```
 
-Now, let's add a method to our `DatabaseService` to initialize the database:
+Now, let's add a method to our `DatabaseService` to initialize the database. This method will create the database in Postgres if it doesn't already exist.
 
 ```csharp
 public async Task InitializeDatabaseAsync()
@@ -245,24 +233,10 @@ using HarborMaster.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Add database service
 builder.Services.AddSingleton<DatabaseService>();
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
 
 // Initialize the database
 using (var scope = app.Services.CreateScope())
@@ -277,25 +251,6 @@ app.MapGet("/", () => "Welcome to Harbor Master API!");
 app.Run();
 ```
 
-## Step 7: Running the Project
-
-Now, let's run the project to make sure everything is set up correctly:
-
-1. Start the API:
-
-```bash
-dotnet run
-```
-
-2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
-3. You should see the Swagger UI with the root endpoint
-
-## Conclusion
-
-In this chapter, you've set up the Harbor Master project with a minimal API and established a connection to a PostgreSQL database. You've created the necessary data models and set up the database schema.
-
-In the next chapter, we'll learn how to seed the database with initial data.
-
 ## Next Steps
 
-[Continue to the next chapter: Seeding the Database](./harbor-master-seeding.md)
+[Starting your API in debug mode](./debugging-csharp.md)

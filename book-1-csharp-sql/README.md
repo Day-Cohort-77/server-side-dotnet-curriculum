@@ -10,9 +10,9 @@ You need to complete all of columns in 2 weeks. You want to be working on the fi
 
 | # | C# Quick Intro | 🌿 🌱 <br/> ExtraVert Garden | 🧑🏽‍💻 SQL Intro | 🛳️ ⛴️ <br/> Harbor Master | 💎 💍 <br/> Jewelry Junction |
 |--|--|--|--|--|--|
-| 1 | [Setting Up a Console App][1] | [ExtraVert Introduction][6] | [Khan Academy: Intro to SQL][28]  | [Debugging C# in Visual Studio Code][12] | [Project Setup][16]|
-| 2 | [Interacting with the Console][2] | [Plant Classes][7] <br/> <sub style="font-size:0.85rem;">\#classes</sub> | [SQL Bolt: Beginner SQL Tutorial][29] | [Minimal API Setup][13] | [Jewelry Database][17] |
-| 3 | [Conditionals and Loops][3] | [Inheritance][8] <br/> <sub style="font-size:0.85rem;">\#inheritance</sub> | [PostgreSQL Basics][11] | [Initializing the Project and Database][33] | [Get All Products][18] |
+| 1 | [Setting Up a Console App][1] | [ExtraVert Introduction][6] | [Khan Academy: Intro to SQL][28]  | [Initializing Your API][33] | [Project Setup][16]|
+| 2 | [Interacting with the Console][2] | [Plant Classes][7] <br/> <sub style="font-size:0.85rem;">\#classes</sub> | [SQL Bolt: Beginner SQL Tutorial][29] | [Debugging Your API][12] | [Jewelry Database][17] |
+| 3 | [Conditionals and Loops][3] | [Inheritance][8] <br/> <sub style="font-size:0.85rem;">\#inheritance</sub> | [PostgreSQL Basics][11] |  | [Get All Products][18] |
 | 4 | [Lists and Collections][4] | [Properties and Encapsulation][9] <br/> <sub style="font-size:0.85rem;">\#properties</sub> | | [Seeding the Database][34] | [Get Single Product][19] |
 | 5 | [Dictionaries][5] | [Methods and Behaviors][10] <br/> <sub style="font-size:0.85rem;">\#methods</sub> | | [Getting Ships][35] | [Create New Order][20] |
 | 6 | [Custom Types with Classes][26] | [Interfaces and Abstraction][15] <br/> <sub style="font-size:0.85rem;">\#interfaces</sub> | | [Get Docks][36] | [Delete an Order][21] |
