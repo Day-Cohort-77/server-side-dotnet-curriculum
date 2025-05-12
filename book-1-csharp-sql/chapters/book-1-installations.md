@@ -14,20 +14,14 @@ To complete the exercises and projects in Book 1, you'll need to install several
 ## Installing .NET SDK
 
 1. Visit the [.NET download page](https://dotnet.microsoft.com/download)
-2. Download the latest .NET SDK (version 8.0 or later)
+2. Download the latest .NET SDK (version 8)
 3. Follow the installation instructions for your operating system
-4. Verify the installation by opening a terminal/command prompt and running:
-   ```
+4. Update and verify the installation by opening a terminal/command prompt and running:
+   ```sh
+   dotnet tool install --global dotnet-ef --framework net8.0
    dotnet --version
    ```
    This should display the installed .NET version
-
-## Installing Visual Studio Code
-
-1. Visit the [Visual Studio Code download page](https://code.visualstudio.com/download)
-2. Download the appropriate version for your operating system
-3. Follow the installation instructions
-4. Launch VS Code after installation
 
 ## Installing C# Dev Kit Extension
 
@@ -35,22 +29,27 @@ To complete the exercises and projects in Book 1, you'll need to install several
 2. Click on the Extensions icon in the sidebar (or press Ctrl+Shift+X)
 3. Search for "C# Dev Kit"
 4. Click "Install"
-5. You may need to restart VS Code after installation
+5. Search for "IntelliCode for C# Dev KitPreview"
+6. Click "Install"
+7. You may need to restart VS Code after installation
 
 ## Installing PostgreSQL
 
 ### Windows
-1. Visit the [PostgreSQL download page](https://www.postgresql.org/download/windows/)
-2. Download the installer from EnterpriseDB
+1. Visit the [PostgreSQL download for Windows OS page](https://www.postgresql.org/download/windows/)
+2. Download the version 16.9 installer from EnterpriseDB
 3. Run the installer and follow the prompts
 4. Remember the password you set for the postgres user
 5. Keep the default port (5432)
 6. Complete the installation
 
 ### macOS
-1. The easiest way to install PostgreSQL on macOS is using Homebrew
-2. If you don't have Homebrew installed, install it first:
+1. The easiest way to install PostgreSQL on macOS is using Homebrew. Check if you have it installed by running the following command in the terminal.
+   ```sh
+   which brew
    ```
+2. If you don't have Homebrew installed, install it first:
+   ```sh
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
 3. Install PostgreSQL:
@@ -76,22 +75,6 @@ To complete the exercises and projects in Book 1, you'll need to install several
    sudo systemctl start postgresql
    ```
 
-## Installing pgAdmin
-
-1. Visit the [pgAdmin download page](https://www.pgadmin.org/download/)
-2. Select your operating system
-3. Download and install the latest version
-4. Launch pgAdmin after installation
-5. You'll be prompted to set a master password for pgAdmin
-6. Connect to your PostgreSQL server using the credentials you set during PostgreSQL installation
-
-## Installing Postman
-
-1. Visit the [Postman download page](https://www.postman.com/downloads/)
-2. Download the appropriate version for your operating system
-3. Install and launch Postman
-4. You can create a free account or skip sign-in for now
-
 ## Verifying Your Installations
 
 To ensure everything is installed correctly:
@@ -105,7 +88,6 @@ To ensure everything is installed correctly:
 3. Both commands should return version information
 4. Open VS Code and ensure the C# Dev Kit extension is active
 5. Open pgAdmin and verify you can connect to your PostgreSQL server
-6. Open Postman and verify it launches correctly
 
 ## Troubleshooting
 
