@@ -141,8 +141,7 @@ app.MapPost("/ships", async (Ship ship, DatabaseService db) =>
     {
         return Results.Problem($"An error occurred while creating the ship: {ex.Message}");
     }
-})
-.WithOpenApi();
+});
 ```
 
 Let's take a closer look at how our POST endpoint is implemented:

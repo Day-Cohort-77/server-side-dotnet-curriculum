@@ -61,15 +61,14 @@ namespace HarborMaster.Endpoints
         {
             // GET /docks - Get all docks
             app.MapGet("/docks", async (DatabaseService db) =>
-                await db.GetAllDocksAsync()).WithOpenApi();
+                await db.GetAllDocksAsync());
 
             // GET /docks/{id} - Get a dock by ID
             app.MapGet("/docks/{id}", async (int id, DatabaseService db) =>
             {
                 var dock = await db.GetDockByIdAsync(id);
                 return dock != null ? Results.Ok(dock) : Results.NotFound();
-            })
-            .WithOpenApi();
+            });
 
             // POST /docks - Create a new dock
             app.MapPost("/docks", async (Dock dock, DatabaseService db) =>
@@ -97,8 +96,7 @@ namespace HarborMaster.Endpoints
                 {
                     return Results.Problem($"An error occurred while creating the dock: {ex.Message}");
                 }
-            })
-            .WithOpenApi();
+            });
         }
     }
 }
@@ -142,9 +140,7 @@ app.MapPost("/docks", async (Dock dock, DatabaseService db) =>
     {
         return Results.Problem($"An error occurred while creating the dock: {ex.Message}");
     }
-})
-.WithName("CreateDock")
-.WithOpenApi();
+});
 ```
 
 This endpoint:

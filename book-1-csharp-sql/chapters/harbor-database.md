@@ -286,8 +286,7 @@ namespace HarborMaster.Endpoints
             // GET /ships - Get all ships
             app.MapGet("/ships", async (HarborContext db) =>
                 await db.Ships.ToListAsync())
-                .WithName("GetAllShips")
-                .WithOpenApi();
+                .WithName("GetAllShips");
 
             // GET /ships/{id} - Get a ship by ID
             app.MapGet("/ships/{id}", async (int id, HarborContext db) =>
@@ -299,8 +298,7 @@ namespace HarborMaster.Endpoints
 
                 return ship != null ? Results.Ok(ship) : Results.NotFound();
             })
-            .WithName("GetShipById")
-            .WithOpenApi();
+            .WithName("GetShipById");
 
             // POST /ships - Create a new ship
             app.MapPost("/ships", async (Ship ship, HarborContext db) =>
@@ -310,8 +308,7 @@ namespace HarborMaster.Endpoints
 
                 return Results.Created($"/ships/{ship.Id}", ship);
             })
-            .WithName("CreateShip")
-            .WithOpenApi();
+            .WithName("CreateShip");
 
             // PUT /ships/{id} - Update a ship
             app.MapPut("/ships/{id}", async (int id, Ship updatedShip, HarborContext db) =>
@@ -331,9 +328,7 @@ namespace HarborMaster.Endpoints
                 await db.SaveChangesAsync();
 
                 return Results.NoContent();
-            })
-            .WithName("UpdateShip")
-            .WithOpenApi();
+            });
 
             // DELETE /ships/{id} - Delete a ship
             app.MapDelete("/ships/{id}", async (int id, HarborContext db) =>
@@ -349,9 +344,7 @@ namespace HarborMaster.Endpoints
                 await db.SaveChangesAsync();
 
                 return Results.NoContent();
-            })
-            .WithName("DeleteShip")
-            .WithOpenApi();
+            });
         }
     }
 }
@@ -391,9 +384,7 @@ app.MapPost("/ships", async (Ship ship, HarborContext db) =>
     {
         return Results.Problem($"An error occurred while creating the ship: {ex.Message}");
     }
-})
-.WithName("CreateShip")
-.WithOpenApi();
+});
 ```
 
 Add similar error handling to the other endpoints.
@@ -418,9 +409,7 @@ app.MapGet("/docks/{id}/ships", async (int id, HarborContext db) =>
     }
 
     return Results.Ok(dock.Ships);
-})
-.WithName("GetShipsByDock")
-.WithOpenApi();
+});
 ```
 
 2. Get ships by hauler:
@@ -439,9 +428,7 @@ app.MapGet("/haulers/{id}/ships", async (int id, HarborContext db) =>
     }
 
     return Results.Ok(hauler.Ships);
-})
-.WithName("GetShipsByHauler")
-.WithOpenApi();
+});
 ```
 
 3. Get available docks (docks with available capacity):
@@ -456,9 +443,7 @@ app.MapGet("/docks/available", async (HarborContext db) =>
         .ToListAsync();
 
     return Results.Ok(docks);
-})
-.WithName("GetAvailableDocks")
-.WithOpenApi();
+});
 ```
 
 ## Conclusion

@@ -90,9 +90,7 @@ app.MapPut("/products/{id}", async (int id, Product updatedProduct, DatabaseServ
     {
         return Results.Problem($"An error occurred while updating the product: {ex.Message}");
     }
-})
-.WithName("UpdateProduct")
-.WithOpenApi();
+});
 ```
 
 This endpoint:

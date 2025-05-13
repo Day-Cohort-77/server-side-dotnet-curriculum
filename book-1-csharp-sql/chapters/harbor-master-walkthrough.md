@@ -561,18 +561,14 @@ namespace HarborMaster.Endpoints
         {
             // GET /ships - Get all ships
             app.MapGet("/ships", async (DatabaseService db) =>
-                await db.GetAllShipsAsync())
-                .WithName("GetAllShips")
-                .WithOpenApi();
+                await db.GetAllShipsAsync());
 
             // GET /ships/{id} - Get a ship by ID
             app.MapGet("/ships/{id}", async (int id, DatabaseService db) =>
             {
                 var ship = await db.GetShipByIdAsync(id);
                 return ship != null ? Results.Ok(ship) : Results.NotFound();
-            })
-            .WithName("GetShipById")
-            .WithOpenApi();
+            });
 
             // GET /ships/search - Get ships by type (query string parameter)
             app.MapGet("/ships/search", async (string? type, DatabaseService db) =>
@@ -584,9 +580,7 @@ namespace HarborMaster.Endpoints
 
                 var ships = await db.GetShipsByTypeAsync(type);
                 return Results.Ok(ships);
-            })
-            .WithName("GetShipsByType")
-            .WithOpenApi();
+            });
 
             // POST /ships - Create a new ship
             app.MapPost("/ships", async (Ship ship, DatabaseService db) =>
@@ -600,9 +594,7 @@ namespace HarborMaster.Endpoints
                 {
                     return Results.Problem($"An error occurred while creating the ship: {ex.Message}");
                 }
-            })
-            .WithName("CreateShip")
-            .WithOpenApi();
+            });
 
             // PUT /ships/{id} - Update a ship
             app.MapPut("/ships/{id}", async (int id, Ship updatedShip, DatabaseService db) =>
@@ -616,9 +608,7 @@ namespace HarborMaster.Endpoints
                 {
                     return Results.Problem($"An error occurred while updating the ship: {ex.Message}");
                 }
-            })
-            .WithName("UpdateShip")
-            .WithOpenApi();
+            });
 
             // DELETE /ships/{id} - Delete a ship
             app.MapDelete("/ships/{id}", async (int id, DatabaseService db) =>
@@ -632,9 +622,7 @@ namespace HarborMaster.Endpoints
                 {
                     return Results.Problem($"An error occurred while deleting the ship: {ex.Message}");
                 }
-            })
-            .WithName("DeleteShip")
-            .WithOpenApi();
+            });
         }
     }
 }
@@ -654,18 +642,14 @@ namespace HarborMaster.Endpoints
         {
             // GET /docks - Get all docks
             app.MapGet("/docks", async (DatabaseService db) =>
-                await db.GetAllDocksAsync())
-                .WithName("GetAllDocks")
-                .WithOpenApi();
+                await db.GetAllDocksAsync());
 
             // GET /docks/{id} - Get a dock by ID
             app.MapGet("/docks/{id}", async (int id, DatabaseService db) =>
             {
                 var dock = await db.GetDockByIdAsync(id);
                 return dock != null ? Results.Ok(dock) : Results.NotFound();
-            })
-            .WithName("GetDockById")
-            .WithOpenApi();
+            });
 
             // GET /docks/{id}/ships - Get all ships at a dock
             app.MapGet("/docks/{id}/ships", async (int id, DatabaseService db) =>
@@ -678,18 +662,14 @@ namespace HarborMaster.Endpoints
 
                 var ships = await db.GetShipsByDockIdAsync(id);
                 return Results.Ok(ships);
-            })
-            .WithName("GetShipsByDock")
-            .WithOpenApi();
+            });
 
             // GET /docks/available - Get all docks with available capacity
             app.MapGet("/docks/available", async (DatabaseService db) =>
             {
                 var docks = await db.GetAvailableDocksAsync();
                 return Results.Ok(docks);
-            })
-            .WithName("GetAvailableDocks")
-            .WithOpenApi();
+            });
         }
     }
 }

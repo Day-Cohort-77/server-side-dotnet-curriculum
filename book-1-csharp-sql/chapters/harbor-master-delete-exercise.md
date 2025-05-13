@@ -101,17 +101,13 @@ public async Task<bool> DeleteHaulerAsync(int id)
 app.MapDelete("/docks/{id}", async (int id, DatabaseService db) =>
 {
     // TODO: Implement this endpoint
-})
-.WithName("DeleteDock")
-.WithOpenApi();
+});
 
 // In HaulerEndpoints.cs
 app.MapDelete("/haulers/{id}", async (int id, DatabaseService db) =>
 {
     // TODO: Implement this endpoint
-})
-.WithName("DeleteHauler")
-.WithOpenApi();
+});
 ```
 
 ## Advanced Challenge: Implementing Cascading Deletes

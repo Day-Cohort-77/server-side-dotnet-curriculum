@@ -67,9 +67,7 @@ app.MapDelete("/ships/{id}", async (int id, DatabaseService db) =>
     {
         return Results.Problem($"An error occurred while deleting the ship: {ex.Message}");
     }
-})
-.WithName("DeleteShip")
-.WithOpenApi();
+});
 ```
 
 We've added a DELETE endpoint that:
@@ -106,9 +104,7 @@ app.MapDelete("/ships/{id}", async (int id, DatabaseService db) =>
     {
         return Results.Problem($"An error occurred while deleting the ship: {ex.Message}");
     }
-})
-.WithName("DeleteShip")
-.WithOpenApi();
+});
 ```
 
 This endpoint:
@@ -120,7 +116,6 @@ This endpoint:
    - It indicates that the request was successful but there's no content to return
 5. Returns a 404 Not Found status if the ship wasn't found
 6. Handles exceptions and returns a 500 Internal Server Error response with details
-7. Uses `.WithName()` and `.WithOpenApi()` for documentation
 
 ## Testing the DELETE Endpoint
 

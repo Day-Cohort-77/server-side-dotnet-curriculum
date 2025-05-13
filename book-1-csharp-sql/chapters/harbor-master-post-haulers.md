@@ -66,53 +66,13 @@ If you're stuck, here are some hints to help you:
 
 4. Your POST endpoint should return a 201 Created response with the location of the new resource.
 
-## Example Implementation Structure
-
-Here's a general structure for your implementation:
-
-```csharp
-// In DatabaseService.cs
-public async Task<Hauler> CreateHaulerAsync(Hauler hauler)
-{
-    // TODO: Implement this method
-}
-
-// In HaulerEndpoints.cs
-public static void MapHaulerEndpoints(this WebApplication app)
-{
-    // TODO: Add GET endpoints for haulers (similar to what you did for docks)
-
-    // TODO: Add POST endpoint for haulers
-    app.MapPost("/haulers", async (Hauler hauler, DatabaseService db) =>
-    {
-        // TODO: Validate input
-
-        // TODO: Create the hauler
-
-        // TODO: Return appropriate response
-    })
-    .WithName("CreateHauler")
-    .WithOpenApi();
-}
-
-// In Program.cs
-app.MapHaulerEndpoints();
-```
-
 ## Testing Your Implementation
 
 Once you've implemented the required functionality, run the application and test your endpoint:
 
-1. Start the API:
-   ```bash
-   dotnet run
-   ```
+1. Restart your debugger
 
-2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
-
-3. Test the `POST /haulers` endpoint:
-   - Click on the `POST /haulers` endpoint
-   - Click the "Try it out" button
+2. Test the `POST /haulers` endpoint:
    - Enter a JSON request body:
      ```json
      {
@@ -120,10 +80,9 @@ Once you've implemented the required functionality, run the application and test
        "capacity": 12
      }
      ```
-   - Click the "Execute" button
    - You should see a 201 Created response with the new hauler details, including the generated ID
 
-4. Test the validation:
+3. Test the validation:
    - Try submitting with an empty name or a negative capacity
    - You should see appropriate error responses
 

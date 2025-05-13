@@ -88,16 +88,14 @@ namespace HarborMaster.Endpoints
         {
             // GET /ships - Get all ships
             app.MapGet("/ships", async (DatabaseService db) =>
-                await db.GetAllShipsAsync())
-                .WithOpenApi();
+                await db.GetAllShipsAsync());
 
             // GET /ships/{id} - Get a ship by ID
             app.MapGet("/ships/{id}", async (int id, DatabaseService db) =>
             {
                 var ship = await db.GetShipByIdAsync(id);
                 return ship != null ? Results.Ok(ship) : Results.NotFound();
-            })
-            .WithOpenApi();
+            });
         }
     }
 }
@@ -135,8 +133,7 @@ Let's take a closer look at how our endpoints are implemented:
 
 ```csharp
 app.MapGet("/ships", async (DatabaseService db) =>
-    await db.GetAllShipsAsync())
-    .WithOpenApi();
+    await db.GetAllShipsAsync());
 ```
 
 This endpoint:
@@ -144,8 +141,6 @@ This endpoint:
 2. Uses dependency injection to get an instance of `DatabaseService`
 3. Calls the `GetAllShipsAsync` method to retrieve all ships
 4. Returns the list of ships as a JSON response
-5. Uses `.WithName()` to give the endpoint a name for Swagger documentation
-6. Uses `.WithOpenApi()` to include the endpoint in the OpenAPI specification
 
 ### GET /ships/{id} - Get Ship by ID
 
@@ -154,8 +149,7 @@ app.MapGet("/ships/{id}", async (int id, DatabaseService db) =>
 {
     var ship = await db.GetShipByIdAsync(id);
     return ship != null ? Results.Ok(ship) : Results.NotFound();
-})
-.WithOpenApi();
+});
 ```
 
 This endpoint:
