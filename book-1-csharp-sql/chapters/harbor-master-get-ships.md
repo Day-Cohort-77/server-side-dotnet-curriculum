@@ -89,7 +89,6 @@ namespace HarborMaster.Endpoints
             // GET /ships - Get all ships
             app.MapGet("/ships", async (DatabaseService db) =>
                 await db.GetAllShipsAsync())
-                .WithName("GetAllShips")
                 .WithOpenApi();
 
             // GET /ships/{id} - Get a ship by ID
@@ -98,7 +97,6 @@ namespace HarborMaster.Endpoints
                 var ship = await db.GetShipByIdAsync(id);
                 return ship != null ? Results.Ok(ship) : Results.NotFound();
             })
-            .WithName("GetShipById")
             .WithOpenApi();
         }
     }
@@ -111,43 +109,16 @@ This class defines two endpoints:
 
 ## Updating Program.cs
 
-Now, let's update the `Program.cs` file to use our ship endpoints:
+Now, let's update the `Program.cs` file to use our ship endpoints.
+
+Add the `using HarborMaster.Endpoints;` directive and the call to `app.MapShipEndpoints()` to register our ship endpoints.
+
 
 ```csharp
 using HarborMaster.Services;
 using HarborMaster.Endpoints;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Add database service
-builder.Services.AddSingleton<DatabaseService>();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-// Initialize and seed the database
-using (var scope = app.Services.CreateScope())
-{
-    var dbService = scope.ServiceProvider.GetRequiredService<DatabaseService>();
-    await dbService.InitializeDatabaseAsync();
-    await dbService.SeedDatabaseAsync();
-}
-
-// Define API endpoints
-app.MapGet("/", () => "Welcome to Harbor Master API!");
+// ... rest of code ...
 
 // Map ship endpoints
 app.MapShipEndpoints();
@@ -155,7 +126,6 @@ app.MapShipEndpoints();
 app.Run();
 ```
 
-We've added the `using HarborMaster.Endpoints;` directive and the call to `app.MapShipEndpoints()` to register our ship endpoints.
 
 ## Understanding the Endpoint Implementation
 
@@ -166,7 +136,6 @@ Let's take a closer look at how our endpoints are implemented:
 ```csharp
 app.MapGet("/ships", async (DatabaseService db) =>
     await db.GetAllShipsAsync())
-    .WithName("GetAllShips")
     .WithOpenApi();
 ```
 
@@ -186,7 +155,6 @@ app.MapGet("/ships/{id}", async (int id, DatabaseService db) =>
     var ship = await db.GetShipByIdAsync(id);
     return ship != null ? Results.Ok(ship) : Results.NotFound();
 })
-.WithName("GetShipById")
 .WithOpenApi();
 ```
 
@@ -196,37 +164,18 @@ This endpoint:
 3. Calls the `GetShipByIdAsync` method to retrieve a ship by ID
 4. Returns the ship as a JSON response with a 200 OK status if found
 5. Returns a 404 Not Found status if the ship doesn't exist
-6. Uses `.WithName()` and `.WithOpenApi()` for documentation
 
 ## Testing the Endpoints
 
-Let's run the application and test our endpoints:
+1. Restart your debugger
 
-1. Start the API:
+2. Open Yaak — or your preferred API client
 
-```bash
-dotnet run
-```
+3. Test the `GET /ships` endpoint: You should see a response with the list of ships
 
-2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
+4. Test the `GET /ships/{id}` endpoint: You should see a response with the ship details
 
-3. Test the `GET /ships` endpoint:
-   - Click on the `GET /ships` endpoint
-   - Click the "Try it out" button
-   - Click the "Execute" button
-   - You should see a response with the list of ships
-
-4. Test the `GET /ships/{id}` endpoint:
-   - Click on the `GET /ships/{id}` endpoint
-   - Click the "Try it out" button
-   - Enter an ID (e.g., 1)
-   - Click the "Execute" button
-   - You should see a response with the ship details
-
-5. Try the `GET /ships/{id}` endpoint with an invalid ID:
-   - Enter an ID that doesn't exist (e.g., 999)
-   - Click the "Execute" button
-   - You should see a 404 Not Found response
+5. Try the `GET /ships/{id}` endpoint with an invalid ID: You should see a 404 Not Found response
 
 ## Conclusion
 

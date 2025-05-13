@@ -74,30 +74,13 @@ If you're stuck, here are some hints to help you:
 
 Once you've implemented the required functionality, run the application and test your endpoints:
 
-1. Start the API:
-   ```bash
-   dotnet run
-   ```
+1. Restart your debugger
 
-2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
+2. Test the `GET /docks` endpoint: You should see a response with the list of docks
 
-3. Test the `GET /docks` endpoint:
-   - Click on the `GET /docks` endpoint
-   - Click the "Try it out" button
-   - Click the "Execute" button
-   - You should see a response with the list of docks
+3. Test the `GET /docks/{id}` endpoint: You should see a response with the dock details
 
-4. Test the `GET /docks/{id}` endpoint:
-   - Click on the `GET /docks/{id}` endpoint
-   - Click the "Try it out" button
-   - Enter an ID (e.g., 1)
-   - Click the "Execute" button
-   - You should see a response with the dock details
-
-5. Try the `GET /docks/{id}` endpoint with an invalid ID:
-   - Enter an ID that doesn't exist (e.g., 999)
-   - Click the "Execute" button
-   - You should see a 404 Not Found response
+4. Try the `GET /docks/{id}` endpoint with an invalid ID: You should see a 404 Not Found response
 
 ## Conclusion
 

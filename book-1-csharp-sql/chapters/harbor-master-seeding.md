@@ -61,7 +61,22 @@ public async Task SeedDatabaseAsync()
         INSERT INTO ships (name, type, dock_id) VALUES
         ('Serenity', 'Firefly-class transport ship', 1),
         ('Rocinante', 'Corvette-class frigate', 2),
-        ('Millennium Falcon', 'YT-1300 light freighter', 3)
+        ('Millennium Falcon', 'YT-1300 light freighter', 3),
+        ('Black Pearl', 'Pirate galleon', 1),
+        ('Nautilus', 'Submarine vessel', 2),
+        ('Flying Dutchman', 'Ghost ship', 3),
+        ('Enterprise', 'Constitution-class starship', 1),
+        ('Voyager', 'Intrepid-class starship', 2),
+        ('Defiant', 'Escort-class warship', 3),
+        ('Galactica', 'Battlestar', 1),
+        ('Bebop', 'Fishing trawler', 2),
+        ('Normandy', 'Stealth frigate', 3),
+        ('Pillar of Autumn', 'Halcyon-class cruiser', 1),
+        ('Nostromo', 'Commercial towing vessel', 2),
+        ('Sulaco', 'Military transport', 3),
+        ('Highwind', 'Airship', 1),
+        ('Argo', 'Ancient Greek galley', 2),
+        ('Nebuchadnezzar', 'Hovership', 3)
     ");
 }
 ```
@@ -111,7 +126,23 @@ BEGIN
         INSERT INTO ships (name, type, dock_id) VALUES
         ('Serenity', 'Firefly-class transport ship', 1),
         ('Rocinante', 'Corvette-class frigate', 2),
-        ('Millennium Falcon', 'YT-1300 light freighter', 3);
+        ('Millennium Falcon', 'YT-1300 light freighter', 3),
+        ('Black Pearl', 'Pirate galleon', 1),
+        ('Nautilus', 'Submarine vessel', 2),
+        ('Flying Dutchman', 'Ghost ship', 3),
+        ('Enterprise', 'Constitution-class starship', 1),
+        ('Voyager', 'Intrepid-class starship', 2),
+        ('Defiant', 'Escort-class warship', 3),
+        ('Galactica', 'Battlestar', 1),
+        ('Bebop', 'Fishing trawler', 2),
+        ('Normandy', 'Stealth frigate', 1),
+        ('Pillar of Autumn', 'Halcyon-class cruiser', 1),
+        ('Nostromo', 'Commercial towing vessel', 2),
+        ('Sulaco', 'Military transport', 3),
+        ('Highwind', 'Airship', 1),
+        ('Argo', 'Ancient Greek galley', 2),
+        ('Nebuchadnezzar', 'Hovership', 3)
+        ;
     END IF;
 END $$;
 ```
@@ -139,7 +170,7 @@ Let's run the application to test our seeding logic:
 3. You should see:
    - 3 records in the docks table
    - 3 records in the haulers table
-   - 3 records in the ships table
+   - 18 records in the ships table
 
 ![use pgadmin to view data in tables](./images/verify-seeded-data.gif)
 

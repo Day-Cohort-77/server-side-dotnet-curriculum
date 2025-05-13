@@ -61,9 +61,7 @@ namespace HarborMaster.Endpoints
         {
             // GET /docks - Get all docks
             app.MapGet("/docks", async (DatabaseService db) =>
-                await db.GetAllDocksAsync())
-                .WithName("GetAllDocks")
-                .WithOpenApi();
+                await db.GetAllDocksAsync()).WithOpenApi();
 
             // GET /docks/{id} - Get a dock by ID
             app.MapGet("/docks/{id}", async (int id, DatabaseService db) =>
@@ -71,7 +69,6 @@ namespace HarborMaster.Endpoints
                 var dock = await db.GetDockByIdAsync(id);
                 return dock != null ? Results.Ok(dock) : Results.NotFound();
             })
-            .WithName("GetDockById")
             .WithOpenApi();
 
             // POST /docks - Create a new dock
@@ -101,7 +98,6 @@ namespace HarborMaster.Endpoints
                     return Results.Problem($"An error occurred while creating the dock: {ex.Message}");
                 }
             })
-            .WithName("CreateDock")
             .WithOpenApi();
         }
     }
@@ -167,25 +163,18 @@ This endpoint:
 
 Let's run the application and test our POST endpoint:
 
-1. Start the API:
+1. Restart the debugger
 
-```bash
-dotnet run
-```
-
-2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
+2. Open your API client tool
 
 3. Test the `POST /docks` endpoint:
-   - Click on the `POST /docks` endpoint
-   - Click the "Try it out" button
-   - Enter a JSON request body:
+   - Enter a JSON request body for the request
      ```json
      {
        "location": "West Harbor",
        "capacity": 10
      }
      ```
-   - Click the "Execute" button
    - You should see a 201 Created response with the new dock details, including the generated ID
 
 4. Test the validation:
