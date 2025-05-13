@@ -121,85 +121,20 @@ This endpoint:
 
 Let's run the application and test our DELETE endpoint:
 
-1. Start the API:
+1. Restart your debugger
 
-```bash
-dotnet run
-```
+2. Make a GET request to `/ships` and find the `id` of one you want to delete
 
-2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
-
-3. First, let's get a list of ships to find an ID to delete:
-   - Click on the `GET /ships` endpoint
-   - Click the "Try it out" button
-   - Click the "Execute" button
-   - Note the ID of a ship you want to delete
-
-4. Test the `DELETE /ships/{id}` endpoint:
-   - Click on the `DELETE /ships/{id}` endpoint
-   - Click the "Try it out" button
-   - Enter the ID of the ship you want to delete
-   - Click the "Execute" button
+3. Make a DELETE request to `/ships/{id}` endpoint:
    - You should see a 204 No Content response
 
-5. Verify the ship was deleted:
-   - Use the `GET /ships` endpoint again
+4. Verify the ship was deleted:
+   - Use the GET `/ships` endpoint again
    - The ship with the deleted ID should no longer be in the list
 
-6. Try deleting a non-existent ship:
-   - Use the `DELETE /ships/{id}` endpoint with an ID that doesn't exist (e.g., 999)
+5. Try deleting a non-existent ship:
+   - Use the DELETE `/ships/{id}` endpoint with an ID that doesn't exist (e.g., 999)
    - You should see a 404 Not Found response
-
-## Handling Cascading Deletes
-
-In our database schema, we set up the foreign key constraints with `ON DELETE SET NULL`. This means that when a ship is deleted, any references to it in other tables will be set to NULL rather than causing an error or cascading the delete.
-
-If you wanted to implement cascading deletes (where deleting a parent record also deletes all related child records), you would:
-
-1. Change the foreign key constraint in the database schema:
-   ```sql
-   FOREIGN KEY (dock_id) REFERENCES docks(id) ON DELETE CASCADE
-   ```
-
-2. Or handle the cascading delete in your code:
-   ```csharp
-   public async Task<bool> DeleteShipWithRelatedRecordsAsync(int id)
-   {
-       using var connection = CreateConnection();
-       await connection.OpenAsync();
-
-       // Begin a transaction
-       using var transaction = await connection.BeginTransactionAsync();
-
-       try
-       {
-           // Delete related records first
-           using var deleteRelatedCommand = new NpgsqlCommand(
-               "DELETE FROM related_table WHERE ship_id = @id",
-               connection, transaction as NpgsqlTransaction);
-           deleteRelatedCommand.Parameters.AddWithValue("@id", id);
-           await deleteRelatedCommand.ExecuteNonQueryAsync();
-
-           // Then delete the ship
-           using var deleteShipCommand = new NpgsqlCommand(
-               "DELETE FROM ships WHERE id = @id",
-               connection, transaction as NpgsqlTransaction);
-           deleteShipCommand.Parameters.AddWithValue("@id", id);
-           int rowsAffected = await deleteShipCommand.ExecuteNonQueryAsync();
-
-           // Commit the transaction
-           await transaction.CommitAsync();
-
-           return rowsAffected > 0;
-       }
-       catch
-       {
-           // Rollback the transaction if an error occurs
-           await transaction.RollbackAsync();
-           throw;
-       }
-   }
-   ```
 
 ## Conclusion
 

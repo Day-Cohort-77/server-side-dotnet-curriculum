@@ -1,4 +1,4 @@
-# Harbor Master: Implementing DELETE Operations for Docks and Haulers (Exercise)
+# Harbor Master: DELETE Docks and Haulers (Exercise)
 
 In this chapter, you'll implement DELETE endpoints to remove docks and haulers from the Harbor Master API. This is an exercise for you to practice what you've learned in the previous chapter.
 
@@ -43,17 +43,6 @@ Add DELETE endpoints to your `DockEndpoints.cs` and `HaulerEndpoints.cs` files. 
 - What route parameters do you need?
 - What HTTP status codes should be returned in different scenarios?
 - How will you handle errors?
-
-## Handling Foreign Key Constraints
-
-Remember that in our database schema, we set up the foreign key constraints with `ON DELETE SET NULL`. This means that when a dock or hauler is deleted, any references to it in the ships table will be set to NULL rather than causing an error or preventing the delete.
-
-However, you might want to add additional validation or business logic. For example:
-
-1. You might want to prevent deleting a dock if it has ships assigned to it
-2. You might want to return information about affected ships when deleting a dock or hauler
-
-Think about how you would implement these requirements.
 
 ## Hints
 
@@ -110,87 +99,10 @@ app.MapDelete("/haulers/{id}", async (int id, DatabaseService db) =>
 });
 ```
 
-## Advanced Challenge: Implementing Cascading Deletes
-
-As an advanced challenge, you could implement cascading deletes for docks and haulers. This would mean that when a dock or hauler is deleted, all related ships would also be deleted.
-
-To do this, you would:
-
-1. Change the foreign key constraints in the database schema:
-   ```sql
-   FOREIGN KEY (dock_id) REFERENCES docks(id) ON DELETE CASCADE,
-   FOREIGN KEY (hauler_id) REFERENCES haulers(id) ON DELETE CASCADE
-   ```
-
-2. Or handle the cascading delete in your code using transactions:
-   ```csharp
-   public async Task<bool> DeleteDockWithShipsAsync(int id)
-   {
-       using var connection = CreateConnection();
-       await connection.OpenAsync();
-
-       // Begin a transaction
-       using var transaction = await connection.BeginTransactionAsync();
-
-       try
-       {
-           // Delete related ships first
-           using var deleteShipsCommand = new NpgsqlCommand(
-               "DELETE FROM ships WHERE dock_id = @id",
-               connection, transaction as NpgsqlTransaction);
-           deleteShipsCommand.Parameters.AddWithValue("@id", id);
-           await deleteShipsCommand.ExecuteNonQueryAsync();
-
-           // Then delete the dock
-           using var deleteDockCommand = new NpgsqlCommand(
-               "DELETE FROM docks WHERE id = @id",
-               connection, transaction as NpgsqlTransaction);
-           deleteDockCommand.Parameters.AddWithValue("@id", id);
-           int rowsAffected = await deleteDockCommand.ExecuteNonQueryAsync();
-
-           // Commit the transaction
-           await transaction.CommitAsync();
-
-           return rowsAffected > 0;
-       }
-       catch
-       {
-           // Rollback the transaction if an error occurs
-           await transaction.RollbackAsync();
-           throw;
-       }
-   }
-   ```
-
 ## Testing Your Implementation
 
-Once you've implemented the required functionality, run the application and test your endpoints:
-
-1. Start the API:
-   ```bash
-   dotnet run
-   ```
-
-2. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
-
-3. Test the `DELETE /docks/{id}` endpoint:
-   - First, get a list of docks to find an ID to delete
-   - Click on the `DELETE /docks/{id}` endpoint
-   - Click the "Try it out" button
-   - Enter the ID of the dock you want to delete
-   - Click the "Execute" button
-   - You should see a 204 No Content response if the dock was deleted
-
-4. Test the `DELETE /haulers/{id}` endpoint:
-   - First, get a list of haulers to find an ID to delete
-   - Click on the `DELETE /haulers/{id}` endpoint
-   - Click the "Try it out" button
-   - Enter the ID of the hauler you want to delete
-   - Click the "Execute" button
-   - You should see a 204 No Content response if the hauler was deleted
-
-5. Verify the records were deleted:
-   - Use the `GET /docks` and `GET /haulers` endpoints to see that the deleted records are no longer in the lists
+1. Perform DELETE requests to `/docks{id}` and `/haulers{id}` — with valid `id` values and verify that you get a 204 response.
+2. Perform DELETE requests to `/docks{id}` and `/haulers{id}` — with an invalid `id` value _(like 250)_ and verify that you get a 404 response.
 
 ## Conclusion
 
@@ -200,4 +112,4 @@ Congratulations on completing the Harbor Master project! You've built a complete
 
 ## Next Steps
 
-[Deepend your learning by adding more features or connecting your client side project](./llm-guided-tasks.md)
+[Deepen your learning by adding more features or connecting your client side project](./llm-guided-tasks.md)

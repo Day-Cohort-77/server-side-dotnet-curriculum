@@ -285,8 +285,7 @@ namespace HarborMaster.Endpoints
         {
             // GET /ships - Get all ships
             app.MapGet("/ships", async (HarborContext db) =>
-                await db.Ships.ToListAsync())
-                .WithName("GetAllShips");
+                await db.Ships.ToListAsync());
 
             // GET /ships/{id} - Get a ship by ID
             app.MapGet("/ships/{id}", async (int id, HarborContext db) =>
@@ -297,8 +296,7 @@ namespace HarborMaster.Endpoints
                     .FirstOrDefaultAsync(s => s.Id == id);
 
                 return ship != null ? Results.Ok(ship) : Results.NotFound();
-            })
-            .WithName("GetShipById");
+            });
 
             // POST /ships - Create a new ship
             app.MapPost("/ships", async (Ship ship, HarborContext db) =>
@@ -307,8 +305,7 @@ namespace HarborMaster.Endpoints
                 await db.SaveChangesAsync();
 
                 return Results.Created($"/ships/{ship.Id}", ship);
-            })
-            .WithName("CreateShip");
+            });
 
             // PUT /ships/{id} - Update a ship
             app.MapPut("/ships/{id}", async (int id, Ship updatedShip, HarborContext db) =>
