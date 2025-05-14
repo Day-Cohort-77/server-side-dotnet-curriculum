@@ -1,8 +1,8 @@
 # Next Steps
 
-Now that you've completed the Harbor Master project, you can try one of the following exercises to deepen your learning.
+Now that you've completed the projects, you can try one of the following exercises to deepen your learning.
 
-## Option 1: Add more features to the API
+## Option 1: Expand Harbor Master API
 
 - Filtering and sorting for GET endpoints. Here is a well-formed LLM prompt you can use to get started.
     ````
@@ -67,4 +67,6 @@ Now that you've completed the Harbor Master project, you can try one of the foll
 ## Option 2: Build a React client application
 
 You've been using your API client _(e.g. Yaak)_ to test your endpoints thus far. A real challenge at this point is to build a React project provides a interface for people to create, read, and delete data.
+
+You can build a React-based client for either Harbor Master or Jewelry Junction.
 
