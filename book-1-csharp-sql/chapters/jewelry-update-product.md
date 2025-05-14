@@ -22,41 +22,13 @@ For our product update endpoint, we'll:
 
 ## Implementing the Database Method
 
-First, implement the `UpdateProductAsync` method in your `DatabaseService` class:
+First, implement the `UpdateProductAsync` method in your `DatabaseService` class
 
 ```csharp
 // Update a product
 public async Task<Product> UpdateProductAsync(Product product)
 {
-    using var connection = CreateConnection();
-    await connection.OpenAsync();
 
-    // Create the SQL command to update the product
-    using var command = new NpgsqlCommand(
-        @"UPDATE products
-                   SET name = @name,
-                       description = @description,
-                       price = @price,
-                       metal_id = @metalId,
-                       gemstone_id = @gemstoneId,
-                       style_id = @styleId
-                   WHERE id = @id",
-        connection);
-
-    // Add parameters to the command
-    command.Parameters.AddWithValue("@id", product.Id);
-    command.Parameters.AddWithValue("@name", product.Name);
-    command.Parameters.AddWithValue("@description", product.Description);
-    command.Parameters.AddWithValue("@price", product.Price);
-    command.Parameters.AddWithValue("@metalId", product.MetalId.Value);
-    command.Parameters.AddWithValue("@gemstoneId", product.GemstoneId.Value);
-    command.Parameters.AddWithValue("@styleId", product.StyleId.Value);
-
-    // Execute the command
-    await command.ExecuteNonQueryAsync();
-
-    // Retrieve and return the updated product
-    return await GetProductByIdAsync(product.Id);
 }
 ```
 
@@ -68,28 +40,7 @@ Continue by implementing a simple endpoint that updates a product. You likely ha
 // PUT /products/{id} - Update a product
 app.MapPut("/products/{id}", async (int id, Product updatedProduct, DatabaseService db) =>
 {
-    try
-    {
-        // Check if the product exists
-        var existingProduct = await db.GetProductByIdAsync(id);
-        if (existingProduct == null)
-        {
-            return Results.NotFound($"Product with ID {id} not found");
-        }
 
-        // Set the ID from the route parameter
-        updatedProduct.Id = id;
-
-        // Update the product
-        var result = await db.UpdateProductAsync(updatedProduct);
-
-        // Signal success with a 204 status code on the response
-        return Results.NoContent();
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"An error occurred while updating the product: {ex.Message}");
-    }
 });
 ```
 
@@ -130,10 +81,9 @@ This validation:
 
 Now that we've implemented our PUT endpoint, let's test it:
 
-1. Open Swagger at `https://localhost:7042/swagger` (or the URL shown in your terminal)
-2. Find the PUT `/products/{id}` endpoint and click on it
-3. Click the "Try it out" button
-4. Enter a product ID and a JSON request body with the updated product data:
+1. Restart your debugger
+2. Send a PUT request to the `/products/{id}` endpoint and click on it
+    - Enter a product ID and a JSON request body with the updated product data:
    ```json
    {
      "name": "Updated Diamond Ring",
@@ -144,19 +94,10 @@ Now that we've implemented our PUT endpoint, let's test it:
      "styleId": 2
    }
    ```
-5. Click the "Execute" button
-6. You should see a 204 response with the updated product details
+3. You should see a 204 response with the updated product details
 
 ## Conclusion
 
 In this chapter, you've learned how to implement a PUT endpoint to update a product in the Jewelry Junction API. You've created a route handler that validates the input data, updates the product in the database, and returns the updated product.
 
 This is a fundamental operation in RESTful APIs, and you'll use similar patterns for updating other resources in your applications.
-
-## Optional Practice Exercise
-
-Enhance your product update functionality by:
-
-1. Adding validation for foreign keys (check if metal, gemstone, and style exist)
-2. Adding the ability to update multiple products at once
-3. Adding support for partial updates (only updating specific fields)

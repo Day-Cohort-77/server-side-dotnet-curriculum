@@ -2,7 +2,7 @@
 
 Now that you've completed the Harbor Master project, you can try one of the following exercises to deepen your learning.
 
-## Add more features to the API
+## Option 1: Add more features to the API
 
 - Filtering and sorting for GET endpoints. Here is a well-formed LLM prompt you can use to get started.
     ````
@@ -64,7 +64,7 @@ Now that you've completed the Harbor Master project, you can try one of the foll
 
     Once you have something that works, you generate a well-formed LLM prompt that helps you implement an error handling middleware solution for your project. Make sure you provide context in your prompts that helps you understand how to test this solution.
 
-## Build a client application to consume the API
+## Option 2: Build a React client application
 
-You've been using the web interface of Swagger to test your endpoints thus far. A real challenge at this point is to open up your old Shipping Ships project from the client-side course and see if you can get it to work with your new C# Web API.
+You've been using your API client _(e.g. Yaak)_ to test your endpoints thus far. A real challenge at this point is to build a React project provides a interface for people to create, read, and delete data.
 

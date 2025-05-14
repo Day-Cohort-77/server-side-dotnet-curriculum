@@ -108,8 +108,8 @@ app.MapDelete("/haulers/{id}", async (int id, DatabaseService db) =>
 
 In this chapter, you've practiced implementing DELETE operations for docks and haulers in the Harbor Master API. You've applied the knowledge gained from the previous chapter to create endpoints for deleting different entity types and handled foreign key constraints.
 
-Congratulations on completing the Harbor Master project! You've built a complete API that connects to a PostgreSQL database, handles various HTTP methods, and manages relationships between entities.
+In the next chapter, we'll learn how to implement PUT operations to modify existing docks in our Harbor Master API.
 
 ## Next Steps
 
-[Deepen your learning by adding more features or connecting your client side project](./llm-guided-tasks.md)
+[Continue to the next chapter: Handling PUT Requests to Modify Docks](./harbor-master-modify-docks.md)
