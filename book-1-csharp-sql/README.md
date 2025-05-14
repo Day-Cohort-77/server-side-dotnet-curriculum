@@ -17,8 +17,8 @@ You need to complete all of columns in 2 weeks. You want to be working on the fi
 | 5 | [Dictionaries][5] | [Methods and Behaviors][10] <br/> <sub style="font-size:0.85rem;">\#methods</sub> | | [Get Docks][36] | [Create New Order][20] |
 | 6 | [Custom Types with Classes][26] | [Interfaces and Abstraction][15] <br/> <sub style="font-size:0.85rem;">\#interfaces</sub> | | [Create a Dock][37] | [Delete an Order][21] |
 | 7 | [Exception Handling][27] | | | [Create a Ship][38] | [Update a Product][22] |
-| 8 | | | | [Create Haulers][39] | [Advanced Tasks for LLM Prompting][42] |
-| 9 | | | | [Decomission Ships][40] | |
+| 8 | | | | [Create Haulers][39] | [Refactoring with Inheritance][45] |
+| 9 | | | | [Decomission Ships][40] | [Advanced Tasks for LLM Prompting][42] |
 | 10 | | | | [Decomission Haulers][41] | |
 | 11 | | | | [Modify Docks][43] | |
 | 12 | | | | [Modify Ships and Haulers][44] | |
@@ -89,3 +89,4 @@ Once everyone has had their reflections interview with a coach, we will start on
 [42]: ./chapters/llm-guided-tasks.md
 [43]: ./chapters/harbor-master-modify-docks.md
 [44]: ./chapters/harbor-master-modify-ships-haulers.md
+[45]: ./chapters/database-service-inheritance.md

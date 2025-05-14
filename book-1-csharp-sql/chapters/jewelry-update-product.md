@@ -101,3 +101,5 @@ Now that we've implemented our PUT endpoint, let's test it:
 In this chapter, you've learned how to implement a PUT endpoint to update a product in the Jewelry Junction API. You've created a route handler that validates the input data, updates the product in the database, and returns the updated product.
 
 This is a fundamental operation in RESTful APIs, and you'll use similar patterns for updating other resources in your applications.
+
+[Next: Using Inheritance for Database Services](./database-service-inheritance.md)
