@@ -1,5 +1,5 @@
-# Displaying Bikes 
-In this chapter you will complete a feature to show a list of Bikes on the home page, as well as a bike's details when it is selected. 
+# Displaying Bikes
+In this chapter you will complete a feature to show a list of Bikes on the home page, as well as a bike's details when it is selected.
 
 ## Display All Bikes
 
@@ -41,7 +41,7 @@ public IActionResult Get()
     return Ok(_dbContext.Bikes.Include(b => b.Owner).ToList());
 }
 ```
-The `Authorize` attribute is commented out for now, so that we can test the method in Postman without logging in. Test the method to see that the bike objects now include their owners. Once you have confirmed that the endpoint works, _uncomment_ the `Authorize` attribute to ensure that only logged in users will be able to access it. 
+The `Authorize` attribute is commented out for now, so that we can test the method in Yaak without logging in. Test the method to see that the bike objects now include their owners. Once you have confirmed that the endpoint works, _uncomment_ the `Authorize` attribute to ensure that only logged in users will be able to access it.
 
 ### Accessing the API from React
 We need to implement the `getBikes` function in the `bikeManager` module to use in the `BikeList` component:
@@ -110,7 +110,7 @@ Let's examine the `BikeDetails` component to see what data it is expecting:
     ))}
 </>
 ```
-In addition to the `owner`, this component is expecting the `bike` to have a `bikeType` and `workOrders`. 
+In addition to the `owner`, this component is expecting the `bike` to have a `bikeType` and `workOrders`.
 
 Let's add an endpoint to the `BikeController` to provide this data:
 >BikeController.cs
@@ -135,11 +135,11 @@ public IActionResult GetById(int id)
 }
 ```
 Some things to notice:
-1. `"{id}"` has been passed into `HttpGet` to add more to the route that this handler should map to. Because the controller's route is already `/api/bike`, adding `{id}` will make the whole route for this endpoint be `/api/bike/{id}`. Just like when we were using Minimal APIs, the name inside the `{}` _must_ match the `int id` param in the method in order for the framework to pass the value in from the URL when calling it. 
-1. The name of the method is somewhat arbitrary. The way that the framework figures out which method to call is through the route mapping that is provided in the `Route` and `HttpGet` attributes.    
+1. `"{id}"` has been passed into `HttpGet` to add more to the route that this handler should map to. Because the controller's route is already `/api/bike`, adding `{id}` will make the whole route for this endpoint be `/api/bike/{id}`. Just like when we were using Minimal APIs, the name inside the `{}` _must_ match the `int id` param in the method in order for the framework to pass the value in from the URL when calling it.
+1. The name of the method is somewhat arbitrary. The way that the framework figures out which method to call is through the route mapping that is provided in the `Route` and `HttpGet` attributes.
 
 
-Comment out the `Authorize` attribute to test the endpoint in Postman before moving on (remember to uncomment it after testing). 
+Comment out the `Authorize` attribute to test the endpoint in Yaak before moving on (remember to uncomment it after testing).
 
 ### Accessing the API from React
 
@@ -156,16 +156,16 @@ And finally use it in the `BikeDetails` component:
   };
 ```
 Test the functionality of the app. Click on the details buttons for a few bikes. You should see this if everything is working correctly:
-![Bianca's details view](../../assets/biancas-details-view.png) 
+![Bianca's details view](../../assets/biancas-details-view.png)
 
 Up Next: [Bikes in Garage](./biancas-bikes-in-garage.md)
 
 ## ✍️ Reflections
 Think about the process we went through to add each of these features:
-1. Create (or examine an existing) UI component. 
+1. Create (or examine an existing) UI component.
 1. Discover its data needs
-1. Create an API endpoint that meets those needs, if it doesn't already exist, or update an existing one to do so. 
+1. Create an API endpoint that meets those needs, if it doesn't already exist, or update an existing one to do so.
 1. Access that endpoint from the data access module in the front end
-1. Use the data access module to get the data into the component that needs it. 
+1. Use the data access module to get the data into the component that needs it.
 
-You can use this process to build every feature that you add to your own applications. 
+You can use this process to build every feature that you add to your own applications.

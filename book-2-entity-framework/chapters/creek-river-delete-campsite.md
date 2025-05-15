@@ -58,7 +58,7 @@ Now that we've created our endpoint, let's test it:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a tool like Postman to send a DELETE request to `https://localhost:<port>/api/campsites/1` (replace `1` with the ID of a campsite you want to delete).
+2. Use a tool like Yaak to send a DELETE request to `https://localhost:<port>/api/campsites/1` (replace `1` with the ID of a campsite you want to delete).
 
 3. You should receive a 204 No Content response if the campsite was successfully deleted, or a 404 Not Found response if no campsite with the specified ID was found.
 

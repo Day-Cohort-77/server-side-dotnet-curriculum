@@ -61,7 +61,7 @@ Now that we've created our endpoint, let's test it:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a tool like Postman to send a PUT request to `https://localhost:<port>/api/campsites/1` (replace `1` with the ID of a campsite you want to update) with a JSON payload like:
+2. Use a tool like Yaak to send a PUT request to `https://localhost:<port>/api/campsites/1` (replace `1` with the ID of a campsite you want to update) with a JSON payload like:
 
 ```json
 {

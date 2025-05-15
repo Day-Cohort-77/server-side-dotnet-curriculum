@@ -51,7 +51,7 @@ Now that we've created our endpoint, let's test it:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a tool like Postman to send a POST request to `https://localhost:<port>/api/campsites` with a JSON payload like:
+2. Use a tool like Yaak to send a POST request to `https://localhost:<port>/api/campsites` with a JSON payload like:
 
 ```json
 {

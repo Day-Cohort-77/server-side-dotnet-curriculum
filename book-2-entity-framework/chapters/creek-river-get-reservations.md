@@ -82,7 +82,7 @@ Now that we've created our endpoint, let's test it:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a web browser or a tool like Postman to send a GET request to `https://localhost:<port>/api/reservations`.
+2. Use a web browser or a tool like Yaak to send a GET request to `https://localhost:<port>/api/reservations`.
 
 3. You should see a JSON response with the reservations and their related data.
 

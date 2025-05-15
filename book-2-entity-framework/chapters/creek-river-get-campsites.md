@@ -114,7 +114,7 @@ Now that we've created our endpoints, let's test them:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Open a web browser or a tool like Postman and navigate to:
+2. Open a web browser or a tool like Yaak and navigate to:
    - `https://localhost:<port>/api/campsites` to get all campsites
    - `https://localhost:<port>/api/campsites/1` to get the campsite with ID 1
 

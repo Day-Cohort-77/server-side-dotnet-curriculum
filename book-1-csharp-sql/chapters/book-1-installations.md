@@ -9,7 +9,7 @@ To complete the exercises and projects in Book 1, you'll need to install several
 3. **C# Dev Kit Extension** - For C# development in VS Code
 4. **PostgreSQL** - Database system
 5. **pgAdmin** - PostgreSQL management tool
-6. **Postman** - API testing tool
+6. **Yaak** - API testing tool
 
 ## Installing .NET SDK
 

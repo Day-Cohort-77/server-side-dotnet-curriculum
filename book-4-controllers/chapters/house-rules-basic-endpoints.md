@@ -2,7 +2,7 @@
 
 In this chapter we will create the controllers that require basic CRUD operations for Chores and UserProfiles.
 
-It might be helpful to use the app to create a few more users (write down their passwords or use the admin password!) to test the endpoints created in this chapter. 
+It might be helpful to use the app to create a few more users (write down their passwords or use the admin password!) to test the endpoints created in this chapter.
 
 ## `UserProfileController`
 
@@ -14,7 +14,7 @@ Add a file to the Controllers directory called `UserProfileController.cs`. You c
    - This endpoint will get a UserProfile along with its assigned chores (through the `ChoreAssignment` table),as well as the user's completed chores (through the `CompletedChore` table).
    - It should be accessible to any logged in user, regardless of role. That means using the `Authorize` attribute without specifying a role.
    - Use `Include` and `ThenInclude` for `ChoreAssignment` and for `CompletedChore` to include the `Chore` data in both cases.
-   - As a reminder, you can test the endpoint in postman without logging in by commenting out the `Authorize` attribute.
+   - As a reminder, you can test the endpoint in Yaak without logging in by commenting out the `Authorize` attribute.
    - If you haven't already, you will need to add collections to the `UserProfile` to store that related data.
 
 ## `ChoreController`

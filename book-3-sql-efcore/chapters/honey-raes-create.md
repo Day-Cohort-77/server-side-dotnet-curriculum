@@ -1,5 +1,5 @@
 # Creating and Updating an Employee
-In this chapter we will cover adding and updating an employee in the database. These endpoints were not included in the exercises for Book 2, so unless you made them on your own, you can add this code to `Program.cs` rather than replacing anything. 
+In this chapter we will cover adding and updating an employee in the database. These endpoints were not included in the exercises for Book 2, so unless you made them on your own, you can add this code to `Program.cs` rather than replacing anything.
 
 ## Creating an Employee
 
@@ -25,12 +25,12 @@ app.MapPost("/employees", (Employee employee) =>
 });
 ```
 Some things to highlight:
-1. We add `RETURNING Id` to the end of the query so that we get the new `Id` for the employee back after it has been created. 
-1. We use command parameters to add the data from the incoming employee object to the database query. 
-1. We don't need a reader object because we don't really need any other data than the new id back from the database. To get this, we call `ExecuteScalar` instead of `ExecuteReader`, which returns the value of the first column of the first row. 
-1. Because C# doesn't know what type to expect from `ExecuteScalar` (after all, it could be anything), we add `(int)` in front of the method call to tell the compiler that the value should be an integer. This is called _type casting_. There is an explorer chapter in Book 1 about these which is worthwhile to go back to. 
+1. We add `RETURNING Id` to the end of the query so that we get the new `Id` for the employee back after it has been created.
+1. We use command parameters to add the data from the incoming employee object to the database query.
+1. We don't need a reader object because we don't really need any other data than the new id back from the database. To get this, we call `ExecuteScalar` instead of `ExecuteReader`, which returns the value of the first column of the first row.
+1. Because C# doesn't know what type to expect from `ExecuteScalar` (after all, it could be anything), we add `(int)` in front of the method call to tell the compiler that the value should be an integer. This is called _type casting_. There is an explorer chapter in Book 1 about these which is worthwhile to go back to.
 
-Test out the endpoint in Postman. Make sure you use the `POST` method, and add a JSON body with one object. You should only need `name` and `specialty` properties on that object. 
+Test out the endpoint in Yaak. Make sure you use the `POST` method, and add a JSON body with one object. You should only need `name` and `specialty` properties on that object.
 
 ## Updating an Employee
 
@@ -46,7 +46,7 @@ app.MapPut("/employees/{id}", (int id, Employee employee) =>
     connection.Open();
     using NpgsqlCommand command = connection.CreateCommand();
     command.CommandText = @"
-        UPDATE Employee 
+        UPDATE Employee
         SET Name = @name,
             Specialty = @specialty
         WHERE Id = @id
@@ -60,10 +60,10 @@ app.MapPut("/employees/{id}", (int id, Employee employee) =>
 });
 ```
 Some comments on this endpoint:
-1. `ExecuteNonQuery` is used for data changes when you do not need or expect any data back from the database after the query. In this case, as long as the query runs correctly, we do not need any information from the database. 
-1. We need to provide the id to the database to make sure we only update one employee. Without the `WHERE`, it would update every row with this data. 
-1. For the same reason, we return a 204 response `No Content` back to the client, because it is also not going to learn anything new from the response. 
+1. `ExecuteNonQuery` is used for data changes when you do not need or expect any data back from the database after the query. In this case, as long as the query runs correctly, we do not need any information from the database.
+1. We need to provide the id to the database to make sure we only update one employee. Without the `WHERE`, it would update every row with this data.
+1. For the same reason, we return a 204 response `No Content` back to the client, because it is also not going to learn anything new from the response.
 
-Test this endpoint as well, and check the database with pgAdmin to ensure that the data was updated in the database as you expect. 
+Test this endpoint as well, and check the database with pgAdmin to ensure that the data was updated in the database as you expect.
 
 Up Next: [Deleting an Employee](./honey-raes-delete.md)
