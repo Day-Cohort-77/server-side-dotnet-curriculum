@@ -8,7 +8,7 @@ In this chapter we will explore the concepts of authentication and authorization
 **Authorization** - proving you are allowed to do what you're trying to do.
 
 ### :cookie: Cookies
-This application (and the applications that we're going to build for the rest of the course) use cookies to facilitate authentication and authorization. 
+This application (and the applications that we're going to build for the rest of the course) use cookies to facilitate authentication and authorization.
 ``` mermaid
 sequenceDiagram
     participant C as Client
@@ -47,14 +47,14 @@ sequenceDiagram
 
 The diagram above shows the basic workflow:
 1. The client sends an HTTP request with the email and password
-1. The API receives that request, and requests the hashed password that matches the email from the database. 
+1. The API receives that request, and requests the hashed password that matches the email from the database.
 1. The API compares the hashed password to the provided password
     - If they match, the API returns 200 with the cookie on the `set-cookie` header of the HTTP response:
         ```
         set-cookie: BiancasLoginCookie=CfEv...httponly (rest of cookie omitted)
         ```
     - If they don't match, the API returns 401 (Unauthorized)
-1. Once the browser gets the cookie, it saves it, and will send it back to the API with future requests. This is how the API can know that the request it is getting is from a client that has logged in. 
+1. Once the browser gets the cookie, it saves it, and will send it back to the API with future requests. This is how the API can know that the request it is getting is from a client that has logged in.
 1. When the client send a request to log out, the API will send back an expired cookie on the `set-cookie` header:
     ```
     set-cookie: BiancasLoginCookie=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=strict; httponly
@@ -78,7 +78,7 @@ There are a few major changes to the DbContext class that you will interact with
 1. `BiancasBikesDbContext` inherits from the `IdentityDbContext<IdentityUser>` class, rather than from `DbContext`. `IdentityDbContext` comes with a number of extra models and tables that will be added to the database. They include:
     - `IdentityUser` - this will hold login credentials for users
     - `IdentityRole` - this will hold the various roles that a use can have
-    - `IdentityUserRole` - a many-to-many table between roles and users. These define which users have which roles. 
+    - `IdentityUserRole` - a many-to-many table between roles and users. These define which users have which roles.
 1. In `OnModelCreating`, we are seeding the database with rows in the above tables. For example:
     ``` csharp
     modelBuilder.Entity<IdentityUser>().HasData(new IdentityUser
@@ -89,8 +89,8 @@ There are a few major changes to the DbContext class that you will interact with
             PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, _configuration["AdminPassword"])
         });
     ```
-    - The `Id`s for the Identity Framework tables are _Guids_, not `ints`. A `Guid` (Global Unique Identifier) can be generated with `Guid.NewGuid()`. You will need to do this when you create your own data to seed. 
-    - The password is being _hashed_ before storage in the database, and we are retrieving it from the _user-secrets_ so that it is not stored in the GH repository. The details of password hashing are beyond the scope of the course. The only thing you should know is that hashing the password obscures the actual password in the database for security reasons. 
+    - The `Id`s for the Identity Framework tables are _Guids_, not `ints`. A `Guid` (Global Unique Identifier) can be generated with `Guid.NewGuid()`. You will need to do this when you create your own data to seed.
+    - The password is being _hashed_ before storage in the database, and we are retrieving it from the _user-secrets_ so that it is not stored in the GH repository. The details of password hashing are beyond the scope of the course. The only thing you should know is that hashing the password obscures the actual password in the database for security reasons.
 
 ## Examples from the codebase
 > AuthController.cs

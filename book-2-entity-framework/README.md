@@ -10,12 +10,12 @@ Before you start work on the projects in this section, you need to complete all 
 
 In this project, you'll build an API for the Creek River Campground reservation system. You'll use Entity Framework Core to create and interact with a PostgreSQL database.
 
-| # | 🏕️ Creek River | 📚 Loncotes Library |
-|--|--|--|
-| 1 | [Initializing a new EF API project](./chapters/creek-river-initializing.md) | [Introduction to DTOs](./chapters/loncotes-dto-introduction.md) |
-| 2 | [Entity Framework Models](./chapters/creek-river-models.md) | [Basic DTO Features](./chapters/loncotes-dto-basic-features.md) |
-| 3 | [Understanding Data Annotations](./chapters/creek-river-data-annotations.md) | [Custom DTO: Available Materials](./chapters/loncotes-dto-available-materials.md) |
-| 4 | [Using DbContext](./chapters/creek-river-dbcontext.md) | [Custom DTO: Overdue Checkouts](./chapters/loncotes-dto-overdue-checkouts.md) |
+| # | 🏕️ Creek River | 📚 Loncotes Library | 🔐 TinyTreats Authentication |
+|--|--|--|--|
+| 1 | [Initializing a new EF API project](./chapters/creek-river-initializing.md) | [Introduction to DTOs](./chapters/loncotes-dto-introduction.md) | [Introduction to Authentication](./chapters/auth-introduction.md) |
+| 2 | [Entity Framework Models](./chapters/creek-river-models.md) | [Basic DTO Features](./chapters/loncotes-dto-basic-features.md) | [User Registration and Login](./chapters/auth-registration-login.md) |
+| 3 | [Understanding Data Annotations](./chapters/creek-river-data-annotations.md) | [Custom DTO: Available Materials](./chapters/loncotes-dto-available-materials.md) | [User Roles and Authorization](./chapters/auth-roles-authorization.md) |
+| 4 | [Using DbContext](./chapters/creek-river-dbcontext.md) | [Custom DTO: Overdue Checkouts](./chapters/loncotes-dto-overdue-checkouts.md) | [Securing API Endpoints](./chapters/auth-securing-endpoints.md) |
 | 5 | [Using Entity Framework tools](./chapters/creek-river-program.md) | [Custom DTO: Late Fees](./chapters/loncotes-dto-late-fees.md) |
 | 6 | [Database changes with migrations](./chapters/creek-river-migration.md) | [Quieter Code with AutoMapper](./chapters/loncotes-dto-automapper.md) |
 | 7 | [View campsites](./chapters/creek-river-get-campsites.md) |  |
