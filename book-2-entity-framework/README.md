@@ -4,7 +4,7 @@ In this section of the course, you'll learn how to use Entity Framework Core (EF
 
 ## Installations
 
-Before you start work on the projects in this section, you need to complete all of the [installations](./chapters/book-3-installs.md). Once done, come back to this page and start on the first project.
+Before you start work on the projects in this section, you need to complete all of the [installations](./chapters/book-2-installs.md). Once done, come back to this page and start on the first project.
 
 ## Creek River Campground API
 
