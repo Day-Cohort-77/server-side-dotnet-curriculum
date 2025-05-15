@@ -1,10 +1,10 @@
 # User Registration and Login
 
-In this chapter, we'll set up a simple project with ASP.NET Core Identity and implement user registration and login functionality using Minimal API. We'll follow our organized approach by placing authentication endpoints in a separate file.
+In this chapter, we'll set up a simple project with ASP.NET Core Identity and implement user registration and login functionality using Minimal API. We'll follow our organized approach by placing authentication endpoints in a separate file and DTOs in their own directory.
 
 ## Project Setup
 
-Let's create a new project called "Tiny Treats" - a simple bakery management system where we'll implement authentication.
+Let's create a new project called "TinyTreats" - a simple bakery management system where we'll implement authentication.
 
 1. Create a new ASP.NET Core Minimal API project:
    ```bash
@@ -28,7 +28,7 @@ Let's create a new project called "Tiny Treats" - a simple bakery management sys
 
 4. Create the necessary folders for our organized project structure:
    ```bash
-   mkdir Models Data Endpoints
+   mkdir Models Data Endpoints DTOs
    ```
 
 ## Creating the Data Models
@@ -103,6 +103,30 @@ public class TinyTreatsDbContext : IdentityDbContext<IdentityUser>
 }
 ```
 
+## Creating the DTO Classes
+
+Let's create our DTO classes in a separate directory. Create a new file called `DTOs/AuthDtos.cs`:
+
+```csharp
+// DTOs/AuthDtos.cs
+namespace TinyTreats.DTOs;
+
+public class RegistrationDto
+{
+    public string Email { get; set; }
+    public string Password { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Address { get; set; }
+}
+
+public class LoginDto
+{
+    public string Email { get; set; }
+    public string Password { get; set; }
+}
+```
+
 ## Creating the Authentication Endpoints
 
 Following our organized approach, we'll create a separate file for our authentication endpoints. Create a new file called `Endpoints/AuthEndpoints.cs`:
@@ -112,28 +136,13 @@ Following our organized approach, we'll create a separate file for our authentic
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using TinyTreats.Data;
+using TinyTreats.DTOs;
 using TinyTreats.Models;
 
 namespace TinyTreats.Endpoints;
 
 public static class AuthEndpoints
 {
-    // DTOs for registration and login
-    public class RegistrationDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Address { get; set; }
-    }
-
-    public class LoginDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-
     public static void MapAuthEndpoints(this WebApplication app)
     {
         // Registration endpoint
@@ -364,14 +373,16 @@ Let's break down what's happening in our authentication system:
 4. **Logout**:
    - We sign the user out, which removes the cookie
 
-## Benefits of Organized Endpoints
+## Benefits of Organized Code Structure
 
-By organizing our authentication endpoints in a separate file, we gain several benefits:
+By organizing our code with separate directories for DTOs and endpoints, we gain several benefits:
 
 1. **Better organization** - Authentication endpoints are grouped together, making them easier to find and modify.
 2. **Improved maintainability** - The `Program.cs` file remains clean and focused on configuration.
-3. **Scalability** - As your application grows, you can add new endpoint classes without cluttering `Program.cs`.
+3. **Scalability** - As your application grows, you can add new endpoint classes and DTOs without cluttering `Program.cs`.
 4. **Testability** - Endpoint classes can be tested independently.
+5. **Separation of concerns** - DTOs are separated from endpoint logic, following the Single Responsibility Principle.
+6. **DTO reusability** - DTOs can be easily reused across different endpoints.
 
 ## Summary
 
@@ -382,7 +393,7 @@ In this chapter, we've set up a basic authentication system using ASP.NET Core I
 - User logout
 - Getting the current user's information
 
-We've also organized our endpoints in a separate file, following the best practice of separating endpoints by functionality. This provides a clean, maintainable, and scalable architecture for our application.
+We've also organized our code with separate directories for DTOs and endpoints, following the best practice of separating concerns. This provides a clean, maintainable, and scalable architecture for our application.
 
 This provides the foundation for our authentication system. In the next chapter, we'll add role-based authorization to control what different users can do in our application.
 

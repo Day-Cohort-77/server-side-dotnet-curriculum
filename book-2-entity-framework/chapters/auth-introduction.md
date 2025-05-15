@@ -24,10 +24,6 @@ ASP.NET Core Identity is a membership system that adds login functionality to AS
 
 We'll use ASP.NET Core Identity to implement authentication and authorization in our application.
 
-## Minimal API and Authentication
-
-In ASP.NET Core Minimal API, we can implement authentication and authorization without the need for controllers. We'll define endpoints directly in our application, but we'll organize them in a clean, maintainable way.
-
 ## Organizing Authentication Endpoints
 
 In our approach, we'll organize our authentication endpoints in a separate file, following the pattern of separating endpoints by functionality. This approach offers several benefits:
