@@ -4,19 +4,14 @@ In this chapter, we'll create our first API endpoint using Entity Framework Core
 
 ## Understanding API Endpoints with EF Core
 
-In minimal APIs, endpoints are defined directly in the `Program.cs` file using methods like `MapGet`, `MapPost`, `MapPut`, and `MapDelete`. These methods map HTTP requests to handler functions that process the request and return a response.
-
-When using Entity Framework Core with these endpoints, we can inject the `DbContext` into the handler function to access the database.
+In our organized approach, we define endpoints in separate classes by resource type. This keeps our code clean and maintainable. For campsite endpoints, we'll use the `CampsiteEndpoints.cs` file we created in the previous chapter.
 
 ## Getting All Campsites
 
-Let's start by creating an endpoint to get all campsites:
-
-1. Open the `Program.cs` file.
-
-2. Add the following endpoint after the middleware configuration (after `app.UseHttpsRedirection();`):
+Let's start by implementing the endpoint to get all campsites. This endpoint is already defined in our `CampsiteEndpoints.cs` file:
 
 ```csharp
+// GET /api/campsites - Get all campsites
 app.MapGet("/api/campsites", (CreekRiverDbContext db) =>
 {
     return db.Campsites.ToList();
@@ -33,8 +28,6 @@ Let's break down this code:
 
 - `db.Campsites.ToList()`: This executes the query and returns all campsites as a list.
 
-- `.ToList()`: This executes the query and returns the results as a list.
-
 ## Understanding LINQ and Entity Framework
 
 The query in our endpoint uses LINQ (Language Integrated Query), which is a set of features in C# that provides a consistent syntax for querying different types of data sources.
@@ -49,50 +42,10 @@ This is a powerful feature of Entity Framework Core: it allows you to write quer
 
 ## Getting a Specific Campsite by ID
 
-Now, let's create an endpoint to get a specific campsite by its ID:
+Now, let's look at the endpoint to get a specific campsite by its ID:
 
 ```csharp
-app.MapGet("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
-{
-    return db.Campsites
-        .Include(c => c.CampsiteType)
-        .Single(c => c.Id == id);
-});
-```
-
-This endpoint is similar to the previous one, but with a few key differences:
-
-- `"/api/campsites/{id}"`: This URL pattern includes a parameter `{id}` that captures the ID from the URL.
-
-- `(CreekRiverDbContext db, int id) => { ... }`: The handler function now takes an additional `id` parameter, which is bound to the `{id}` parameter in the URL.
-
-- `.Include(c => c.CampsiteType)`: This tells EF Core to include the related `CampsiteType` entity in the query. This is similar to a JOIN in SQL.
-
-- `.Single(c => c.Id == id)`: This filters the results to the campsite with the specified ID. `Single` will throw an exception if no matching campsite is found or if more than one matching campsite is found.
-
-## Adding Error Handling
-
-The `Single` method will throw an exception if no matching campsite is found. Let's add error handling to return a 404 Not Found response instead:
-
-```csharp
-app.MapGet("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
-{
-    try
-    {
-        return db.Campsites
-            .Include(c => c.CampsiteType)
-            .Single(c => c.Id == id);
-    }
-    catch (InvalidOperationException)
-    {
-        return Results.NotFound();
-    }
-});
-```
-
-Alternatively, we can use `SingleOrDefault` and check for null:
-
-```csharp
+// GET /api/campsites/{id} - Get a specific campsite by ID
 app.MapGet("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
 {
     var campsite = db.Campsites
@@ -107,6 +60,18 @@ app.MapGet("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
     return Results.Ok(campsite);
 });
 ```
+
+This endpoint is similar to the previous one, but with a few key differences:
+
+- `"/api/campsites/{id}"`: This URL pattern includes a parameter `{id}` that captures the ID from the URL.
+
+- `(CreekRiverDbContext db, int id) => { ... }`: The handler function now takes an additional `id` parameter, which is bound to the `{id}` parameter in the URL.
+
+- `.Include(c => c.CampsiteType)`: This tells EF Core to include the related `CampsiteType` entity in the query. This is similar to a JOIN in SQL.
+
+- `.SingleOrDefault(c => c.Id == id)`: This filters the results to the campsite with the specified ID. `SingleOrDefault` returns null if no matching campsite is found.
+
+- Error handling: We check if the campsite is null and return a 404 Not Found response if it is.
 
 ## Testing the Endpoints
 
@@ -164,14 +129,23 @@ When you call the `/api/campsites/{id}` endpoint, you should see a single campsi
 }
 ```
 
+## Benefits of Organized Endpoints
+
+By organizing our endpoints in separate files by resource, we gain several benefits:
+
+1. **Better organization** - Endpoints are grouped by resource, making it easier to find and modify them.
+2. **Improved maintainability** - Each resource's endpoints are contained in a single file, reducing the complexity of `Program.cs`.
+3. **Scalability** - As your application grows, you can add new endpoint classes without cluttering `Program.cs`.
+
 ## Conclusion
 
 In this chapter, we've created our first API endpoints using Entity Framework Core to retrieve campsite data from our database. We've learned how to:
 
-1. Create an endpoint to get all campsites
-2. Create an endpoint to get a specific campsite by ID
-3. Include related data in our queries
-4. Handle errors and return appropriate HTTP responses
+1. Organize endpoints by resource in separate files
+2. Create an endpoint to get all campsites
+3. Create an endpoint to get a specific campsite by ID
+4. Include related data in our queries
+5. Handle errors and return appropriate HTTP responses
 
 These endpoints demonstrate the power of Entity Framework Core: we can write simple, expressive queries in C# that are translated to SQL at runtime, and we can easily include related data in our queries.
 

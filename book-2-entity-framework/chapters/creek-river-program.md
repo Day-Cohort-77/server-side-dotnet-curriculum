@@ -8,6 +8,16 @@ In ASP.NET Core minimal APIs, the `Program.cs` file is the entry point of the ap
 
 The minimal API approach simplifies the startup process by eliminating the need for separate `Startup.cs` and `Program.cs` files, which were common in previous versions of ASP.NET Core.
 
+## Setting Up the Project Structure
+
+Before we update our `Program.cs` file, let's organize our project by creating the necessary folders:
+
+```bash
+mkdir Models Services Endpoints
+```
+
+The `Endpoints` directory will contain classes that define our API endpoints, organized by resource. This approach helps keep our `Program.cs` file clean and makes our code more maintainable as the application grows.
+
 ## Updating Program.cs
 
 Let's update our `Program.cs` file to configure Entity Framework Core and set up our API:
@@ -18,6 +28,7 @@ Let's update our `Program.cs` file to configure Entity Framework Core and set up
 
 ```csharp
 using CreekRiver.Models;
+using CreekRiver.Endpoints;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
@@ -59,6 +70,14 @@ Let's break down what this code does:
   - `JsonNamingPolicy.CamelCase`: This tells the JSON serializer to use camel case for property names in JSON (e.g., `firstName` instead of `FirstName`).
   - `JsonStringEnumConverter`: This tells the JSON serializer to write enums as strings instead of numbers.
 
+5. After `var app = builder.Build();`, add the following code to map our endpoints:
+
+```csharp
+// Map API endpoints by resource
+app.MapCampsiteEndpoints();
+app.MapReservationEndpoints();
+```
+
 ## Understanding Dependency Injection
 
 The line `builder.Services.AddNpgsql<CreekRiverDbContext>(...)` is an example of dependency injection, which is a design pattern that ASP.NET Core uses extensively.
@@ -73,6 +92,7 @@ Here's what your complete `Program.cs` file should look like after these changes
 
 ```csharp
 using CreekRiver.Models;
+using CreekRiver.Endpoints;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
@@ -100,6 +120,10 @@ builder.Services.Configure<JsonOptions>(options =>
 
 var app = builder.Build();
 
+// Map API endpoints by resource
+app.MapCampsiteEndpoints();
+app.MapReservationEndpoints();
+
 app.Run();
 ```
 
@@ -108,9 +132,11 @@ app.Run();
 In this chapter, we've updated our `Program.cs` file to configure Entity Framework Core and set up the necessary services for our application. We've learned about:
 
 1. The role of `Program.cs` in minimal APIs
-2. How to configure Entity Framework Core with Npgsql
-3. How to configure JSON serialization options
-4. The concept of dependency injection
+2. How to organize our project with an `Endpoints` directory
+3. How to configure Entity Framework Core with Npgsql
+4. How to configure JSON serialization options
+5. The concept of dependency injection
+6. How to map endpoints by resource using extension methods
 
 In the next chapter, we'll create our first migration to create the database tables and seed the database with initial data.
 

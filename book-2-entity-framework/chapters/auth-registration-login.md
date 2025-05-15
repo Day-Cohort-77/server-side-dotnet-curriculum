@@ -1,14 +1,14 @@
 # User Registration and Login
 
-In this chapter, we'll set up a simple project with ASP.NET Core Identity and implement user registration and login functionality.
+In this chapter, we'll set up a simple project with ASP.NET Core Identity and implement user registration and login functionality using Minimal API. We'll follow our organized approach by placing authentication endpoints in a separate file.
 
 ## Project Setup
 
 Let's create a new project called "TinyTreats" - a simple bakery management system where we'll implement authentication.
 
-1. Create a new ASP.NET Core Web API project:
+1. Create a new ASP.NET Core Minimal API project:
    ```bash
-   dotnet new webapi -n TinyTreats
+   dotnet new web -n TinyTreats
    cd TinyTreats
    ```
 
@@ -24,6 +24,11 @@ Let's create a new project called "TinyTreats" - a simple bakery management syst
    ```bash
    dotnet user-secrets init
    dotnet user-secrets set "TinyTreatsDbConnectionString" "Host=localhost;Port=5432;Username=postgres;Password=<your-password>;Database=TinyTreats"
+   ```
+
+4. Create the necessary folders for our organized project structure:
+   ```bash
+   mkdir Models Data Endpoints
    ```
 
 ## Creating the Data Models
@@ -98,20 +103,157 @@ public class TinyTreatsDbContext : IdentityDbContext<IdentityUser>
 }
 ```
 
-## Configuring the Application
+## Creating the Authentication Endpoints
 
-Update the `Program.cs` file to configure Identity and our database:
+Following our organized approach, we'll create a separate file for our authentication endpoints. Create a new file called `Endpoints/AuthEndpoints.cs`:
+
+```csharp
+// Endpoints/AuthEndpoints.cs
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using TinyTreats.Data;
+using TinyTreats.Models;
+
+namespace TinyTreats.Endpoints;
+
+public static class AuthEndpoints
+{
+    // DTOs for registration and login
+    public class RegistrationDto
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+    }
+
+    public class LoginDto
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public static void MapAuthEndpoints(this WebApplication app)
+    {
+        // Registration endpoint
+        app.MapPost("/api/auth/register", async (
+            RegistrationDto registration,
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager,
+            TinyTreatsDbContext dbContext) =>
+        {
+            // Create a new Identity user
+            var user = new IdentityUser
+            {
+                UserName = registration.Email,
+                Email = registration.Email
+            };
+
+            // Try to create the user with the provided password
+            var result = await userManager.CreateAsync(user, registration.Password);
+
+            if (result.Succeeded)
+            {
+                // Create a UserProfile for the new user
+                dbContext.UserProfiles.Add(new UserProfile
+                {
+                    FirstName = registration.FirstName,
+                    LastName = registration.LastName,
+                    Address = registration.Address,
+                    IdentityUserId = user.Id
+                });
+                await dbContext.SaveChangesAsync();
+
+                // Log the user in
+                await signInManager.SignInAsync(user, isPersistent: false);
+                return Results.Ok();
+            }
+
+            // If we get here, something went wrong
+            return Results.BadRequest(result.Errors);
+        });
+
+        // Login endpoint
+        app.MapPost("/api/auth/login", async (
+            LoginDto login,
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager) =>
+        {
+            // Find the user by email
+            var user = await userManager.FindByEmailAsync(login.Email);
+
+            if (user == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            // Verify the password
+            var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, false);
+
+            if (result.Succeeded)
+            {
+                // Sign in the user
+                await signInManager.SignInAsync(user, isPersistent: false);
+                return Results.Ok();
+            }
+
+            return Results.Unauthorized();
+        });
+
+        // Logout endpoint
+        app.MapPost("/api/auth/logout", async (SignInManager<IdentityUser> signInManager) =>
+        {
+            await signInManager.SignOutAsync();
+            return Results.Ok();
+        });
+
+        // Get current user info
+        app.MapGet("/api/auth/me", (ClaimsPrincipal user, TinyTreatsDbContext dbContext) =>
+        {
+            // Get the user ID from the claims
+            var identityUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (identityUserId == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            // Find the user profile
+            var profile = dbContext.UserProfiles
+                .FirstOrDefault(up => up.IdentityUserId == identityUserId);
+
+            if (profile == null)
+            {
+                return Results.NotFound();
+            }
+
+            // Return the user profile
+            return Results.Ok(new
+            {
+                profile.Id,
+                profile.FirstName,
+                profile.LastName,
+                profile.Address,
+                Email = user.FindFirstValue(ClaimTypes.Email)
+            });
+        }).RequireAuthorization(); // This is a shorthand for requiring authentication
+    }
+}
+```
+
+## Configuring the Application with Minimal API
+
+Update the `Program.cs` file to configure Identity and our database using the Minimal API approach:
 
 ```csharp
 // Program.cs
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TinyTreats.Data;
+using TinyTreats.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddControllers();
 
 // Configure database
 builder.Services.AddDbContext<TinyTreatsDbContext>(options =>
@@ -128,7 +270,8 @@ builder.Services.AddIdentityCore<IdentityUser>(options =>
     options.Password.RequireUppercase = true;
 })
 .AddRoles<IdentityRole>() // Add role management
-.AddEntityFrameworkStores<TinyTreatsDbContext>(); // Use our DbContext
+.AddEntityFrameworkStores<TinyTreatsDbContext>() // Use our DbContext
+.AddSignInManager(); // Add SignInManager
 
 // Configure authentication with cookies
 builder.Services.AddAuthentication("Identity.Application")
@@ -138,170 +281,22 @@ builder.Services.AddAuthentication("Identity.Application")
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
+builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Ensure that HTTPS protocol is used
 app.UseHttpsRedirection();
 
 // Add authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+// Map API endpoints
+app.MapAuthEndpoints();
 
 app.Run();
-```
-
-## Creating the Auth Controller
-
-Now, let's create a controller to handle user registration and login:
-
-```csharp
-// Controllers/AuthController.cs
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using TinyTreats.Data;
-using TinyTreats.Models;
-
-namespace TinyTreats.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
-{
-    private TinyTreatsDbContext _dbContext;
-    private UserManager<IdentityUser> _userManager;
-    private SignInManager<IdentityUser> _signInManager;
-
-    public AuthController(
-        TinyTreatsDbContext context,
-        UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager)
-    {
-        _dbContext = context;
-        _userManager = userManager;
-        _signInManager = signInManager;
-    }
-
-    // Registration endpoint
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegistrationDto registration)
-    {
-        // Create a new Identity user
-        var user = new IdentityUser
-        {
-            UserName = registration.Email,
-            Email = registration.Email
-        };
-
-        // Try to create the user with the provided password
-        var result = await _userManager.CreateAsync(user, registration.Password);
-
-        if (result.Succeeded)
-        {
-            // Create a UserProfile for the new user
-            _dbContext.UserProfiles.Add(new UserProfile
-            {
-                FirstName = registration.FirstName,
-                LastName = registration.LastName,
-                Address = registration.Address,
-                IdentityUserId = user.Id
-            });
-            await _dbContext.SaveChangesAsync();
-
-            // Log the user in
-            await _signInManager.SignInAsync(user, isPersistent: false);
-            return Ok();
-        }
-
-        // If we get here, something went wrong
-        return BadRequest(result.Errors);
-    }
-
-    // Login endpoint
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto login)
-    {
-        // Find the user by email
-        var user = await _userManager.FindByEmailAsync(login.Email);
-
-        if (user == null)
-        {
-            return Unauthorized();
-        }
-
-        // Verify the password
-        var result = await _signInManager.CheckPasswordSignInAsync(user, login.Password, false);
-
-        if (result.Succeeded)
-        {
-            // Sign in the user
-            await _signInManager.SignInAsync(user, isPersistent: false);
-            return Ok();
-        }
-
-        return Unauthorized();
-    }
-
-    // Logout endpoint
-    [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
-    {
-        await _signInManager.SignOutAsync();
-        return Ok();
-    }
-
-    // Get current user info
-    [HttpGet("me")]
-    public IActionResult Me()
-    {
-        // Get the user ID from the claims
-        var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (identityUserId == null)
-        {
-            return Unauthorized();
-        }
-
-        // Find the user profile
-        var profile = _dbContext.UserProfiles
-            .FirstOrDefault(up => up.IdentityUserId == identityUserId);
-
-        if (profile == null)
-        {
-            return NotFound();
-        }
-
-        // Return the user profile
-        return Ok(new
-        {
-            profile.Id,
-            profile.FirstName,
-            profile.LastName,
-            profile.Address,
-            Email = User.FindFirstValue(ClaimTypes.Email)
-        });
-    }
-}
-
-// DTOs for registration and login
-public class RegistrationDto
-{
-    public string Email { get; set; }
-    public string Password { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Address { get; set; }
-}
-
-public class LoginDto
-{
-    public string Email { get; set; }
-    public string Password { get; set; }
-}
 ```
 
 ## Creating the Database
@@ -369,14 +364,45 @@ Let's break down what's happening in our authentication system:
 4. **Logout**:
    - We sign the user out, which removes the cookie
 
+## Benefits of Organized Endpoints
+
+By organizing our authentication endpoints in a separate file, we gain several benefits:
+
+1. **Better organization** - Authentication endpoints are grouped together, making them easier to find and modify.
+2. **Improved maintainability** - The `Program.cs` file remains clean and focused on configuration.
+3. **Scalability** - As your application grows, you can add new endpoint classes without cluttering `Program.cs`.
+4. **Testability** - Endpoint classes can be tested independently.
+
+## Key Differences with Minimal API
+
+Notice how our Minimal API approach differs from the traditional controller-based approach:
+
+1. **Endpoint Definition**:
+   - We define endpoints using extension methods
+   - No need for separate controller classes
+
+2. **Dependency Injection**:
+   - Services are injected directly into endpoint handler parameters
+   - No constructor injection needed
+
+3. **Result Types**:
+   - We use `Results.Ok()`, `Results.BadRequest()`, etc. instead of `IActionResult`
+   - This provides a more concise syntax
+
+4. **Authorization**:
+   - We can use `.RequireAuthorization()` directly on endpoint definitions
+   - This is equivalent to the `[Authorize]` attribute in controllers
+
 ## Summary
 
-In this chapter, we've set up a basic authentication system using ASP.NET Core Identity. We've implemented:
+In this chapter, we've set up a basic authentication system using ASP.NET Core Identity with Minimal API. We've implemented:
 
 - User registration
 - User login
 - User logout
 - Getting the current user's information
+
+We've also organized our endpoints in a separate file, following the best practice of separating endpoints by functionality. This provides a clean, maintainable, and scalable architecture for our application.
 
 This provides the foundation for our authentication system. In the next chapter, we'll add role-based authorization to control what different users can do in our application.
 
