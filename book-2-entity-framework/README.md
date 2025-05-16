@@ -10,11 +10,11 @@ Before you start work on the projects in this section, you need to complete all 
 
 | # | 🏕️ Creek River | 📚 Loncotes Library | 🧁 Tiny Treats |
 |--|--|--|--|
-| 1 | [Initializing a new EF API project](./chapters/creek-river-initializing.md) | [Introduction to DTOs](./chapters/loncotes-dto-introduction.md) | [Introduction to Authentication](./chapters/auth-introduction.md) |
-| 2 | [Entity Framework Models](./chapters/creek-river-models.md) | [Basic DTO Features](./chapters/loncotes-dto-basic-features.md) | [User Registration and Login](./chapters/auth-registration-login.md) |
-| 3 | [Understanding Data Annotations](./chapters/creek-river-data-annotations.md) | [Custom DTO: Available Materials](./chapters/loncotes-dto-available-materials.md) | [User Roles and Authorization](./chapters/auth-roles-authorization.md) |
-| 4 | [Using DbContext](./chapters/creek-river-dbcontext.md) | [Custom DTO: Overdue Checkouts](./chapters/loncotes-dto-overdue-checkouts.md) | [Securing API Endpoints](./chapters/auth-securing-endpoints.md) |
-| 5 | [Using Entity Framework tools](./chapters/creek-river-program.md) | [Custom DTO: Late Fees](./chapters/loncotes-dto-late-fees.md) |
+| 1 | [Introduction to Entity Framework](./chapters/creek-river-initializing.md) | [Introduction to DTOs](./chapters/loncotes-dto-introduction.md) | [Introduction to Authentication](./chapters/tinytreats-introduction.md) |
+| 2 | [Entity Framework Models](./chapters/creek-river-models.md) | [Basic DTO Features](./chapters/loncotes-dto-basic-features.md) | [Models and DTOs](./chapters/tinytreats-models-dtos.md) |
+| 3 | [Understanding Data Annotations](./chapters/creek-river-data-annotations.md) | [Custom DTO: Available Materials](./chapters/loncotes-dto-available-materials.md) | [Database Context with Identity Framework](./chapters/tinytreats-dbcontext.md) |
+| 4 | [Using DbContext](./chapters/creek-river-dbcontext.md) | [Custom DTO: Overdue Checkouts](./chapters/loncotes-dto-overdue-checkouts.md) | [Authentication Endpoints](./chapters/tinytreats-auth-endpoints.md) |
+| 5 | [Using Entity Framework tools](./chapters/creek-river-program.md) | [Custom DTO: Late Fees](./chapters/loncotes-dto-late-fees.md) | [Role Endpoints](./chapters/tinytreats-role-endpoints.md) |
 | 6 | [Organizing Endpoints by Resource](./chapters/creek-river-endpoints-organization.md) | [Quieter Code with AutoMapper](./chapters/loncotes-dto-automapper.md) |
 | 7 | [View campsites](./chapters/creek-river-get-campsites.md) |  |
 | 8 | [Create a campsite](./chapters/creek-river-post-campsite.md) |  |

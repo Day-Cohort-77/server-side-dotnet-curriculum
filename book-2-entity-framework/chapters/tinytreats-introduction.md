@@ -1,6 +1,8 @@
-# Introduction to Authentication and Authorization
+# Tiny Treats Bakery Shoppe
 
-In this chapter, we'll introduce the concepts of authentication and authorization in ASP.NET Core applications. We'll also discuss how we'll organize our authentication endpoints using a clean, maintainable approach.
+## Introduction to Authentication and Authorization
+
+In this project, we'll introduce the concepts of authentication and authorization in ASP.NET Core applications. We'll also discuss how we'll organize our authentication endpoints using a clean, maintainable approach.
 
 ## Understanding Authentication and Authorization
 
@@ -24,9 +26,9 @@ ASP.NET Core Identity is a membership system that adds login functionality to AS
 
 We'll use ASP.NET Core Identity to implement authentication and authorization in our application.
 
-## Organizing Authentication Endpoints
+## Project Structure
 
-In our approach, we'll organize our authentication endpoints in a separate file, following the pattern of separating endpoints by functionality. This approach offers several benefits:
+In our approach, we'll organize our authentication endpoints, models, and DTOs in separate files, following the pattern of separating endpoints by functionality. This approach offers several benefits:
 
 1. **Better organization** - Authentication endpoints are grouped together, making them easier to find and modify.
 2. **Improved maintainability** - The `Program.cs` file remains clean and focused on configuration.
@@ -44,40 +46,17 @@ TinyTreats/
 ├── Models/
 │   ├── UserProfile.cs
 │   └── Order.cs
+│   └── OrderItem.cs
+│   └── Product.cs
 ├── Data/
 │   └── TinyTreatsDbContext.cs
 |── DTO
 │   ├── AuthDTOs.cs
+│   └── OrderDTOs.cs
+│   └── ProductDTOs.cs
 │   └── RoleDTOs.cs
 ├── Program.cs
 └── ...
-```
-
-In this structure:
-- `AuthEndpoints.cs` will contain all authentication-related endpoints (register, login, logout, etc.)
-- `RoleEndpoints.cs` will contain all role management endpoints
-- `OrderEndpoints.cs` will contain all order-related endpoints
-
-Each of these files will define an extension method that maps the endpoints to the application. For example:
-
-```csharp
-// Endpoints/AuthEndpoints.cs
-public static class AuthEndpoints
-{
-    public static void MapAuthEndpoints(this WebApplication app)
-    {
-        // Define authentication endpoints here
-    }
-}
-```
-
-Then, in `Program.cs`, we'll call these extension methods:
-
-```csharp
-// Program.cs
-app.MapAuthEndpoints();
-app.MapRoleEndpoints();
-app.MapOrderEndpoints();
 ```
 
 This approach keeps our code clean, maintainable, and scalable.
@@ -92,8 +71,37 @@ In the following chapters, we'll build a simple bakery management system called 
 
 We'll implement these features using ASP.NET Core Identity and Minimal API, with a focus on clean, maintainable code organization.
 
+## Project Setup
+
+Let's create a new project called "Tiny Treats" - a simple bakery management system where we'll implement authentication.
+
+1. Create a new ASP.NET Core Minimal API project:
+   ```bash
+   dotnet new web -n TinyTreats
+   cd TinyTreats
+   ```
+
+2. Add the required NuGet packages:
+   ```bash
+   dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.0
+   dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.0
+   dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0.0
+   dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.0
+   ```
+
+3. Set up user secrets for database connection:
+   ```bash
+   dotnet user-secrets init
+   dotnet user-secrets set "TinyTreatsDbConnectionString" "Host=localhost;Port=5432;Username=postgres;Password=<your-password>;Database=TinyTreats"
+   ```
+
+4. Create the necessary folders for our organized project structure:
+   ```bash
+   mkdir Models Data Endpoints DTO
+   ```
+
 ## Next Steps
 
 In the next chapter, we'll set up our project and implement user registration and login functionality.
 
-[Next: User Registration and Login](./auth-registration-login.md)
+[Next: Setting up the models](./tinytreats-models-dtos.md)
