@@ -4,7 +4,7 @@ In this chapter, we'll set up a simple project with ASP.NET Core Identity and im
 
 ## Project Setup
 
-Let's create a new project called "TinyTreats" - a simple bakery management system where we'll implement authentication.
+Let's create a new project called "Tiny Treats" - a simple bakery management system where we'll implement authentication.
 
 1. Create a new ASP.NET Core Minimal API project:
    ```bash
@@ -14,10 +14,10 @@ Let's create a new project called "TinyTreats" - a simple bakery management syst
 
 2. Add the required NuGet packages:
    ```bash
-   dotnet add package Microsoft.EntityFrameworkCore.Design
-   dotnet add package Microsoft.EntityFrameworkCore.Tools
-   dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
-   dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+   dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.0
+   dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.0
+   dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0.0
+   dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.0
    ```
 
 3. Set up user secrets for database connection:
@@ -103,9 +103,9 @@ public class TinyTreatsDbContext : IdentityDbContext<IdentityUser>
 }
 ```
 
-## Creating the DTO Classes
+## Creating DTOs for Authentication
 
-Let's create our DTO classes in a separate directory. Create a new file called `DTOs/AuthDtos.cs`:
+Following best practices, we'll create a separate file for our DTOs (Data Transfer Objects). These objects will be used to transfer data between our API and clients:
 
 ```csharp
 // DTOs/AuthDtos.cs
@@ -377,12 +377,12 @@ Let's break down what's happening in our authentication system:
 
 By organizing our code with separate directories for DTOs and endpoints, we gain several benefits:
 
-1. **Better organization** - Authentication endpoints are grouped together, making them easier to find and modify.
+1. **Better organization** - Authentication endpoints and DTOs are grouped logically, making them easier to find and modify.
 2. **Improved maintainability** - The `Program.cs` file remains clean and focused on configuration.
-3. **Scalability** - As your application grows, you can add new endpoint classes and DTOs without cluttering `Program.cs`.
-4. **Testability** - Endpoint classes can be tested independently.
-5. **Separation of concerns** - DTOs are separated from endpoint logic, following the Single Responsibility Principle.
-6. **DTO reusability** - DTOs can be easily reused across different endpoints.
+3. **Scalability** - As your application grows, you can add new endpoint classes and DTOs without cluttering existing files.
+4. **Testability** - Endpoint classes and DTOs can be tested independently.
+5. **Reusability** - DTOs can be reused across different endpoints and services.
+6. **Single Responsibility Principle** - Each class has a single responsibility, making the code easier to understand and maintain.
 
 ## Summary
 
@@ -393,7 +393,12 @@ In this chapter, we've set up a basic authentication system using ASP.NET Core I
 - User logout
 - Getting the current user's information
 
-We've also organized our code with separate directories for DTOs and endpoints, following the best practice of separating concerns. This provides a clean, maintainable, and scalable architecture for our application.
+We've also organized our code by:
+- Placing endpoints in a separate file
+- Moving DTOs to their own directory
+- Following the Single Responsibility Principle
+
+This provides a clean, maintainable, and scalable architecture for our application.
 
 This provides the foundation for our authentication system. In the next chapter, we'll add role-based authorization to control what different users can do in our application.
 

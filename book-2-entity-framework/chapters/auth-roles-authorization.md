@@ -28,24 +28,12 @@ Now, let's create a new endpoint class for role management. Create a new file ca
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using TinyTreats.Data;
+using TinyTreats.DTO;
 
 namespace TinyTreats.Endpoints;
 
 public static class RoleEndpoints
 {
-    // DTO for role creation
-    public class RoleDto
-    {
-        public string Name { get; set; }
-    }
-
-    // DTO for assigning a role to a user
-    public class UserRoleDto
-    {
-        public string Email { get; set; }
-        public string RoleName { get; set; }
-    }
-
     public static void MapRoleEndpoints(this WebApplication app)
     {
         // Create a new role - Admin only
@@ -171,6 +159,7 @@ Now, let's update `Program.cs` to use our new role endpoints:
 
 ```csharp
 // Program.cs
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TinyTreats.Data;
@@ -201,15 +190,33 @@ builder.Services.AddAuthentication("Identity.Application")
     .AddCookie("Identity.Application", options =>
     {
         options.Cookie.Name = "TinyTreatsAuth";
+        options.Cookie.HttpOnly = true; // Prevent JavaScript access to the cookie
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Allow both HTTP and HTTPS in development
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = context =>
+            {
+                // Instead of redirecting to login page, return 401 Unauthorized for API requests
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            }
+        };
     });
 
-// Configure authorization policies
-builder.Services.AddAuthorization(options =>
+builder.Services.AddAuthorization();
+
+// Configure CORS
+builder.Services.AddCors(options =>
 {
-    // Add a policy for bakery staff (Admin or Baker)
-    options.AddPolicy("BakeryStaff", policy =>
-        policy.RequireRole("Admin", "Baker"));
+    options.AddPolicy("AllowLocalhost3000", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173") // Added Vite's default port
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Allow credentials (cookies)
+    });
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -219,14 +226,15 @@ var app = builder.Build();
 // Ensure that HTTPS protocol is used
 app.UseHttpsRedirection();
 
+// Use CORS middleware
+app.UseCors("AllowLocalhost3000");
+
 // Add authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Map API endpoints
 app.MapAuthEndpoints();
-app.MapRoleEndpoints();
-app.MapOrderEndpoints();
 
 app.Run();
 ```
@@ -263,35 +271,217 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         }
     );
 
-    // Seed an admin user
-    modelBuilder.Entity<IdentityUser>().HasData(new IdentityUser
-    {
-        Id = "dbc40bc6-0829-4ac5-a3ed-180f5e916a5f",
-        UserName = "admin@tinytreats.com",
-        Email = "admin@tinytreats.com",
-        NormalizedEmail = "ADMIN@TINYTREATS.COM",
-        NormalizedUserName = "ADMIN@TINYTREATS.COM",
-        EmailConfirmed = true,
-        // This hashes the password "Admin123!"
-        PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Admin123!")
-    });
+    // Seed users
+    modelBuilder.Entity<IdentityUser>().HasData(
+        // Admin user
+        new IdentityUser
+        {
+            Id = "dbc40bc6-0829-4ac5-a3ed-180f5e916a5f",
+            UserName = "admin@tinytreats.com",
+            Email = "admin@tinytreats.com",
+            NormalizedEmail = "ADMIN@TINYTREATS.COM",
+            NormalizedUserName = "ADMIN@TINYTREATS.COM",
+            EmailConfirmed = true,
+            // This hashes the password "Admin123!"
+            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Admin123!")
+        },
 
-    // Seed a user profile for the admin
-    modelBuilder.Entity<UserProfile>().HasData(new UserProfile
-    {
-        Id = 1,
-        IdentityUserId = "dbc40bc6-0829-4ac5-a3ed-180f5e916a5f",
-        FirstName = "Admin",
-        LastName = "User",
-        Address = "123 Bakery Lane"
-    });
+        // Baker users
+        new IdentityUser
+        {
+            Id = "e2cfe4e6-5437-4efb-9a66-8d1371796bda",
+            UserName = "baker1@tinytreats.com",
+            Email = "baker1@tinytreats.com",
+            NormalizedEmail = "BAKER1@TINYTREATS.COM",
+            NormalizedUserName = "BAKER1@TINYTREATS.COM",
+            EmailConfirmed = true,
+            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Baker123!")
+        },
+        new IdentityUser
+        {
+            Id = "a1ffd800-9189-4a69-a24a-9b8c094f12a5",
+            UserName = "baker2@tinytreats.com",
+            Email = "baker2@tinytreats.com",
+            NormalizedEmail = "BAKER2@TINYTREATS.COM",
+            NormalizedUserName = "BAKER2@TINYTREATS.COM",
+            EmailConfirmed = true,
+            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Baker123!")
+        },
 
-    // Assign the admin user to the Admin role
-    modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
-    {
-        RoleId = "fab4fac1-c546-41de-aebc-a14da6895711",
-        UserId = "dbc40bc6-0829-4ac5-a3ed-180f5e916a5f"
-    });
+        // Customer users
+        new IdentityUser
+        {
+            Id = "b9c6f5e4-d4d5-4a16-9551-b7e5e859c35a",
+            UserName = "customer1@example.com",
+            Email = "customer1@example.com",
+            NormalizedEmail = "CUSTOMER1@EXAMPLE.COM",
+            NormalizedUserName = "CUSTOMER1@EXAMPLE.COM",
+            EmailConfirmed = true,
+            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Customer123!")
+        },
+        new IdentityUser
+        {
+            Id = "c9d6f5e4-d4d5-4a16-9551-b7e5e859c35b",
+            UserName = "customer2@example.com",
+            Email = "customer2@example.com",
+            NormalizedEmail = "CUSTOMER2@EXAMPLE.COM",
+            NormalizedUserName = "CUSTOMER2@EXAMPLE.COM",
+            EmailConfirmed = true,
+            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Customer123!")
+        },
+        new IdentityUser
+        {
+            Id = "d9d6f5e4-d4d5-4a16-9551-b7e5e859c35c",
+            UserName = "customer3@example.com",
+            Email = "customer3@example.com",
+            NormalizedEmail = "CUSTOMER3@EXAMPLE.COM",
+            NormalizedUserName = "CUSTOMER3@EXAMPLE.COM",
+            EmailConfirmed = true,
+            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Customer123!")
+        },
+        new IdentityUser
+        {
+            Id = "e9d6f5e4-d4d5-4a16-9551-b7e5e859c35d",
+            UserName = "customer4@example.com",
+            Email = "customer4@example.com",
+            NormalizedEmail = "CUSTOMER4@EXAMPLE.COM",
+            NormalizedUserName = "CUSTOMER4@EXAMPLE.COM",
+            EmailConfirmed = true,
+            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Customer123!")
+        },
+        new IdentityUser
+        {
+            Id = "f9d6f5e4-d4d5-4a16-9551-b7e5e859c35e",
+            UserName = "customer5@example.com",
+            Email = "customer5@example.com",
+            NormalizedEmail = "CUSTOMER5@EXAMPLE.COM",
+            NormalizedUserName = "CUSTOMER5@EXAMPLE.COM",
+            EmailConfirmed = true,
+            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Customer123!")
+        }
+    );
+
+    // Seed user profiles
+    modelBuilder.Entity<UserProfile>().HasData(
+        // Admin profile
+        new UserProfile
+        {
+            Id = 1,
+            IdentityUserId = "dbc40bc6-0829-4ac5-a3ed-180f5e916a5f",
+            FirstName = "Admin",
+            LastName = "User",
+            Address = "123 Bakery Lane"
+        },
+
+        // Baker profiles
+        new UserProfile
+        {
+            Id = 2,
+            IdentityUserId = "e2cfe4e6-5437-4efb-9a66-8d1371796bda",
+            FirstName = "Jane",
+            LastName = "Baker",
+            Address = "456 Pastry Ave"
+        },
+        new UserProfile
+        {
+            Id = 3,
+            IdentityUserId = "a1ffd800-9189-4a69-a24a-9b8c094f12a5",
+            FirstName = "John",
+            LastName = "Dough",
+            Address = "789 Cupcake Blvd"
+        },
+
+        // Customer profiles
+        new UserProfile
+        {
+            Id = 4,
+            IdentityUserId = "b9c6f5e4-d4d5-4a16-9551-b7e5e859c35a",
+            FirstName = "Alice",
+            LastName = "Johnson",
+            Address = "101 Sweet St"
+        },
+        new UserProfile
+        {
+            Id = 5,
+            IdentityUserId = "c9d6f5e4-d4d5-4a16-9551-b7e5e859c35b",
+            FirstName = "Bob",
+            LastName = "Smith",
+            Address = "202 Dessert Dr"
+        },
+        new UserProfile
+        {
+            Id = 6,
+            IdentityUserId = "d9d6f5e4-d4d5-4a16-9551-b7e5e859c35c",
+            FirstName = "Carol",
+            LastName = "Williams",
+            Address = "303 Frosting Ln"
+        },
+        new UserProfile
+        {
+            Id = 7,
+            IdentityUserId = "e9d6f5e4-d4d5-4a16-9551-b7e5e859c35d",
+            FirstName = "David",
+            LastName = "Brown",
+            Address = "404 Cookie Ct"
+        },
+        new UserProfile
+        {
+            Id = 8,
+            IdentityUserId = "f9d6f5e4-d4d5-4a16-9551-b7e5e859c35e",
+            FirstName = "Emma",
+            LastName = "Davis",
+            Address = "505 Muffin Ave"
+        }
+    );
+
+    // Assign users to roles
+    modelBuilder.Entity<IdentityUserRole<string>>().HasData(
+        // Admin role assignment
+        new IdentityUserRole<string>
+        {
+            RoleId = "fab4fac1-c546-41de-aebc-a14da6895711",
+            UserId = "dbc40bc6-0829-4ac5-a3ed-180f5e916a5f"
+        },
+
+        // Baker role assignments
+        new IdentityUserRole<string>
+        {
+            RoleId = "c7b013f0-5201-4317-abd8-c211f91b7330",
+            UserId = "e2cfe4e6-5437-4efb-9a66-8d1371796bda"
+        },
+        new IdentityUserRole<string>
+        {
+            RoleId = "c7b013f0-5201-4317-abd8-c211f91b7330",
+            UserId = "a1ffd800-9189-4a69-a24a-9b8c094f12a5"
+        },
+
+        // Customer role assignments
+        new IdentityUserRole<string>
+        {
+            RoleId = "2c5e174e-3b0e-446f-86af-483d56fd7210",
+            UserId = "b9c6f5e4-d4d5-4a16-9551-b7e5e859c35a"
+        },
+        new IdentityUserRole<string>
+        {
+            RoleId = "2c5e174e-3b0e-446f-86af-483d56fd7210",
+            UserId = "c9d6f5e4-d4d5-4a16-9551-b7e5e859c35b"
+        },
+        new IdentityUserRole<string>
+        {
+            RoleId = "2c5e174e-3b0e-446f-86af-483d56fd7210",
+            UserId = "d9d6f5e4-d4d5-4a16-9551-b7e5e859c35c"
+        },
+        new IdentityUserRole<string>
+        {
+            RoleId = "2c5e174e-3b0e-446f-86af-483d56fd7210",
+            UserId = "e9d6f5e4-d4d5-4a16-9551-b7e5e859c35d"
+        },
+        new IdentityUserRole<string>
+        {
+            RoleId = "2c5e174e-3b0e-446f-86af-483d56fd7210",
+            UserId = "f9d6f5e4-d4d5-4a16-9551-b7e5e859c35e"
+        }
+    );
 }
 ```
 

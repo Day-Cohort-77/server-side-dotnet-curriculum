@@ -14,10 +14,10 @@ Let's create a new project called "Tiny Treats" - a simple bakery management sys
 
 2. Add the required NuGet packages:
    ```bash
-   dotnet add package Microsoft.EntityFrameworkCore.Design
-   dotnet add package Microsoft.EntityFrameworkCore.Tools
-   dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
-   dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+   dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.0
+   dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.0
+   dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0.0
+   dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.0
    ```
 
 3. Set up user secrets for database connection:
@@ -78,17 +78,18 @@ public class TinyTreatsDbContext : IdentityDbContext<IdentityUser>
         base.OnModelCreating(modelBuilder);
 
         // Seed an admin user
-        modelBuilder.Entity<IdentityUser>().HasData(new IdentityUser
+        var adminUser = new IdentityUser
         {
             Id = "dbc40bc6-0829-4ac5-a3ed-180f5e916a5f",
             UserName = "admin@tinytreats.com",
             Email = "admin@tinytreats.com",
             NormalizedEmail = "ADMIN@TINYTREATS.COM",
             NormalizedUserName = "ADMIN@TINYTREATS.COM",
-            EmailConfirmed = true,
-            // This hashes the password "Admin123!"
-            PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Admin123!")
-        });
+            EmailConfirmed = true
+        };
+
+        // Hash the password using the user instance
+        adminUser.PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(adminUser, "Admin123!");
 
         // Seed a user profile for the admin
         modelBuilder.Entity<UserProfile>().HasData(new UserProfile
@@ -103,9 +104,55 @@ public class TinyTreatsDbContext : IdentityDbContext<IdentityUser>
 }
 ```
 
+## Creating the DTOs
+
+First, create the Data Transfer Objects that will be used for responses regarding registrations and login.
+
+```cs
+// DTO/AuthDTOs.cs
+namespace TinyTreats.DTO;
+
+public class RegistrationDto
+{
+   public required string Email { get; set; }
+   public required string Password { get; set; }
+   public required string FirstName { get; set; }
+   public required string LastName { get; set; }
+   public required string Address { get; set; }
+}
+
+public class LoginDto
+{
+   public required string Email { get; set; }
+   public required string Password { get; set; }
+}
+```
+
+Then create DTOs for responses involving roles.
+
+```cs
+// DTO/RoleDTOs.cs
+namespace TinyTreats.DTO;
+
+// DTO for role creation
+public class RoleDto
+{
+    public string Name { get; set; }
+}
+
+// DTO for assigning a role to a user
+public class UserRoleDto
+{
+    public string Email { get; set; }
+    public string RoleName { get; set; }
+}
+```
+
 ## Creating the Authentication Endpoints
 
-Following our organized approach, we'll create a separate file for our authentication endpoints. Create a new file called `Endpoints/AuthEndpoints.cs`:
+Now you can define the enpoints that your API will support for registering new accounts, logging in, and logging out.
+
+Create a new file called `Endpoints/AuthEndpoints.cs`:
 
 ```csharp
 // Endpoints/AuthEndpoints.cs
@@ -119,25 +166,10 @@ namespace TinyTreats.Endpoints;
 public static class AuthEndpoints
 {
     // DTOs for registration and login
-    public class RegistrationDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Address { get; set; }
-    }
-
-    public class LoginDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-
     public static void MapAuthEndpoints(this WebApplication app)
     {
         // Registration endpoint
-        app.MapPost("/api/auth/register", async (
+        app.MapPost("/auth/register", async (
             RegistrationDto registration,
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
@@ -175,7 +207,7 @@ public static class AuthEndpoints
         });
 
         // Login endpoint
-        app.MapPost("/api/auth/login", async (
+        app.MapPost("/auth/login", async (
             LoginDto login,
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager) =>
@@ -202,14 +234,14 @@ public static class AuthEndpoints
         });
 
         // Logout endpoint
-        app.MapPost("/api/auth/logout", async (SignInManager<IdentityUser> signInManager) =>
+        app.MapPost("/auth/logout", async (SignInManager<IdentityUser> signInManager) =>
         {
             await signInManager.SignOutAsync();
             return Results.Ok();
         });
 
         // Get current user info
-        app.MapGet("/api/auth/me", (ClaimsPrincipal user, TinyTreatsDbContext dbContext) =>
+        app.MapGet("/auth/me", (ClaimsPrincipal user, TinyTreatsDbContext dbContext) =>
         {
             // Get the user ID from the claims
             var identityUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -248,6 +280,7 @@ Update the `Program.cs` file to configure Identity and our database using the Mi
 
 ```csharp
 // Program.cs
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TinyTreats.Data;
@@ -278,16 +311,35 @@ builder.Services.AddAuthentication("Identity.Application")
     .AddCookie("Identity.Application", options =>
     {
         options.Cookie.Name = "TinyTreatsAuth";
+        options.Cookie.HttpOnly = true; // Prevent JavaScript access to the cookie
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.Cookie.SameSite = SameSiteMode.Lax; // Changed from None to Lax for better compatibility
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Allow both HTTP and HTTPS in development
     });
 
 builder.Services.AddAuthorization();
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowViteClient", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173") // Added Vite's default port
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Allow credentials (cookies)
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
 // Ensure that HTTPS protocol is used
 app.UseHttpsRedirection();
+
+// Use CORS middleware
+app.UseCors("AllowViteClient");
 
 // Add authentication middleware
 app.UseAuthentication();
@@ -308,12 +360,23 @@ dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
 
+If you are on a newer Mac with Apple Silicon, you may need to run these instead:
+
+```sh
+arch -arm64 dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+
 ## Testing the Authentication
 
 You can test the authentication endpoints using a tool like Yaak:
 
+> 🧨 If you get a response saying that the certificate is not trusted, run the following command in the API project directory
+>
+> `dotnet dev-certs https --trust`
+
 1. Register a new user:
-   - POST to `/api/auth/register`
+   - POST to `/auth/register`
    - Body:
      ```json
      {
@@ -326,7 +389,7 @@ You can test the authentication endpoints using a tool like Yaak:
      ```
 
 2. Login with the user:
-   - POST to `/api/auth/login`
+   - POST to `/auth/login`
    - Body:
      ```json
      {
@@ -336,11 +399,11 @@ You can test the authentication endpoints using a tool like Yaak:
      ```
 
 3. Get the current user's info:
-   - GET to `/api/auth/me`
+   - GET to `/auth/me`
    - The cookie should be automatically included by your browser
 
 4. Logout:
-   - POST to `/api/auth/logout`
+   - POST to `/auth/logout`
 
 ## Understanding What's Happening
 

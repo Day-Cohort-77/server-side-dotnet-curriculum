@@ -46,6 +46,9 @@ TinyTreats/
 │   └── Order.cs
 ├── Data/
 │   └── TinyTreatsDbContext.cs
+|── DTO
+│   ├── AuthDTOs.cs
+│   └── RoleDTOs.cs
 ├── Program.cs
 └── ...
 ```
