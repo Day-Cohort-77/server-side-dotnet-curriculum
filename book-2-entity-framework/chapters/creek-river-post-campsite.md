@@ -1,4 +1,4 @@
-# Chapter to POST a campsite
+# Creating a campsite
 
 In this chapter, we'll create an API endpoint to add a new campsite to our database using Entity Framework Core. This will allow clients to create new campsites by sending HTTP POST requests to our API.
 
@@ -12,22 +12,22 @@ When a client sends a POST request to our API, it includes a JSON payload in the
 
 Let's create an endpoint to add a new campsite to our database:
 
-1. Open the `Program.cs` file.
+1. Open the `CampsiteEndpoints.cs` file.
 
-2. Add the following endpoint after the existing endpoints:
+2. Add the following endpoint:
 
 ```csharp
-app.MapPost("/api/campsites", (CreekRiverDbContext db, Campsite campsite) =>
+app.MapPost("/campsites", (CreekRiverDbContext db, Campsite campsite) =>
 {
     db.Campsites.Add(campsite);
     db.SaveChanges();
-    return Results.Created($"/api/campsites/{campsite.Id}", campsite);
+    return Results.Created($"/campsites/{campsite.Id}", campsite);
 });
 ```
 
 Let's break down this code:
 
-- `app.MapPost("/api/campsites", ...)`: This maps HTTP POST requests to the `/api/campsites` URL to our handler function.
+- `app.MapPost("/campsites", ...)`: This maps HTTP POST requests to the `/campsites` URL to our handler function.
 
 - `(CreekRiverDbContext db, Campsite campsite) => { ... }`: This is the handler function. The `CreekRiverDbContext` parameter is injected by ASP.NET Core's dependency injection system, and the `Campsite` parameter is bound to the JSON payload in the request body.
 
@@ -35,7 +35,7 @@ Let's break down this code:
 
 - `db.SaveChanges()`: This saves the changes to the database. It executes an SQL INSERT statement to add the new campsite to the `Campsites` table.
 
-- `return Results.Created($"/api/campsites/{campsite.Id}", campsite)`: This returns a 201 Created response with a Location header pointing to the URL of the newly created campsite and the campsite data in the response body.
+- `return Results.Created($"/campsites/{campsite.Id}", campsite)`: This returns a 201 Created response with a Location header pointing to the URL of the newly created campsite and the campsite data in the response body.
 
 ## Understanding Entity Framework Core's Change Tracking
 
@@ -49,9 +49,9 @@ After the INSERT statement is executed, EF Core automatically updates the `Id` p
 
 Now that we've created our endpoint, let's test it:
 
-1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
+1. Restart your debugger.
 
-2. Use a tool like Yaak to send a POST request to `https://localhost:<port>/api/campsites` with a JSON payload like:
+2. Use Yaak to send a POST request to `https://localhost:<port>/campsites` with a JSON payload like:
 
 ```json
 {
@@ -68,7 +68,7 @@ Now that we've created our endpoint, let's test it:
 Our current endpoint accepts any campsite data without validation. Let's add some basic validation to ensure that the required fields are provided:
 
 ```csharp
-app.MapPost("/api/campsites", (CreekRiverDbContext db, Campsite campsite) =>
+app.MapPost("/campsites", (CreekRiverDbContext db, Campsite campsite) =>
 {
     // Validate required fields
     if (string.IsNullOrEmpty(campsite.Nickname))
@@ -90,7 +90,7 @@ app.MapPost("/api/campsites", (CreekRiverDbContext db, Campsite campsite) =>
 
     db.Campsites.Add(campsite);
     db.SaveChanges();
-    return Results.Created($"/api/campsites/{campsite.Id}", campsite);
+    return Results.Created($"/campsites/{campsite.Id}", campsite);
 });
 ```
 
@@ -104,7 +104,7 @@ This code adds validation to ensure that:
 Our current endpoint doesn't handle exceptions that might occur during the database operation. Let's add exception handling:
 
 ```csharp
-app.MapPost("/api/campsites", (CreekRiverDbContext db, Campsite campsite) =>
+app.MapPost("/campsites", (CreekRiverDbContext db, Campsite campsite) =>
 {
     // Validation code...
 
@@ -112,7 +112,7 @@ app.MapPost("/api/campsites", (CreekRiverDbContext db, Campsite campsite) =>
     {
         db.Campsites.Add(campsite);
         db.SaveChanges();
-        return Results.Created($"/api/campsites/{campsite.Id}", campsite);
+        return Results.Created($"/campsites/{campsite.Id}", campsite);
     }
     catch (DbUpdateException ex)
     {
@@ -123,106 +123,6 @@ app.MapPost("/api/campsites", (CreekRiverDbContext db, Campsite campsite) =>
 
 This code catches `DbUpdateException`, which is thrown when there's an error saving changes to the database, such as a constraint violation.
 
-## Using DTOs for Input and Output
-
-In a real-world application, you might want to use DTOs (Data Transfer Objects) for input and output to decouple your API contract from your database schema. Here's how you might modify the endpoint to use DTOs:
-
-```csharp
-app.MapPost("/api/campsites", (CreekRiverDbContext db, CampsiteCreateDTO campsiteDTO) =>
-{
-    // Validate DTO...
-
-    // Map DTO to entity
-    var campsite = new Campsite
-    {
-        Nickname = campsiteDTO.Nickname,
-        ImageUrl = campsiteDTO.ImageUrl,
-        CampsiteTypeId = campsiteDTO.CampsiteTypeId
-    };
-
-    db.Campsites.Add(campsite);
-    db.SaveChanges();
-
-    // Map entity to DTO for response
-    var responseDTO = new CampsiteDTO
-    {
-        Id = campsite.Id,
-        Nickname = campsite.Nickname,
-        ImageUrl = campsite.ImageUrl,
-        CampsiteTypeId = campsite.CampsiteTypeId
-    };
-
-    return Results.Created($"/api/campsites/{campsite.Id}", responseDTO);
-});
-```
-
-You would need to define a `CampsiteCreateDTO` class that represents the data needed to create a campsite:
-
-```csharp
-public class CampsiteCreateDTO
-{
-    public string Nickname { get; set; }
-    public string ImageUrl { get; set; }
-    public int CampsiteTypeId { get; set; }
-}
-```
-
-## The Complete Endpoint
-
-Here's the complete endpoint with validation, exception handling, and DTOs:
-
-```csharp
-app.MapPost("/api/campsites", (CreekRiverDbContext db, CampsiteCreateDTO campsiteDTO) =>
-{
-    // Validate required fields
-    if (string.IsNullOrEmpty(campsiteDTO.Nickname))
-    {
-        return Results.BadRequest("Nickname is required.");
-    }
-
-    if (campsiteDTO.CampsiteTypeId <= 0)
-    {
-        return Results.BadRequest("Valid CampsiteTypeId is required.");
-    }
-
-    // Check if the CampsiteTypeId exists
-    var campsiteType = db.CampsiteTypes.Find(campsiteDTO.CampsiteTypeId);
-    if (campsiteType == null)
-    {
-        return Results.BadRequest($"CampsiteType with ID {campsiteDTO.CampsiteTypeId} does not exist.");
-    }
-
-    try
-    {
-        // Map DTO to entity
-        var campsite = new Campsite
-        {
-            Nickname = campsiteDTO.Nickname,
-            ImageUrl = campsiteDTO.ImageUrl,
-            CampsiteTypeId = campsiteDTO.CampsiteTypeId
-        };
-
-        db.Campsites.Add(campsite);
-        db.SaveChanges();
-
-        // Map entity to DTO for response
-        var responseDTO = new CampsiteDTO
-        {
-            Id = campsite.Id,
-            Nickname = campsite.Nickname,
-            ImageUrl = campsite.ImageUrl,
-            CampsiteTypeId = campsite.CampsiteTypeId
-        };
-
-        return Results.Created($"/api/campsites/{campsite.Id}", responseDTO);
-    }
-    catch (DbUpdateException ex)
-    {
-        return Results.BadRequest($"Error saving campsite: {ex.Message}");
-    }
-});
-```
-
 ## Conclusion
 
 In this chapter, we've created an API endpoint to add a new campsite to our database using Entity Framework Core. We've learned how to:
@@ -232,13 +132,12 @@ In this chapter, we've created an API endpoint to add a new campsite to our data
 3. Return a 201 Created response with the newly created resource
 4. Add validation to ensure that the required fields are provided
 5. Handle exceptions that might occur during the database operation
-6. Use DTOs for input and output to decouple the API contract from the database schema
 
 These concepts are fundamental to creating RESTful APIs with ASP.NET Core and Entity Framework Core.
 
 In the next chapter, we'll create an endpoint to delete a campsite from the database.
 
-Up Next: [Chapter to DELETE a campsite](./creek-river-delete-campsite.md)
+Up Next: [Delete a campsite](./creek-river-delete-campsite.md)
 
 ## 🔍 Additional Materials
 
@@ -246,4 +145,4 @@ Up Next: [Chapter to DELETE a campsite](./creek-river-delete-campsite.md)
 - [Entity Framework Core - Saving Data](https://docs.microsoft.com/en-us/ef/core/saving/)
 - [Entity Framework Core - Change Tracking](https://docs.microsoft.com/en-us/ef/core/change-tracking/)
 - [HTTP POST Method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST)
-- [RESTful API Design](https://docs.microsoft.com/en-us/azure/architecture/best-practices/api-design)
+- [RESTful API Design](https://docs.microsoft.com/en-us/azure/architecture/best-practices-design)

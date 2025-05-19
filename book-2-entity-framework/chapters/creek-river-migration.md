@@ -163,9 +163,9 @@ In this chapter, we've learned how to use Entity Framework Core migrations to cr
 
 Migrations are a powerful tool for managing your database schema and keeping it in sync with your application model. They allow you to make changes to your model and have those changes automatically reflected in your database.
 
-In the next chapter, we'll create our first API endpoint to retrieve campsites from the database.
+In the next chapter, you will start the process of defining endpoints that your API will support.
 
-Up Next: [Creating the first endpoint that will GET campsites](./creek-river-endpoints-organization.md)
+Up Next: [Defining endpoint modules](./creek-river-endpoints-organization.md)
 
 ## 🔍 Additional Materials
 

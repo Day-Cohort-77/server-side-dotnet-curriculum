@@ -1,4 +1,4 @@
-# Chapter to DELETE a campsite
+# Deleting a campsite
 
 In this chapter, we'll create an API endpoint to delete a campsite from our database using Entity Framework Core. This will allow clients to remove campsites by sending HTTP DELETE requests to our API.
 
@@ -61,29 +61,6 @@ Now that we've created our endpoint, let's test it:
 2. Use a tool like Yaak to send a DELETE request to `https://localhost:<port>/api/campsites/1` (replace `1` with the ID of a campsite you want to delete).
 
 3. You should receive a 204 No Content response if the campsite was successfully deleted, or a 404 Not Found response if no campsite with the specified ID was found.
-
-## Handling Cascade Deletes
-
-When you delete a campsite, you might also want to delete all reservations associated with that campsite. This is called a cascade delete.
-
-Entity Framework Core supports cascade deletes through the `OnDelete` fluent API method. You can configure this in the `OnModelCreating` method of your DbContext:
-
-```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    // Existing code...
-
-    modelBuilder.Entity<Campsite>()
-        .HasMany(c => c.Reservations)
-        .WithOne(r => r.Campsite)
-        .HasForeignKey(r => r.CampsiteId)
-        .OnDelete(DeleteBehavior.Cascade);
-}
-```
-
-This configuration tells EF Core to cascade delete reservations when a campsite is deleted. When you delete a campsite, EF Core will automatically delete all reservations associated with that campsite.
-
-However, in our model, we've already established this relationship through our navigation properties and foreign keys, and EF Core's default behavior for required relationships is to cascade delete. So, unless you've explicitly configured it otherwise, deleting a campsite should already cascade delete its reservations.
 
 ## Adding Validation and Error Handling
 
@@ -201,13 +178,12 @@ In this chapter, we've created an API endpoint to delete a campsite from our dat
 3. Return appropriate HTTP responses based on the result of the operation
 4. Handle exceptions that might occur during the database operation
 5. Check for related entities before deleting an entity
-6. Understand cascade deletes in Entity Framework Core
 
 These concepts are fundamental to creating RESTful APIs with ASP.NET Core and Entity Framework Core.
 
 In the next chapter, we'll create an endpoint to update a campsite in the database.
 
-Up Next: [Chapter to PUT a campsite](./creek-river-put-campsite.md)
+Up Next: [Edit a campsite](./creek-river-put-campsite.md)
 
 ## 🔍 Additional Materials
 

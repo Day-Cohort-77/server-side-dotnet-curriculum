@@ -108,9 +108,8 @@ In this chapter, we've created the `DbContext` class for our Creek River Campgro
 
 1. Create a `DbContext` class
 2. Define `DbSet` properties for our entity types
-3. Seed the database with initial data
+3. Create instructios to seed the database with initial data
 4. Configure our web API to use EF Core
-5. Create and update the database using migrations
 
 In the next chapter, we'll create our first migration to create the database tables and seed the database with initial data.
 

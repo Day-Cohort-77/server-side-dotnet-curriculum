@@ -8,11 +8,13 @@ In our organized approach, we define endpoints in separate classes by resource t
 
 ## Getting All Campsites
 
-Let's start by implementing the endpoint to get all campsites. This endpoint is already defined in our `CampsiteEndpoints.cs` file:
+Let's start by implementing the endpoint to get all campsites.
 
 ```csharp
-// GET /api/campsites - Get all campsites
-app.MapGet("/api/campsites", (CreekRiverDbContext db) =>
+// All of the endpoints relevent to campsites will be here
+
+// GET /campsites - Get all campsites
+app.MapGet("/campsites", (CreekRiverDbContext db) =>
 {
     return db.Campsites.ToList();
 });
@@ -20,7 +22,7 @@ app.MapGet("/api/campsites", (CreekRiverDbContext db) =>
 
 Let's break down this code:
 
-- `app.MapGet("/api/campsites", ...)`: This maps HTTP GET requests to the `/api/campsites` URL to our handler function.
+- `app.MapGet("/campsites", ...)`: This maps HTTP GET requests to the `/campsites` URL to our handler function.
 
 - `(CreekRiverDbContext db) => { ... }`: This is the handler function. The `CreekRiverDbContext` parameter is injected by ASP.NET Core's dependency injection system.
 
@@ -42,11 +44,11 @@ This is a powerful feature of Entity Framework Core: it allows you to write quer
 
 ## Getting a Specific Campsite by ID
 
-Now, let's look at the endpoint to get a specific campsite by its ID:
+Next, add an endpoint to get a specific campsite by its ID:
 
 ```csharp
-// GET /api/campsites/{id} - Get a specific campsite by ID
-app.MapGet("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
+// GET /campsites/{id} - Get a specific campsite by ID
+app.MapGet("/campsites/{id}", (CreekRiverDbContext db, int id) =>
 {
     var campsite = db.Campsites
         .Include(c => c.CampsiteType)
@@ -63,7 +65,7 @@ app.MapGet("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
 
 This endpoint is similar to the previous one, but with a few key differences:
 
-- `"/api/campsites/{id}"`: This URL pattern includes a parameter `{id}` that captures the ID from the URL.
+- `"/campsites/{id}"`: This URL pattern includes a parameter `{id}` that captures the ID from the URL.
 
 - `(CreekRiverDbContext db, int id) => { ... }`: The handler function now takes an additional `id` parameter, which is bound to the `{id}` parameter in the URL.
 
@@ -77,17 +79,17 @@ This endpoint is similar to the previous one, but with a few key differences:
 
 Now that we've created our endpoints, let's test them:
 
-1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
+1. Run the API by starting the debugger.
 
-2. Open a web browser or a tool like Yaak and navigate to:
-   - `https://localhost:<port>/api/campsites` to get all campsites
-   - `https://localhost:<port>/api/campsites/1` to get the campsite with ID 1
+2. Open Yaak and navigate to:
+   - `https://localhost:<port>/campsites` to get all campsites
+   - `https://localhost:<port>/campsites/1` to get the campsite with ID 1
 
 3. You should see JSON responses with the campsite data.
 
 ## Understanding the Results
 
-When you call the `/api/campsites` endpoint, you should see a JSON array of campsite objects:
+When you call the `/campsites` endpoint, you should see a JSON array of campsite objects:
 
 ```json
 [
@@ -111,7 +113,7 @@ When you call the `/api/campsites` endpoint, you should see a JSON array of camp
 ]
 ```
 
-When you call the `/api/campsites/{id}` endpoint, you should see a single campsite object with its related campsite type:
+When you call the `/campsites/{id}` endpoint, you should see a single campsite object with its related campsite type:
 
 ```json
 {

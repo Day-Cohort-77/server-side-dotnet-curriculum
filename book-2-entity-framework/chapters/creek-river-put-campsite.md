@@ -1,4 +1,4 @@
-# Chapter to PUT a campsite
+# Editing a campsite
 
 In this chapter, we'll create an API endpoint to update an existing campsite in our database using Entity Framework Core. This will allow clients to modify campsite information by sending HTTP PUT requests to our API.
 
