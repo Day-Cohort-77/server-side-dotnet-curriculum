@@ -479,6 +479,9 @@ This allows us to control access to our endpoints based on the user's role.
 
 ### Create a product
 
+> ⭐️ Check the **ProductEndpoints** moduel to ensure that bakers are a role that is allowed to execute the `app.MapPost("/products"` method
+
+
 1. Log into the UI as a baker.
 2. Click on the **Create Product** in the navbar.
 3. Find an image of a croissant with a web search and download it to the `wwwroot/images` directory of the API project.
@@ -487,7 +490,20 @@ This allows us to control access to our endpoints based on the user's role.
 
 ![create a product in the UI](./images/create-product.gif)
 
+### Edit a product
+
+> ⭐️ Check the **ProductEndpoints** moduel to ensure that bakers are a role that is allowed to execute the `app.MapPut("/products/{id}"` method
+
+1. Make sure you are logged in as a baker or admin.
+2. View the details of any product.
+3. Click the **Edit Product** button.
+4. Update any details of the product and click **Save Changes**.
+
+![edit a product in the UI](./images/edit-product.gif)
+
 ### Delete a product
+
+> ⭐️ Check the **ProductEndpoints** moduel to ensure that bakers are a role that is allowed to execute the `app.MapDelete("/products/{id}"` method
 
 1. Make sure you are logged in as a baker or admin.
 2. View the details of any product.
@@ -501,9 +517,9 @@ In this chapter, we've implemented product management endpoints for our TinyTrea
 - Get all products endpoint (public) for browsing available products
 - Get product by ID endpoint (public) for viewing a specific product
 - Get all products endpoint (admin) for viewing all products, including unavailable ones
-- Create product endpoint for adding new products
-- Update product endpoint for modifying existing products
-- Delete product endpoint for removing products or marking them as unavailable
+- Create product endpoint for adding new products (baker)
+- Update product endpoint for modifying existing products (admin or baker)
+- Delete product endpoint for removing products (admin or baker)
 
 These endpoints provide a complete product management system for our bakery application. In the next chapter, we'll implement order management endpoints to allow customers to place orders and staff to manage them.
 

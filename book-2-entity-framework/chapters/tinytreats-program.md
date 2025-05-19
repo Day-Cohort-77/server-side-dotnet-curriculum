@@ -338,7 +338,7 @@ Start your API is debug mode.
 
 > 🧨 Make sure you read the output as the port that your API starts on may differ from the one below.
 
-This will start the web server and make your API available at `https://localhost:5001` (or a similar URL, depending on your configuration).
+This will start the web server and make your API available at `https://localhost:7086` _(or a similar URL, depending on your configuration)_.
 
 You can test the API using a tool like Yaak, as described in the previous chapters.
 
@@ -367,16 +367,4 @@ You can use this as a foundation for building more complex features or integrati
 
 ## Next Steps
 
-Now that you've completed the TinyTreats project, you might want to:
-
-1. Build a frontend application using React, Angular, or Vue.js
-2. Add more features to the API, such as:
-   - Payment processing
-   - Inventory management
-   - Customer reviews
-   - Loyalty programs
-3. Implement automated testing
-4. Set up continuous integration and deployment
-5. Monitor the application in production
-
-Happy coding!
+Test out all of the functionality using the React client that you cloned at the beginning of this project. Check the port that your API is running on and then check the `vite.config.js` file in the client project and ensure that the port in that file matches.
