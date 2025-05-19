@@ -1,4 +1,4 @@
-# Creating their first migration to create the tables and seed the database
+# Create and seed your database
 
 In this chapter, we'll learn how to use Entity Framework Core migrations to create our database schema and seed it with initial data.
 
@@ -165,7 +165,7 @@ Migrations are a powerful tool for managing your database schema and keeping it 
 
 In the next chapter, we'll create our first API endpoint to retrieve campsites from the database.
 
-Up Next: [Creating the first endpoint that will GET campsites](./creek-river-get-campsites.md)
+Up Next: [Creating the first endpoint that will GET campsites](./creek-river-endpoints-organization.md)
 
 ## 🔍 Additional Materials
 

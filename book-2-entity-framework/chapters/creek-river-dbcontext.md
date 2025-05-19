@@ -112,9 +112,9 @@ In this chapter, we've created the `DbContext` class for our Creek River Campgro
 4. Configure our web API to use EF Core
 5. Create and update the database using migrations
 
-In the next chapter, we'll update our `Program.cs` file to use all required EF packages and set up our API endpoints.
+In the next chapter, we'll create our first migration to create the database tables and seed the database with initial data.
 
-Up Next: [Updating Program.cs to use all required EF packages](./creek-river-program.md)
+Up Next: [Creating your first migration](./creek-river-migration.md)
 
 ## 🔍 Additional Materials
 

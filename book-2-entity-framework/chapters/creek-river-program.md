@@ -13,7 +13,7 @@ The minimal API approach simplifies the startup process by eliminating the need 
 Before we update our `Program.cs` file, let's organize our project by creating the necessary folders:
 
 ```bash
-mkdir Models Services Endpoints
+mkdir Services Endpoints
 ```
 
 The `Endpoints` directory will contain classes that define our API endpoints, organized by resource. This approach helps keep our `Program.cs` file clean and makes our code more maintainable as the application grows.
@@ -140,7 +140,7 @@ In this chapter, we've updated our `Program.cs` file to configure Entity Framewo
 
 In the next chapter, we'll create our first migration to create the database tables and seed the database with initial data.
 
-Up Next: [Creating their first migration](./creek-river-migration.md)
+Up Next: [Creating your first migration](./creek-river-migration.md)
 
 ## 🔍 Additional Materials
 

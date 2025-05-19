@@ -35,65 +35,7 @@ public static class CampsiteEndpoints
 {
     public static void MapCampsiteEndpoints(this WebApplication app)
     {
-        // GET /api/campsites - Get all campsites
-        app.MapGet("/api/campsites", (CreekRiverDbContext db) =>
-        {
-            return db.Campsites.ToList();
-        });
-
-        // GET /api/campsites/{id} - Get a specific campsite by ID
-        app.MapGet("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
-        {
-            var campsite = db.Campsites
-                .Include(c => c.CampsiteType)
-                .SingleOrDefault(c => c.Id == id);
-
-            if (campsite == null)
-            {
-                return Results.NotFound();
-            }
-
-            return Results.Ok(campsite);
-        });
-
-        // POST /api/campsites - Create a new campsite
-        app.MapPost("/api/campsites", (CreekRiverDbContext db, Campsite campsite) =>
-        {
-            db.Campsites.Add(campsite);
-            db.SaveChanges();
-            return Results.Created($"/api/campsites/{campsite.Id}", campsite);
-        });
-
-        // PUT /api/campsites/{id} - Update a campsite
-        app.MapPut("/api/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
-        {
-            var existingCampsite = db.Campsites.Find(id);
-            if (existingCampsite == null)
-            {
-                return Results.NotFound();
-            }
-
-            existingCampsite.Nickname = campsite.Nickname;
-            existingCampsite.ImageUrl = campsite.ImageUrl;
-            existingCampsite.CampsiteTypeId = campsite.CampsiteTypeId;
-
-            db.SaveChanges();
-            return Results.NoContent();
-        });
-
-        // DELETE /api/campsites/{id} - Delete a campsite
-        app.MapDelete("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
-        {
-            var campsite = db.Campsites.Find(id);
-            if (campsite == null)
-            {
-                return Results.NotFound();
-            }
-
-            db.Campsites.Remove(campsite);
-            db.SaveChanges();
-            return Results.NoContent();
-        });
+        // All of the endpoints relevent to campsites will be here
     }
 }
 ```
@@ -118,68 +60,7 @@ public static class ReservationEndpoints
 {
     public static void MapReservationEndpoints(this WebApplication app)
     {
-        // GET /api/reservations - Get all reservations
-        app.MapGet("/api/reservations", (CreekRiverDbContext db) =>
-        {
-            return db.Reservations
-                .Include(r => r.Campsite)
-                .ThenInclude(c => c.CampsiteType)
-                .ToList();
-        });
-
-        // GET /api/reservations/{id} - Get a specific reservation by ID
-        app.MapGet("/api/reservations/{id}", (CreekRiverDbContext db, int id) =>
-        {
-            var reservation = db.Reservations
-                .Include(r => r.Campsite)
-                .ThenInclude(c => c.CampsiteType)
-                .SingleOrDefault(r => r.Id == id);
-
-            if (reservation == null)
-            {
-                return Results.NotFound();
-            }
-
-            return Results.Ok(reservation);
-        });
-
-        // POST /api/reservations - Create a new reservation
-        app.MapPost("/api/reservations", (CreekRiverDbContext db, Reservation reservation) =>
-        {
-            // Calculate the total cost based on the campsite type fee and number of days
-            var campsite = db.Campsites
-                .Include(c => c.CampsiteType)
-                .FirstOrDefault(c => c.Id == reservation.CampsiteId);
-
-            if (campsite == null)
-            {
-                return Results.NotFound("Campsite not found");
-            }
-
-            // Calculate the number of days
-            var numberOfDays = (reservation.CheckoutDate - reservation.CheckinDate).Days;
-
-            // Set the total cost
-            reservation.TotalCost = campsite.CampsiteType.FeePerNight * numberOfDays;
-
-            db.Reservations.Add(reservation);
-            db.SaveChanges();
-            return Results.Created($"/api/reservations/{reservation.Id}", reservation);
-        });
-
-        // DELETE /api/reservations/{id} - Delete a reservation
-        app.MapDelete("/api/reservations/{id}", (CreekRiverDbContext db, int id) =>
-        {
-            var reservation = db.Reservations.Find(id);
-            if (reservation == null)
-            {
-                return Results.NotFound();
-            }
-
-            db.Reservations.Remove(reservation);
-            db.SaveChanges();
-            return Results.NoContent();
-        });
+        // All of the endpoints relevent to reservations will be here
     }
 }
 ```
@@ -188,35 +69,17 @@ public static class ReservationEndpoints
 
 With our endpoint classes in place, we can now update `Program.cs` to use them. The updated file should look like this:
 
-```csharp
-using CreekRiver.Models;
+First add this directive to the top of `Program.cs` to use the namespace where all of your endpoint classes are.
+
+```cs
 using CreekRiver.Endpoints;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Http.Json;
+```
 
-var builder = WebApplication.CreateBuilder(args);
+Then at the end — before you tell your API to run — you will invoke the extension mathods to activate your endpoints. In the following chapters, you will define the specific enpoints one at a time.
 
-// Allows passing datetimes without time zone data
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+```csharp
+// ... rest of code ...
 
-// Allows our api endpoints to access the database through Entity Framework Core
-builder.Services.AddNpgsql<CreekRiverDbContext>(builder.Configuration["CreekRiverDbConnectionString"]);
-
-// Configure JSON serialization options
-builder.Services.Configure<JsonOptions>(options =>
-{
-    // This tells the API to ignore circular references in JSON serialization
-    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-
-    // This tells the API to use camel case for property names in JSON
-    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-
-    // This tells the API to write Enums as strings in JSON
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
-
-var app = builder.Build();
 
 // Map API endpoints by resource
 app.MapCampsiteEndpoints();
