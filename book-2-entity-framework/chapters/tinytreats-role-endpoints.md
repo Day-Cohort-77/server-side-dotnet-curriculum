@@ -334,52 +334,21 @@ This ensures that only users in the "Admin" role can access these endpoints. If 
 
 You can test these endpoints using a tool like Yaak:
 
-1. Login as an admin:
-   ```http
-   POST /auth/login
-   Content-Type: application/json
-
-   {
-     "email": "admin@tinytreats.com",
-     "password": "Admin123!"
-   }
+1. Login as an admin in the client
    ```
-
-2. Create a new role:
-   ```http
-   POST /roles
-   Content-Type: application/json
-
-   {
-     "name": "Manager"
-   }
+   "email": "admin@tinytreats.com"
+   "password": "Admin123!"
    ```
-
-3. Get all roles:
-   ```http
-   GET /roles
+2. Click the **Manage Users** button at the bottom of the home page
+3. Assign the **Admin** role to a Jane Baker
+4. Logout and log back in as Jane
    ```
-
-4. Assign a role to a user:
-   ```http
-   POST /users/roles
-   Content-Type: application/json
-
-   {
-     "email": "customer1@example.com",
-     "roleName": "Baker"
-   }
+   "email": "baker1@tinytreats.com"
+   "password": "Baker123!"
    ```
-
-5. Get roles for a user:
-   ```http
-   GET /users/customer1@example.com/roles
-   ```
-
-6. Remove a role from a user:
-   ```http
-   DELETE /users/customer1@example.com/roles/Baker
-   ```
+5. Jane should now be able to assign and remove roles from other users
+6. Log out and back in as the admin account and remove the **Admin** role from Jane
+7. Logout and back in as Jane and you will see that she can no longer view other users or change their roles
 
 ## Summary
 

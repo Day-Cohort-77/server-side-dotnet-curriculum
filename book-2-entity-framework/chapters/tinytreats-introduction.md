@@ -73,9 +73,15 @@ We'll implement these features using ASP.NET Core Identity and Minimal API, with
 
 ## Project Setup
 
+### Get the client
+
+Visit the [Tiny Treats client repo](https://github.com/nashville-software-school/tinytreats-client) and click the **Use this template** button to get a copy of the project for your Github account.
+
+### Start the API
+
 Let's create a new project called "Tiny Treats" - a simple bakery management system where we'll implement authentication.
 
-1. Create a new ASP.NET Core Minimal API project:
+1. Create a new ASP.NET Core Minimal API project in the directory of your choice.
    ```bash
    dotnet new web -n TinyTreats
    cd TinyTreats

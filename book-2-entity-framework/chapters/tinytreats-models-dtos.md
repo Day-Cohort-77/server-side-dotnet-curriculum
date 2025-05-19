@@ -9,14 +9,6 @@ Before we dive into the implementation, let's clarify the difference between mod
 - **Models** represent the database tables and relationships in our application. They are used by Entity Framework Core to create and interact with the database.
 - **DTOs (Data Transfer Objects)** are simplified objects used to transfer data between the client and server. They often contain a subset of model properties and help decouple our API from our database schema.
 
-## Project Setup
-
-Let's start by creating the necessary folders for our organized project structure:
-
-```bash
-mkdir Models Data DTOs
-```
-
 ## Creating the User-Related Models
 
 First, let's create our `UserProfile` model that extends the Identity user information:

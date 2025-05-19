@@ -4,7 +4,7 @@ In this chapter, we'll implement the authentication endpoints for our TinyTreats
 
 ## Understanding Authentication in ASP.NET Core
 
-ASP.NET Core Identity provides a robust framework for handling authentication. It includes:
+**ASP.NET Core Identity** provides a robust framework for handling authentication. It includes:
 
 - User management (registration, login, logout)
 - Password hashing and validation
@@ -15,7 +15,7 @@ We'll leverage these features to implement secure authentication for our TinyTre
 
 ## Creating the Authentication Endpoints
 
-Let's create a new file called `Endpoints/AuthEndpoints.cs` to contain all our authentication-related endpoints:
+Let's create a new file called `Endpoints/AuthEndpoints.cs` to contain all our authentication-related endpoints. The endpoints will allow users to register new accounts, authenticate with their credentials, retrieve their profile information, and logout.
 
 ```csharp
 // Endpoints/AuthEndpoints.cs
