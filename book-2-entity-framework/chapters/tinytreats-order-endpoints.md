@@ -743,21 +743,84 @@ Notice the different authorization patterns we're using:
 
 ## Testing Order Management
 
+You can test these endpoints using a tool like Yaak:
+
 1. Login as a customer:
    ```http
-     "email": "customer1@example.com"
-     "password": "Customer123!"
-   ```
-2. Add some products to your cart.
-3. Visit your shopping cart.
-4. Click the **Checkout** button and verify that your list of orders now includes the new one.
-5. Log in as an admin or baker.
-6. View all orders.
-7. Update the status of the order that was just created.
-8. Log back in as a customer and create a new order.
-9. While order is still pending, cancel it.
+   POST /auth/login
+   Content-Type: application/json
 
-![cancelling an order](./images/cancel-order.gif)
+   {
+     "email": "customer1@example.com",
+     "password": "Customer123!"
+   }
+   ```
+
+2. Create a new order:
+   ```http
+   POST /api/orders
+   Content-Type: application/json
+
+   {
+     "items": [
+       {
+         "productId": 1,
+         "quantity": 2
+       },
+       {
+         "productId": 3,
+         "quantity": 1
+       }
+     ]
+   }
+   ```
+
+3. Get all orders:
+   ```http
+   GET /api/orders
+   ```
+
+4. Get a specific order:
+   ```http
+   GET /api/orders/1
+   ```
+
+5. Login as a baker:
+   ```http
+   POST /auth/login
+   Content-Type: application/json
+
+   {
+     "email": "baker1@tinytreats.com",
+     "password": "Baker123!"
+   }
+   ```
+
+6. Update an order status:
+   ```http
+   PATCH /api/orders/1/status
+   Content-Type: application/json
+
+   {
+     "status": "Preparing"
+   }
+   ```
+
+7. Login as an admin:
+   ```http
+   POST /auth/login
+   Content-Type: application/json
+
+   {
+     "email": "admin@tinytreats.com",
+     "password": "Admin123!"
+   }
+   ```
+
+8. Cancel an order:
+   ```http
+   DELETE /api/orders/1
+   ```
 
 ## Summary
 

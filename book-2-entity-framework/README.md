@@ -15,9 +15,9 @@ Before you start work on the projects in this section, you need to complete all 
 | 3 | [Understanding Data Annotations](./chapters/creek-river-data-annotations.md) | [Custom DTO: Available Materials](./chapters/loncotes-dto-available-materials.md) | [Database Context with Identity Framework](./chapters/tinytreats-dbcontext.md) |
 | 4 | [Using DbContext](./chapters/creek-river-dbcontext.md) | [Custom DTO: Overdue Checkouts](./chapters/loncotes-dto-overdue-checkouts.md) | [Authentication Endpoints](./chapters/tinytreats-auth-endpoints.md) |
 | 5 | [Using Entity Framework tools](./chapters/creek-river-program.md) | [Custom DTO: Late Fees](./chapters/loncotes-dto-late-fees.md) | [Role Endpoints](./chapters/tinytreats-role-endpoints.md) |
-| 6 | [Organizing Endpoints by Resource](./chapters/creek-river-endpoints-organization.md) | [Quieter Code with AutoMapper](./chapters/loncotes-dto-automapper.md) |
-| 7 | [View campsites](./chapters/creek-river-get-campsites.md) |  |
-| 8 | [Create a campsite](./chapters/creek-river-post-campsite.md) |  |
+| 6 | [Organizing Endpoints by Resource](./chapters/creek-river-endpoints-organization.md) | [Quieter Code with AutoMapper](./chapters/loncotes-dto-automapper.md) | [Product Endpoints](./chapters/tinytreats-product-endpoints.md) |
+| 7 | [View campsites](./chapters/creek-river-get-campsites.md) |  | [Order Endpoints](./chapters/tinytreats-order-endpoints.md) |
+| 8 | [Create a campsite](./chapters/creek-river-post-campsite.md) |  | [Starting the API and Migrations](./tinytreats-program.md) |
 | 9 | [Delete a campsite](./chapters/creek-river-delete-campsite.md) |  |
 | 10 | [Edit a campsite](./chapters/creek-river-put-campsite.md) |  |
 | 11 | [View reservations](./chapters/creek-river-get-reservations.md) |  |

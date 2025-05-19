@@ -477,38 +477,63 @@ This allows us to control access to our endpoints based on the user's role.
 
 ## Testing Product Management
 
-### Create a product
+You can test these endpoints using a tool like Yaak:
 
-> ⭐️ Check the **ProductEndpoints** moduel to ensure that bakers are a role that is allowed to execute the `app.MapPost("/products"` method
+1. Get all products (public):
+   ```http
+   GET /products
+   ```
 
+2. Get a specific product (public):
+   ```http
+   GET /products/1
+   ```
 
-1. Log into the UI as a baker.
-2. Click on the **Create Product** in the navbar.
-3. Find an image of a croissant with a web search and download it to the `wwwroot/images` directory of the API project.
-4. Fill out the product form to sell a Croissant with `/images/{name of file you found}` in the **Image Url** field.
-5. Click the **Create Product** button and verify that it appears in the list of products.
+3. Login as an admin:
+   ```http
+   POST /auth/login
+   Content-Type: application/json
 
-![create a product in the UI](./images/create-product.gif)
+   {
+     "email": "admin@tinytreats.com",
+     "password": "Admin123!"
+   }
+   ```
 
-### Edit a product
+4. Get all products (admin):
+   ```http
+   GET /admin/products
+   ```
 
-> ⭐️ Check the **ProductEndpoints** moduel to ensure that bakers are a role that is allowed to execute the `app.MapPut("/products/{id}"` method
+5. Create a new product:
+   ```http
+   POST /products
+   Content-Type: application/json
 
-1. Make sure you are logged in as a baker or admin.
-2. View the details of any product.
-3. Click the **Edit Product** button.
-4. Update any details of the product and click **Save Changes**.
+   {
+     "name": "Red Velvet Cupcake",
+     "description": "Delicious red velvet cupcake with cream cheese frosting",
+     "price": 3.99,
+     "isAvailable": true,
+     "imageUrl": "/images/red-velvet-cupcake.jpg"
+   }
+   ```
 
-![edit a product in the UI](./images/edit-product.gif)
+6. Update a product:
+   ```http
+   PUT /products/1
+   Content-Type: application/json
 
-### Delete a product
+   {
+     "price": 2.75,
+     "isAvailable": false
+   }
+   ```
 
-> ⭐️ Check the **ProductEndpoints** moduel to ensure that bakers are a role that is allowed to execute the `app.MapDelete("/products/{id}"` method
-
-1. Make sure you are logged in as a baker or admin.
-2. View the details of any product.
-3. Click the **Remove Product** button, and verify that you want to delete it.
-4. The product should now be removed from the database and will no longer appear in the UI.
+7. Delete a product:
+   ```http
+   DELETE /products/1
+   ```
 
 ## Summary
 
@@ -517,9 +542,9 @@ In this chapter, we've implemented product management endpoints for our TinyTrea
 - Get all products endpoint (public) for browsing available products
 - Get product by ID endpoint (public) for viewing a specific product
 - Get all products endpoint (admin) for viewing all products, including unavailable ones
-- Create product endpoint for adding new products (baker)
-- Update product endpoint for modifying existing products (admin or baker)
-- Delete product endpoint for removing products (admin or baker)
+- Create product endpoint for adding new products
+- Update product endpoint for modifying existing products
+- Delete product endpoint for removing products or marking them as unavailable
 
 These endpoints provide a complete product management system for our bakery application. In the next chapter, we'll implement order management endpoints to allow customers to place orders and staff to manage them.
 
