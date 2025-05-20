@@ -60,14 +60,46 @@ erDiagram
     Genre ||--o{ Material : ""
     Material ||--o{ Checkout : ""
     Patron ||--o{ Checkout : ""
-
 ```
 
 
-## Setting up the project
+## Setting up the API
 
-1. Use the [instructions](./creek-river-initializing.md) from the Creek River Project to create a new web api project called `LoncotesLibrary`, with a database called `LoncotesLibrary`.
-2. Create the following database models based on the ERD:
+1. In the csharp directory of your workspace create the web api project like this:
+   ```bash
+   dotnet new web -n LoncotesLibrary
+   cd LoncotesLibrary
+   ```
+
+2. Inside the `LoncotesLibrary` directory, run:
+   ```bash
+   dotnet new gitignore
+   ```
+
+3. Install these required dependencies:
+   ```bash
+   dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0
+   ```
+   and:
+   ```bash
+   dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0
+   ```
+
+4. Run this to be able to store secrets for this app:
+   ```bash
+   dotnet user-secrets init
+   ```
+
+5. Add the connection string to the secrets for this app (make sure you change `<your_postgresql_password>` to your db password!):
+   ```bash
+   dotnet user-secrets set 'LoncotesLibraryDbConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=<your_postgresql_password>;Database=LoncotesLibrary'
+   ```
+
+6. Refer to the [debugging chapter](../../book-1-csharp-sql/chapters/debugging-csharp.md) to create your `.vscode/launch.json` and `.vscode/tasks.json`. Replace all instances of **HarborMaster** with **LoncotesLibrary**.
+
+## Creating Model Classes
+
+Create the following database models based on the ERD:
 
 ```csharp
 // Models/Material.cs

@@ -6,7 +6,8 @@ In this chapter, we'll set up a new API project that uses Entity Framework Core 
 
 1. In the csharp directory of your workspace create the web api project like this:
    ```bash
-   dotnet new webapi -o CreekRiver -minimal
+   dotnet new web -n CreekRiver
+   cd CreekRiver
    ```
 
 2. Inside the `CreekRiver` directory, run:
@@ -32,6 +33,8 @@ In this chapter, we'll set up a new API project that uses Entity Framework Core 
    ```bash
    dotnet user-secrets set 'CreekRiverDbConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=<your_postgresql_password>;Database=CreekRiver'
    ```
+
+6. Refer to the [debugging chapter](../../book-1-csharp-sql/chapters/debugging-csharp.md) to create your `.vscode/launch.json` and `.vscode/tasks.json`. Replace all instances of **HarborMaster** with **CreekRiver**.
 
 ## Project Structure
 

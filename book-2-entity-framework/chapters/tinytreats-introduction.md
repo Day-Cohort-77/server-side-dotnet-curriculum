@@ -79,7 +79,7 @@ Visit the [Tiny Treats client repo](https://github.com/nashville-software-school
 
 ### Start the API
 
-Let's create a new project called "Tiny Treats" - a simple bakery management system where we'll implement authentication.
+Let's create a new project called "TinyTreats" - a simple bakery management system where we'll implement authentication.
 
 1. Create a new ASP.NET Core Minimal API project in the directory of your choice.
    ```bash
@@ -87,7 +87,12 @@ Let's create a new project called "Tiny Treats" - a simple bakery management sys
    cd TinyTreats
    ```
 
-2. Add the required NuGet packages:
+2. Inside the `TinyTreats` directory, run:
+   ```bash
+   dotnet new gitignore
+   ```
+
+3. Add the required NuGet packages:
    ```bash
    dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.0
    dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.0
@@ -95,16 +100,18 @@ Let's create a new project called "Tiny Treats" - a simple bakery management sys
    dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.0
    ```
 
-3. Set up user secrets for database connection:
+4. Set up user secrets for database connection:
    ```bash
    dotnet user-secrets init
    dotnet user-secrets set "TinyTreatsDbConnectionString" "Host=localhost;Port=5432;Username=postgres;Password=<your-password>;Database=TinyTreats"
    ```
 
-4. Create the necessary folders for our organized project structure:
+5. Create the necessary folders for our organized project structure:
    ```bash
    mkdir Models Data Endpoints DTO
    ```
+
+6. Refer to the [debugging chapter](../../book-1-csharp-sql/chapters/debugging-csharp.md) to create your `.vscode/launch.json` and `.vscode/tasks.json`. Replace all instances of **HarborMaster** with **TinyTreats**.
 
 ## Next Steps
 
