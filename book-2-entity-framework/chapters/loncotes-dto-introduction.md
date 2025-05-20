@@ -17,7 +17,52 @@ DTO stands for Data Transfer Object. DTOs are objects that define how the data w
 The Loncotes County Library has hired us to build a new web application to manage their patrons, materials, and checkouts. We will be building the app to be used with their existing database, but you will need to create your own for local development based on the data model of the library's. Eventually, the app will be used by patrons and librarians, but a pilot program for the first version will only be used by the librarians.
 
 This is the ERD for the library's database:
-![Loncotes ERD](../../assets/loncotes-erd.png)
+
+```mermaid
+erDiagram
+    Material {
+        int Id PK
+        string MaterialName
+        int MaterialTypeId FK
+        int GenreId FK
+        datetime OutOfCirculationSince
+    }
+
+    MaterialType {
+        int Id PK
+        string Name
+        int CheckoutDays
+    }
+
+    Genre {
+        int Id PK
+        string Name
+    }
+
+    Patron {
+        int Id PK
+        string FirstName
+        string LastName
+        string Address
+        string Email
+        bool IsActive
+    }
+
+    Checkout {
+        int Id PK
+        int MaterialId FK
+        int PatronId FK
+        datetime CheckoutDate
+        datetime ReturnDate
+    }
+
+    MaterialType ||--o{ Material : ""
+    Genre ||--o{ Material : ""
+    Material ||--o{ Checkout : ""
+    Patron ||--o{ Checkout : ""
+
+```
+
 
 ## Setting up the project
 
