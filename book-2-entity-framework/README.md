@@ -8,16 +8,16 @@ Before you start work on the projects in this section, you need to complete all 
 
 ## Projects
 
-| # | 🏕️ Creek River | 📚 Loncotes Library | 🧁 Tiny Treats | 🧪 Testy Tester |
+| # | 🏕️ Creek River | 📚 Loncotes Library | 🧁 Tiny Treats | 🧪 TestTubes |
 |--|--|--|--|--|
-| 1 | [Introduction to Entity Framework](./chapters/creek-river-initializing.md) | [Introduction to DTOs](./chapters/loncotes-dto-introduction.md) | [Introduction to Authentication](./chapters/tinytreats-introduction.md) | [Introduction to Integration Testing](./chapters/testy-introduction.md) |
-| 2 | [Entity Framework Models](./chapters/creek-river-models.md) | [Basic DTO Features](./chapters/loncotes-dto-basic-features.md) | [Models and DTOs](./chapters/tinytreats-models-dtos.md) | [Setting Up the Test Project](./chapters/testy-setup.md) |
-| 3 | [Understanding Data Annotations](./chapters/creek-river-data-annotations.md) | [Custom DTO: Available Materials](./chapters/loncotes-dto-available-materials.md) | [Database Context with Identity Framework](./chapters/tinytreats-dbcontext.md) | [Creating the API Models](./chapters/testy-models.md) |
-| 4 | [Using DbContext](./chapters/creek-river-dbcontext.md) | [Custom DTO: Overdue Checkouts](./chapters/loncotes-dto-overdue-checkouts.md) | [Authentication Endpoints](./chapters/tinytreats-auth-endpoints.md) | [Setting Up the Database Context](./chapters/testy-dbcontext.md) |
-| 5 | [Organizing Endpoints by Resource](./chapters/creek-river-endpoints-organization.md) | [Custom DTO: Late Fees](./chapters/loncotes-dto-late-fees.md) | [Role Endpoints](./chapters/tinytreats-role-endpoints.md) | [Testing Student Endpoints](./chapters/testy-student-tests.md) |
-| 6 | [View campsites](./chapters/creek-river-get-campsites.md) | [Quieter Code with AutoMapper](./chapters/loncotes-dto-automapper.md) | [Product Endpoints](./chapters/tinytreats-product-endpoints.md) | [Effective Integration Testing](./chapters/testy-coverage.md) |
-| 7 | [Create a campsite](./chapters/creek-river-post-campsite.md) |  | [Order Endpoints](./chapters/tinytreats-order-endpoints.md) |  |
-| 8 | [Delete a campsite](./chapters/creek-river-delete-campsite.md) |  | [Starting the API and Migrations](./chapters/tinytreats-program.md) |  |
+| 1 | [Introduction to Entity Framework](./chapters/creek-river-initializing.md) | [Introduction to DTOs](./chapters/loncotes-dto-introduction.md) | [Introduction to Authentication](./chapters/tinytreats-introduction.md) | [Introduction to Integration Testing](./chapters/testtube-introduction.md) |
+| 2 | [Entity Framework Models](./chapters/creek-river-models.md) | [Basic DTO Features](./chapters/loncotes-dto-basic-features.md) | [Models and DTOs](./chapters/tinytreats-models-dtos.md) | [Setting Up a Test Project](./chapters/testtube-setup.md) |
+| 3 | [Understanding Data Annotations](./chapters/creek-river-data-annotations.md) | [Custom DTO: Available Materials](./chapters/loncotes-dto-available-materials.md) | [Database Context with Identity Framework](./chapters/tinytreats-dbcontext.md) | [Understanding WebApplicationFactory](./chapters/testtube-webapplicationfactory.md) |
+| 4 | [Using DbContext](./chapters/creek-river-dbcontext.md) | [Custom DTO: Overdue Checkouts](./chapters/loncotes-dto-overdue-checkouts.md) | [Authentication Endpoints](./chapters/tinytreats-auth-endpoints.md) | [The TestHelper Class](./chapters/testtube-testhelper.md) |
+| 5 | [Organizing Endpoints by Resource](./chapters/creek-river-endpoints-organization.md) | [Custom DTO: Late Fees](./chapters/loncotes-dto-late-fees.md) | [Role Endpoints](./chapters/tinytreats-role-endpoints.md) | [Anatomy of a Test Module](./chapters/testtube-test-module.md) |
+| 6 | [View campsites](./chapters/creek-river-get-campsites.md) | [Quieter Code with AutoMapper](./chapters/loncotes-dto-automapper.md) | [Product Endpoints](./chapters/tinytreats-product-endpoints.md) | [Implementing Equipment Tests](./chapters/testtube-equipment-tests.md) |
+| 7 | [Create a campsite](./chapters/creek-river-post-campsite.md) |  | [Order Endpoints](./chapters/tinytreats-order-endpoints.md) | [Implementing Scientist Tests](./chapters/testtube-scientist-tests.md) |
+| 8 | [Delete a campsite](./chapters/creek-river-delete-campsite.md) |  | [Starting the API and Migrations](./chapters/tinytreats-program.md) | [Achieving Test Coverage](./chapters/testtube-test-coverage.md) |
 | 9 | [Edit a campsite](./chapters/creek-river-put-campsite.md) |  |  |  |
 | 10 | [View reservations](./chapters/creek-river-get-reservations.md) |  |  |  |
 | 11 | [Create a reservation](./chapters/creek-river-create-reservation.md) |  |  |  |
