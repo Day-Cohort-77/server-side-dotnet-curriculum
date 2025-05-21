@@ -1,144 +1,120 @@
-# Setting Up a Test Project
+# Setting Up a Test Project from Scratch
 
 ## Learning Objectives
-- Create a new repository from the TestTube template
-- Understand the structure of the TestTube solution
+- Create a new ASP.NET Core Web API project
 - Set up a test project with the necessary packages
 - Configure the test project to work with the API
+- Understand the structure of an integration test solution
 
-## Creating Your Repository from the Template
+## Creating Your API Project
 
-The first step is to create your own repository from the TestTube template. This will give you a copy of the project that you can modify and work with.
+Let's start by creating a new ASP.NET Core Web API project that we'll use for our integration tests.
 
-1. Navigate to the TestTube template repository at https://github.com/nashville-software-school/TestTube
-2. Click the green "Use this template" button at the top of the page
-3. Select "Create a new repository"
-4. Name your repository "TestTube" (or another name of your choice)
-5. Choose whether to make your repository public or private
-6. Click "Create repository from template"
-
-Once your repository is created, you can clone it to your local machine:
+1. Open a terminal and navigate to the directory where you want to create your project
+2. Create a new solution:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/TestTube.git
-cd TestTube
+dotnet new sln -n TestTube
 ```
 
-Replace `YOUR-USERNAME` with your GitHub username.
+3. Create a new ASP.NET Core Web API project:
 
-## Understanding the Solution Structure
-
-The TestTube solution contains two projects:
-
-1. **TestTubes.API**: The main API project with controllers, models, and database context
-2. **TestTubes.Tests**: The test project where we'll write our integration tests
-
-Let's take a closer look at the API project structure:
-
-```
-TestTubes.API/
-├── Controllers/
-│   ├── EquipmentController.cs
-│   └── ScientistController.cs
-├── Data/
-│   └── TestTubeDbContext.cs
-├── Models/
-│   ├── Equipment.cs
-│   └── Scientist.cs
-├── Program.cs
-└── appsettings.json
+```bash
+dotnet new webapi -n TestTube.API
 ```
 
-The API project is a standard ASP.NET Core API with Entity Framework Core. It includes:
+4. Add the API project to the solution:
 
-- Controllers for managing equipment and scientists
-- Models representing the domain entities
-- A DbContext for database operations
-- Program.cs that configures and runs the application
-
-## Setting Up the Test Project
-
-The test project is already set up in the template, but let's understand what's included:
-
-```
-TestTubes.Tests/
-├── EquipmentTests.cs
-├── ScientistTests.cs
-└── TestHelper.cs
+```bash
+dotnet sln add TestTube.API
 ```
 
-The test project includes:
+## Setting Up the API Project
 
-- Test classes for each resource
-- A TestHelper class that we'll explore in detail later
+First, you would build your API project just as you have with the previous projects in this book. Once you have the basic API functionality working, you would then start building tests.
 
-## Required NuGet Packages
+## Creating the Test Project
 
-The test project already includes the necessary NuGet packages, but it's important to understand what they are and why we need them:
+Now that we have our API project set up, let's create a test project to test it:
 
-1. **Microsoft.AspNetCore.Mvc.Testing**: Provides the WebApplicationFactory for hosting the API during tests
-2. **Microsoft.EntityFrameworkCore.InMemory**: Allows us to use an in-memory database for testing
-3. **xUnit**: The testing framework we'll use
-4. **xUnit.runner.visualstudio**: Enables running tests in Visual Studio
-5. **coverlet.collector**: Collects code coverage information
+1. Navigate back to the solution directory:
 
-If you need to add these packages manually in a different project, you can use the .NET CLI:
+```bash
+cd ..
+```
+
+2. Create a new xUnit test project:
+
+```bash
+dotnet new xunit -n TestTube.Tests
+```
+
+3. Add the test project to the solution:
+
+```bash
+dotnet sln add TestTube.Tests
+```
+
+4. Add a reference to the API project from the test project:
+
+```bash
+cd TestTube.Tests
+dotnet add reference ../TestTube.API
+```
+
+5. Add the necessary packages for integration testing:
 
 ```bash
 dotnet add package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0
 dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0
-dotnet add package xunit --version 2.6.1
-dotnet add package xunit.runner.visualstudio --version 2.5.3
-dotnet add package coverlet.collector --version 6.0.0
+dotnet add package FluentAssertions --version 6.12.0
+dotnet add package Testcontainers.PostgreSql --version 3.9.0
 ```
 
-## Opening the Solution in Visual Studio Code
 
-Now that we have our repository set up, let's open it in Visual Studio Code:
 
-```bash
-code .
+You should see output indicating that all tests have passed.
+
+## Understanding the Solution Structure
+
+Let's take a moment to understand the structure of our solution:
+
+```
+TestTube/
+├── TestTube.API/
+│   ├── Controllers/
+│   │   ├── EquipmentController.cs
+│   │   └── ScientistController.cs
+│   ├── Data/
+│   │   └── TestTubeDbContext.cs
+│   ├── Models/
+│   │   ├── Equipment.cs
+│   │   └── Scientist.cs
+│   ├── Program.cs
+│   └── appsettings.json
+├── TestTube.Tests/
+│   ├── EquipmentTests.cs
+│   ├── ScientistTests.cs
+│   └── TestHelper.cs
+│   └── TestWebApplicationFactory.cs
+└── TestTube.sln
 ```
 
-Take some time to explore the solution structure and familiarize yourself with the code.
+This structure follows a common pattern for ASP.NET Core projects with integration tests:
 
-## Building the Solution
+1. **API Project**: Contains the controllers, models, and database context
+2. **Test Project**: Contains the test classes and helper classes
 
-Before we start writing tests, let's make sure the solution builds correctly:
+The key components for integration testing are:
 
-```bash
-dotnet build
-```
-
-If everything is set up correctly, you should see a successful build message.
-
-## Running the API
-
-Let's also make sure the API runs correctly:
-
-```bash
-cd TestTubes.API
-dotnet run
-```
-
-You should see output indicating that the API is running at the URL of `http://localhost:5081`
-
-You can use Yaak to perform a GET request to `http://localhost:5081/equipment` to see a list of equipment items from the database.
-
-Press `Ctrl+C` to stop the API when you're done.
-
-## Understanding the Test Project Structure
-
-Now let's take a closer look at the test project. Open the `TestTubes.Tests` directory and examine the files:
-
-1. **TestHelper.cs**: Contains helper methods for setting up the test environment
-2. **EquipmentTests.cs**: Contains tests for the equipment endpoints
-3. **ScientistTests.cs**: Contains tests for the scientist endpoints
-
-In the next chapters, we'll explore these files in detail and learn how to write effective integration tests.
+1. **WebApplicationFactory**: Creates a test host for your API
+2. **TestHelper**: Encapsulates the complexity of setting up the test environment
+3. **Test Classes**: Contain the actual test methods
 
 ## Next Steps
 
-Now that we have our test project set up, we'll dive into the WebApplicationFactory, which is a key component for integration testing in ASP.NET Core.
+In the next few chapters, you will be learning about the concepts and reponsibilities of the modules in the  **TestTubes.Tests** project.
+
+In the next we'll dive deeper into the WebApplicationFactory and how it works.
 
 [Understanding WebApplicationFactory](./testtube-webapplicationfactory.md)
