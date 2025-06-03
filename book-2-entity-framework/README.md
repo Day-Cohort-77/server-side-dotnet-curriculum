@@ -28,7 +28,7 @@ Once you have completed the projects, your job is to do a self-assessment. This 
 
 | # | | Description |
 |--|--|--|
-| 1 | [Coding Assessment](./chapters/book-2-coding-assessment.md) | In this assessment, we will be testing your understanding of Entity Framework Core and SQL concepts covered in this book. |
+| 1 | [Full Stack Reflections](./chapters/FULL_STACK_RELFECTIONS.md) | These questions will assist you in understanding if your understanding and vocabulary is at a point where are you prepared for technical job interviews |
 
 ## 🔍 Additional Materials
 

@@ -18,44 +18,45 @@ Open the `ScientistTests.cs` file in the TestTubes.Tests project. You'll see sev
 
 1. `GetAllScientists_ReturnsAllScientists`: This is the method we need to implement
 2. `GetScientistById_ReturnsCorrectScientist`: Tests that the GET `/scientist/{id}` endpoint returns the correct scientist
-3. `GetScientistWithEquipment_IncludesEquipment`: Tests that the GET `/scientist/{id}` endpoint includes the scientist's equipment
-4. `CreateScientist_AddsNewScientist`: Tests that the POST `/scientist` endpoint adds a new scientist
 
 Let's look at the `GetScientistById_ReturnsCorrectScientist` method to understand the pattern:
 
 ```csharp
-[Fact]
-public async Task GetScientistById_ReturnsCorrectScientist()
-{
-    // Arrange
-    var client = _testHelper.Client;
-    var expectedId = 1;
-    var expectedName = "Marie Curie";
-    var expectedSpecialty = "Radioactivity";
+ [Fact]
+ public async Task GetScientistById_ReturnsCorrectScientist()
+ {
+   // Arrange
+   int scientistId = 1;
 
-    // Act
-    var response = await client.GetAsync($"/scientists/{expectedId}");
-    var scientist = await response.Content.ReadFromJsonAsync<Scientist>();
+   // Act
+   var scientist = await TestHelper.GetScientistByIdAsync(_client, scientistId);
 
-    // Assert
-    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    Assert.Equal(expectedId, scientist.Id);
-    Assert.Equal(expectedName, scientist.Name);
-    Assert.Equal(expectedSpecialty, scientist.Specialty);
+   // Assert
+   Assert.NotNull(scientist);
+   Assert.Equal(scientistId, scientist.Id);
+   Assert.Equal("Marie Curie", scientist.Name);
+   Assert.Equal("Physics", scientist.Department);
+   Assert.NotNull(scientist.Equipment);
+   // We don't check for a specific count as the number of equipment items can vary
+
+   // Check equipment details
+   var equipment = scientist.Equipment.ToList();
+   Assert.Contains(equipment, e => e.Name == "Microscope");
+   Assert.Contains(equipment, e => e.Name == "Centrifuge");
 }
+
 ```
 
 This test:
-1. Gets the HTTP client from the TestHelper
-2. Defines the expected values for the scientist with ID 1 (which is part of the seed data)
-3. Makes a GET request to the `/scientists/1` endpoint
-4. Deserializes the response to a Scientist object
-5. Verifies that the response has a 200 OK status code
-6. Verifies that the returned scientist has the expected properties
+
+1. Defines the expected values for the scientist with ID 1 (which is part of the seed data)
+2. Makes a GET request to the `/scientists/1` endpoint by using the method from the `TestHelper`.
+3. Deserializes the response to a Scientist object
+5. Verifies that the returned scientist has the expected property values
 
 ## Implementing the Missing Test Method
 
-Your job is to implement the `GetAllScientists_ReturnsAllScientists()` method.
+Your job is to implement the `GetAllScientists_ReturnsAllScientists()` method. Refer to the equipment tests module for help you out.
 
 ## Running the Tests
 

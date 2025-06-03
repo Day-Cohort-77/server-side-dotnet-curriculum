@@ -17,47 +17,52 @@ Let's examine the structure of a test module to understand how it's organized.
 
 ## Test Module Structure
 
-Open the `EquipmentTests.cs` file in the TestTubes.Tests project. You'll see something like this:
+Open the `EquipmentTests.cs` file in the TestTubes.Tests project. In this module, there is one implemented test, and another one that you will implement later.
 
-```csharp
-using System.Net;
-using System.Net.Http.Json;
-using TestTubes.API.Models;
-using Xunit;
+```cs
+namespace TestTube.Tests;
 
-namespace TestTubes.Tests;
-
-public class EquipmentTests
+public class EquipmentTests : IClassFixture<TestWebApplicationFactory>, IDisposable
 {
-    private readonly TestHelper _testHelper;
+    private readonly TestWebApplicationFactory _factory;
+    private readonly HttpClient _client;
 
-    public EquipmentTests()
+    public EquipmentTests(TestWebApplicationFactory factory)
     {
-        _testHelper = new TestHelper();
+        _factory = factory;
+        _client = _factory.CreateClient();
     }
 
     [Fact]
     public async Task GetAllEquipment_ReturnsAllEquipment()
     {
-        // Arrange
-        var client = _testHelper.Client;
-
         // Act
-        var response = await client.GetAsync("/equipment");
-        var equipment = await response.Content.ReadFromJsonAsync<List<Equipment>>();
+        var equipment = await TestHelper.GetAllEquipmentAsync(_client);
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(4, equipment.Count);
+        Assert.NotNull(equipment);
+        // We don't check for a specific count as the number of items can vary from 0 to n
+        Assert.Contains(equipment, e => e.Name == "Microscope");
+        Assert.Contains(equipment, e => e.Name == "Centrifuge");
+        Assert.Contains(equipment, e => e.Name == "Spectrometer");
+        Assert.Contains(equipment, e => e.Name == "PCR Machine");
     }
 
     [Fact]
     public async Task GetEquipmentById_ReturnsCorrectEquipment()
     {
-        // This test needs to be implemented
+        // Arrange
+        int equipmentId = 1;
+
+        // Act
+
+        // Assert
     }
 
-    // More test methods...
+    public void Dispose()
+    {
+        _client.Dispose();
+    }
 }
 ```
 
@@ -65,36 +70,72 @@ Let's break down the key components of this test module:
 
 ### Namespace and Class Declaration
 
-The test module is defined as a class within the `TestTubes.Tests` namespace. The class name typically reflects what's being tested, in this case, `EquipmentTests`.
+The test module is defined as a class within the `TestTube.Tests` namespace. The class name typically reflects what's being tested, in this case, `EquipmentTests`.
 
-### Fields and Constructor
+### Interface Implementation and Constructor
 
-The test module has a private field for the TestHelper and a constructor that initializes it:
+The test module implements two interfaces and has a constructor that initializes the necessary components:
 
-```csharp
-private readonly TestHelper _testHelper;
-
-public EquipmentTests()
+```cs
+public class EquipmentTests : IClassFixture<TestWebApplicationFactory>, IDisposable
 {
-    _testHelper = new TestHelper();
-}
+    private readonly TestWebApplicationFactory _factory;
+    private readonly HttpClient _client;
+
+    public EquipmentTests(TestWebApplicationFactory factory)
+    {
+        _factory = factory;
+        _client = _factory.CreateClient();
+    }
 ```
 
-This ensures that each test method has access to the TestHelper, which provides the HTTP client and sets up the test environment.
+Let's break down what's happening here:
+
+1. `IClassFixture<TestWebApplicationFactory>`: This is an xUnit interface that tells the test runner to create a single instance of `TestWebApplicationFactory` and provide it to all test methods in this class. This ensures that all tests share the same test server and database.
+
+2. `IDisposable`: This interface allows the test class to clean up resources when it's done. In this case, we need to dispose of the HTTP client.
+
+3. The constructor takes a `TestWebApplicationFactory` parameter, which is injected by xUnit. It then:
+   - Stores the factory for later use
+   - Creates an HTTP client that's configured to work with the test server
 
 ### Test Methods
 
 The test module contains one or more test methods, each annotated with the `[Fact]` attribute:
 
-```csharp
+```cs
 [Fact]
-public async Task GetAllEquipment_ReturnsAllEquipment()
+public async Task GetScientistById_ReturnsCorrectScientist()
 {
-    // Test implementation...
+   // Arrange
+   int scientistId = 1;
+
+   // Act
+   var scientist = await TestHelper.GetScientistByIdAsync(_client, scientistId);
+
+   // Assert
+   Assert.NotNull(scientist);
+   Assert.Equal(scientistId, scientist.Id);
+   Assert.Equal("Marie Curie", scientist.Name);
+   Assert.Equal("Physics", scientist.Department);
+   Assert.NotNull(scientist.Equipment);
 }
 ```
 
 Each test method tests a specific aspect of the application's behavior. The method name typically follows the pattern `MethodName_ExpectedBehavior`, which makes it clear what's being tested and what the expected outcome is.
+
+### Resource Cleanup
+
+Since the test class implements `IDisposable`, it includes a `Dispose` method to clean up resources:
+
+```cs
+public void Dispose()
+{
+    _client.Dispose();
+}
+```
+
+This ensures that the HTTP client is properly disposed of after the tests are complete, preventing resource leaks.
 
 ## The Arrange-Act-Assert Pattern
 
@@ -104,29 +145,31 @@ Most test methods follow the Arrange-Act-Assert (AAA) pattern, which divides the
 2. **Act**: Perform the action being tested
 3. **Assert**: Verify that the action produced the expected result
 
-Let's look at an example:
+Let's look at that example again:
 
-```csharp
+```cs
 [Fact]
-public async Task GetAllEquipment_ReturnsAllEquipment()
+public async Task GetScientistById_ReturnsCorrectScientist()
 {
-    // Arrange
-    var client = _testHelper.Client;
+   // Arrange
+   int scientistId = 1;
 
-    // Act
-    var response = await client.GetAsync("/equipment");
-    var equipment = await response.Content.ReadFromJsonAsync<List<Equipment>>();
+   // Act
+   var scientist = await TestHelper.GetScientistByIdAsync(_client, scientistId);
 
-    // Assert
-    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    Assert.Equal(4, equipment.Count);
+   // Assert
+   Assert.NotNull(scientist);
+   Assert.Equal(scientistId, scientist.Id);
+   Assert.Equal("Marie Curie", scientist.Name);
+   Assert.Equal("Physics", scientist.Department);
+   Assert.NotNull(scientist.Equipment);
 }
 ```
 
 In this example:
-- **Arrange**: We get the HTTP client from the TestHelper
-- **Act**: We make a GET request to the equipment endpoint and deserialize the response
-- **Assert**: We verify that the response has a 200 OK status code and contains 4 equipment items
+- **Arrange**: Sets up the data needed for the test by specifiying `1` as the ID you will be retrieving
+- **Act**: We call the `TestHelper.GetScientistByIdAsync` method, which makes a GET request to the `/scientists` endpoint and deserializes the response
+- **Assert**: We verify that the response is not null and that the serialized object has all of the correct property values
 
 The AAA pattern makes tests easier to read and understand, as it clearly separates the setup, the action, and the verification.
 
@@ -145,43 +188,16 @@ For example:
 
 Clear and descriptive test method names serve as documentation for your code and make it easier to understand what's being tested.
 
-## Test Method Implementation
+## Running the Tests
 
-Let's look at a complete test method implementation:
+Time for you to run your tests for the first time.
 
-```csharp
-[Fact]
-public async Task GetEquipmentById_WithValidId_ReturnsCorrectEquipment()
-{
-    // Arrange
-    var client = _testHelper.Client;
-    var expectedId = 1;
-    var expectedName = "Microscope";
-
-    // Act
-    var response = await client.GetAsync($"/equipment/{expectedId}");
-    var equipment = await response.Content.ReadFromJsonAsync<Equipment>();
-
-    // Assert
-    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    Assert.Equal(expectedId, equipment.Id);
-    Assert.Equal(expectedName, equipment.Name);
-}
+```bash
+cd TestTubes.Tests
+dotnet test
 ```
 
-This test:
-1. Arranges the test by getting the HTTP client and defining the expected values
-2. Acts by making a GET request to the equipment endpoint with a specific ID
-3. Asserts that the response has a 200 OK status code and that the returned equipment has the expected ID and name
-
-## Test Methods to Implement
-
-In the TestTube project, you'll need to implement two test methods:
-
-1. `GetEquipmentById_ReturnsCorrectEquipment` in the EquipmentTests class
-2. `GetAllScientists_ReturnsAllScientists` in the ScientistTests class
-
-These methods are already defined but have empty implementations. Your task will be to fill in these implementations following the patterns you've learned.
+You will notice that some passed, and some failed, because right now, not all tests have been implemented.
 
 ## Next Steps
 

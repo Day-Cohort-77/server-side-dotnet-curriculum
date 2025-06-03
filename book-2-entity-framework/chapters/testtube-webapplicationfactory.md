@@ -50,7 +50,7 @@ public class MyApiTests : IClassFixture<WebApplicationFactory<Program>>
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/api/myendpoint");
+        var response = await client.GetAsync("/myendpoint");
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -119,9 +119,65 @@ In this example:
 
 In the TestTube project, we'll use a custom WebApplicationFactory to:
 
-1. Replace the real database with an in-memory database
-2. Seed the database with test data
-3. Configure the HTTP client to work with our API
+1. Configure the application to use the Testing environment
+2. Use an in-memory database for testing
+3. Seed the database with test data for our tests
+
+Here's the implementation of our `TestWebApplicationFactory` class:
+
+```cs
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using TestTube.Data;
+
+namespace TestTube.Tests;
+
+public class TestWebApplicationFactory : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        // Set the environment to Testing
+        builder.UseEnvironment("Testing");
+
+        // The Program.cs will now use the in-memory database for the Testing environment
+
+        builder.ConfigureServices(services =>
+        {
+            // Build the service provider
+            var sp = services.BuildServiceProvider();
+
+            // Create a scope to obtain a reference to the database context
+            using var scope = sp.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var db = scopedServices.GetRequiredService<ApplicationDbContext>();
+            var logger = scopedServices.GetRequiredService<ILogger<TestWebApplicationFactory>>();
+
+            try
+            {
+                // Ensure the database is created
+                db.Database.EnsureCreated();
+
+                // Seed the database with test data
+                TestHelper.SeedDatabase(db);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred seeding the database. Error: {Message}", ex.Message);
+            }
+        });
+    }
+}
+```
+
+This implementation:
+
+1. Sets the environment to "Testing", which allows our application to use different configuration for tests
+2. Uses the service provider to get access to the database context
+3. Creates the database and seeds it with test data using the `TestHelper.SeedDatabase` method
+4. Includes error handling to log any issues that occur during database setup
 
 This will allow us to write integration tests that verify the behavior of our API endpoints without needing a real database.
 

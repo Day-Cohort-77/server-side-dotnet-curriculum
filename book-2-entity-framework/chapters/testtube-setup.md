@@ -1,5 +1,7 @@
 # Setting Up a Test Project from Scratch
 
+> 🧨 It is important that you understand that you don't need to do anything for this chapter. It is for reference only when you want to create a project in the future that has tests.
+
 ## Learning Objectives
 - Create a new ASP.NET Core Web API project
 - Set up a test project with the necessary packages
@@ -8,25 +10,25 @@
 
 ## Creating Your API Project
 
-Let's start by creating a new ASP.NET Core Web API project that we'll use for our integration tests.
+You start by creating a new ASP.NET Core Web API project.
 
 1. Open a terminal and navigate to the directory where you want to create your project
 2. Create a new solution:
 
 ```bash
-dotnet new sln -n TestTube
+dotnet new sln -n MyProject
 ```
 
 3. Create a new ASP.NET Core Web API project:
 
 ```bash
-dotnet new webapi -n TestTube.API
+dotnet new webapi -n MyProject.API
 ```
 
 4. Add the API project to the solution:
 
 ```bash
-dotnet sln add TestTube.API
+dotnet sln add MyProject.API
 ```
 
 ## Setting Up the API Project
@@ -35,7 +37,7 @@ First, you would build your API project just as you have with the previous proje
 
 ## Creating the Test Project
 
-Now that we have our API project set up, let's create a test project to test it:
+Now that you have the API project set up, create a test project to test it:
 
 1. Navigate back to the solution directory:
 
@@ -46,20 +48,20 @@ cd ..
 2. Create a new xUnit test project:
 
 ```bash
-dotnet new xunit -n TestTube.Tests
+dotnet new xunit -n MyProject.Tests
 ```
 
 3. Add the test project to the solution:
 
 ```bash
-dotnet sln add TestTube.Tests
+dotnet sln add MyProject.Tests
 ```
 
 4. Add a reference to the API project from the test project:
 
 ```bash
-cd TestTube.Tests
-dotnet add reference ../TestTube.API
+cd MyProject.Tests
+dotnet add reference ../MyProject.API
 ```
 
 5. Add the necessary packages for integration testing:
@@ -71,13 +73,9 @@ dotnet add package FluentAssertions --version 6.12.0
 dotnet add package Testcontainers.PostgreSql --version 3.9.0
 ```
 
-
-
-You should see output indicating that all tests have passed.
-
 ## Understanding the Solution Structure
 
-Let's take a moment to understand the structure of our solution:
+Let's take a moment to understand the structure of the TestTube project.
 
 ```
 TestTube/

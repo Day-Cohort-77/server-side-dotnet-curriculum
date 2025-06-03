@@ -2,129 +2,190 @@
 
 ## Learning Objectives
 - Understand the purpose of the TestHelper class in integration testing
-- Learn how TestHelper uses WebApplicationFactory to set up the test environment
-- Understand how TestHelper seeds the database with test data
+- Learn how TestHelper seeds the database with test data
+- Understand how TestHelper provides methods for HTTP client operations
 - Learn how to use TestHelper in your tests
 
 ## What is the TestHelper Class?
 
-The TestHelper class is a custom utility class that simplifies setting up the test environment for our integration tests. It encapsulates the complexity of configuring the WebApplicationFactory, seeding the database, and creating HTTP clients.
+The TestHelper class is a static utility class that simplifies integration testing by providing methods to seed the database with test data and perform common HTTP client operations. It works with the in-memory database configuration that's automatically set up when the application runs in the "Testing" environment.
 
 In the TestTube project, the TestHelper class is already implemented for you. Let's examine it to understand how it works.
 
 ## Examining the TestHelper Class
 
-Open the `TestHelper.cs` file in the TestTubes.Tests project. You'll see something like this:
+Open the `TestHelper.cs` file in the TestTube.Tests project. You'll see something like this:
 
 ```csharp
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net.Http.Json;
-using TestTubes.API.Data;
-using TestTubes.API.Models;
+using System.Text.Json;
+using TestTube.Data;
+using TestTube.DTOs;
+using TestTube.Models;
 
-namespace TestTubes.Tests;
+namespace TestTube.Tests;
 
-public class TestHelper
+public static class TestHelper
 {
-    private WebApplicationFactory<Program> _factory;
-    private HttpClient _client;
-
-    public TestHelper()
+    public static void SeedDatabase(ApplicationDbContext dbContext)
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Remove the real database context registration
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<TestTubeDbContext>));
+        // Add scientists
+        var scientist1 = new Scientist
+        {
+            Id = 1,
+            Name = "Marie Curie",
+            Department = "Physics",
+            Email = "marie.curie@testtube.com",
+            HireDate = new DateTime(2020, 1, 15)
+        };
 
-                    if (descriptor != null)
-                    {
-                        services.Remove(descriptor);
-                    }
+        var scientist2 = new Scientist
+        {
+            Id = 2,
+            Name = "Albert Einstein",
+            Department = "Physics",
+            Email = "albert.einstein@testtube.com",
+            HireDate = new DateTime(2021, 3, 10)
+        };
 
-                    // Add the in-memory database context
-                    services.AddDbContext<TestTubeDbContext>(options =>
-                    {
-                        options.UseInMemoryDatabase("TestTubeDb");
-                    });
+        var scientist3 = new Scientist
+        {
+            Id = 3,
+            Name = "Rosalind Franklin",
+            Department = "Chemistry",
+            Email = "rosalind.franklin@testtube.com",
+            HireDate = new DateTime(2022, 5, 20)
+        };
 
-                    // Seed the database with test data
-                    var sp = services.BuildServiceProvider();
-                    using var scope = sp.CreateScope();
-                    var scopedServices = scope.ServiceProvider;
-                    var db = scopedServices.GetRequiredService<TestTubeDbContext>();
-                    db.Database.EnsureCreated();
+        dbContext.Scientists.AddRange(scientist1, scientist2, scientist3);
+        dbContext.SaveChanges();
 
-                    SeedData(db);
-                });
-            });
+        // Add equipment
+        var equipment1 = new Equipment
+        {
+            Id = 1,
+            Name = "Microscope",
+            SerialNumber = "MS-12345",
+            Manufacturer = "Zeiss",
+            PurchaseDate = new DateTime(2021, 2, 10),
+            Price = 15000.00m,
+            ScientistId = 1
+        };
 
-        _client = _factory.CreateClient();
+        var equipment2 = new Equipment
+        {
+            Id = 2,
+            Name = "Centrifuge",
+            SerialNumber = "CF-67890",
+            Manufacturer = "Thermo Fisher",
+            PurchaseDate = new DateTime(2022, 4, 15),
+            Price = 8500.00m,
+            ScientistId = 1
+        };
+
+        var equipment3 = new Equipment
+        {
+            Id = 3,
+            Name = "Spectrometer",
+            SerialNumber = "SP-24680",
+            Manufacturer = "Agilent",
+            PurchaseDate = new DateTime(2023, 1, 5),
+            Price = 22000.00m,
+            ScientistId = 2
+        };
+
+        var equipment4 = new Equipment
+        {
+            Id = 4,
+            Name = "PCR Machine",
+            SerialNumber = "PCR-13579",
+            Manufacturer = "Bio-Rad",
+            PurchaseDate = new DateTime(2023, 6, 20),
+            Price = 12000.00m,
+            ScientistId = 3
+        };
+
+        dbContext.Equipment.AddRange(equipment1, equipment2, equipment3, equipment4);
+        dbContext.SaveChanges();
     }
 
-    public HttpClient Client => _client;
-
-    private void SeedData(TestTubeDbContext db)
+    // HTTP client methods for integration testing
+    public static async Task<List<ScientistDto>> GetAllScientistsAsync(HttpClient client)
     {
-        // Clear existing data
-        db.Equipment.RemoveRange(db.Equipment);
-        db.Scientists.RemoveRange(db.Scientists);
-        db.SaveChanges();
-
-        // Add test scientists
-        var scientists = new List<Scientist>
+        var response = await client.GetAsync("/scientists");
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<ScientistDto>>(content, new JsonSerializerOptions
         {
-            new Scientist { Id = 1, Name = "Marie Curie", Specialty = "Radioactivity" },
-            new Scientist { Id = 2, Name = "Albert Einstein", Specialty = "Theoretical Physics" },
-            new Scientist { Id = 3, Name = "Isaac Newton", Specialty = "Classical Mechanics" }
-        };
-        db.Scientists.AddRange(scientists);
+            PropertyNameCaseInsensitive = true
+        });
+    }
 
-        // Add test equipment
-        var equipment = new List<Equipment>
+    public static async Task<ScientistDetailDto> GetScientistByIdAsync(HttpClient client, int id)
+    {
+        var response = await client.GetAsync($"/scientists/{id}");
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<ScientistDetailDto>(content, new JsonSerializerOptions
         {
-            new Equipment { Id = 1, Name = "Microscope", Type = "Optical", ScientistId = 1 },
-            new Equipment { Id = 2, Name = "Telescope", Type = "Astronomical", ScientistId = 2 },
-            new Equipment { Id = 3, Name = "Centrifuge", Type = "Laboratory", ScientistId = null },
-            new Equipment { Id = 4, Name = "Spectrometer", Type = "Analytical", ScientistId = 3 }
-        };
-        db.Equipment.AddRange(equipment);
+            PropertyNameCaseInsensitive = true
+        });
+    }
 
-        db.SaveChanges();
+    public static async Task<List<EquipmentDto>> GetAllEquipmentAsync(HttpClient client)
+    {
+        var response = await client.GetAsync("/equipment");
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<List<EquipmentDto>>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+    }
+
+    public static async Task<EquipmentDetailDto> GetEquipmentByIdAsync(HttpClient client, int id)
+    {
+        var response = await client.GetAsync($"/equipment/{id}");
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<EquipmentDetailDto>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
     }
 }
 ```
 
 Let's break down the key components of this class:
 
-### Constructor
+### Static Class Design
 
-The constructor does the heavy lifting of setting up the test environment:
+The `TestHelper` is now a static class, which means:
 
-1. It creates a new WebApplicationFactory for the Program class (our API's entry point)
-2. It configures the WebApplicationFactory to use an in-memory database instead of the real database
-3. It seeds the database with test data
-4. It creates an HTTP client that we can use to make requests to our API
+1. It doesn't need to be instantiated - you can call its methods directly
+2. It doesn't maintain any instance state between calls
+3. It's designed to work with the in-memory database that's configured in the `Program.cs` file
 
-### Client Property
+### SeedDatabase Method
 
-The `Client` property provides access to the HTTP client that's configured to work with our test server. We'll use this client to make requests to our API in our tests.
+The `SeedDatabase` method populates the in-memory database with test data:
 
-### SeedData Method
-
-The `SeedData` method populates the in-memory database with test data:
-
-1. It clears any existing data from the database
-2. It adds test scientists to the database
-3. It adds test equipment to the database, some of which is assigned to scientists
+1. It adds three scientists with detailed information (name, department, email, hire date)
+2. It adds four pieces of equipment with detailed information (name, serial number, manufacturer, purchase date, price)
+3. It assigns each piece of equipment to a scientist
 4. It saves the changes to the database
 
 This ensures that our tests start with a known state, making them more reliable and predictable.
+
+### HTTP Client Helper Methods
+
+The class provides several helper methods for making HTTP requests to the API:
+
+1. `GetAllScientistsAsync` - Gets a list of all scientists
+2. `GetScientistByIdAsync` - Gets a specific scientist by ID
+3. `GetAllEquipmentAsync` - Gets a list of all equipment
+4. `GetEquipmentByIdAsync` - Gets a specific piece of equipment by ID
+
+These methods handle the HTTP request, ensure a successful response, and deserialize the JSON response into the appropriate DTO objects.
 
 ## Why Use a TestHelper Class?
 
@@ -135,52 +196,14 @@ There are several benefits to using a TestHelper class:
 3. **Consistency**: It ensures that all tests start with the same database state
 4. **Simplicity**: It makes your test classes cleaner and more focused on testing behavior
 
-## Using TestHelper in Tests
-
-Now that we understand the TestHelper class, let's see how it's used in our tests. Here's a simplified example:
-
-```csharp
-public class EquipmentTests
-{
-    private readonly TestHelper _testHelper;
-
-    public EquipmentTests()
-    {
-        _testHelper = new TestHelper();
-    }
-
-    [Fact]
-    public async Task GetAllEquipment_ReturnsAllEquipment()
-    {
-        // Arrange
-        var client = _testHelper.Client;
-
-        // Act
-        var response = await client.GetAsync("/equipment");
-        var equipment = await response.Content.ReadFromJsonAsync<List<Equipment>>();
-
-        // Assert
-        Assert.Equal(4, equipment.Count);
-    }
-}
-```
-
-In this example:
-- We create a new TestHelper in the constructor
-- We get the HTTP client from the TestHelper
-- We use the client to make a GET request to the equipment endpoint
-- We deserialize the response to a list of Equipment objects
-- We assert that the list contains the expected number of items
-
 ## Customizing TestHelper for Your Tests
 
 While the TestHelper class provided in the TestTube project is sufficient for most tests, you might want to customize it for specific test scenarios. For example, you might want to:
 
-1. Add different test data
-2. Configure additional services
-3. Add authentication to the HTTP client
-
-You can do this by extending the TestHelper class or by creating a new helper class for specific test scenarios.
+1. Add different test data to the `SeedDatabase` method
+2. Add new helper methods for additional API endpoints
+3. Add methods for handling authentication tokens
+4. Create specialized DTO classes for specific test scenarios
 
 ## Next Steps
 
