@@ -79,38 +79,11 @@ Once we've identified areas that need more testing, we can implement strategies 
 4. **Refactor complex methods**: Break down complex methods into smaller, more testable methods.
 5. **Use parameterized tests**: Use xUnit's `[Theory]` attribute to test multiple inputs with a single test method.
 
-Let's implement some of these strategies for the TestTube project.
-
-### Testing Error Conditions
-
-Let's add a test for the error handling in the `UpdateEquipment` method:
-
-```csharp
-[Fact]
-public async Task UpdateEquipment_WithInvalidId_ReturnsNotFound()
-{
-    // Arrange
-    var client = _testHelper.Client;
-    var invalidId = 999; // An ID that doesn't exist
-    var updatedEquipment = new Equipment
-    {
-        Id = invalidId,
-        Name = "Updated Equipment",
-        Type = "Updated Type",
-        ScientistId = 1
-    };
-
-    // Act
-    var response = await client.PutAsJsonAsync($"/api/equipment/{invalidId}", updatedEquipment);
-
-    // Assert
-    Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-}
-```
+Let's implement one of these strategies for the TestTube project.
 
 ### Testing Validation Logic
 
-Let's add a test for the validation logic in the `CreateScientist` method:
+Let's add a test for the validation logic in the for the POST operation to create a new scientist, but with some bad data.
 
 ```csharp
 [Fact]
@@ -154,16 +127,6 @@ It's a good practice to set coverage goals for your project. For example, you mi
 
 These goals can help guide your testing efforts and ensure that you're focusing on the most important parts of your code.
 
-## Continuous Integration
-
-To ensure that your coverage doesn't decrease over time, you can integrate coverage measurement into your continuous integration (CI) pipeline. For example, you can:
-
-1. Run tests with coverage on every pull request
-2. Fail the build if coverage drops below a certain threshold
-3. Generate coverage reports as artifacts
-
-This helps maintain and improve code quality over time.
-
 ## Conclusion
 
 In this chapter, we've learned how to measure and improve test coverage in a .NET project. We've seen how to use the .NET CLI to collect coverage data, how to analyze coverage reports to identify areas for improvement, and how to implement strategies to improve coverage.
@@ -173,13 +136,6 @@ Remember that while high coverage is a good goal, the quality of your tests is e
 Congratulations on completing the TestTube integration testing series! You now have the knowledge and skills to write effective integration tests for ASP.NET Core APIs with Entity Framework.
 
 ## Next Steps
-
-Now that you've completed the TestTube integration testing series, you might want to explore more advanced testing topics, such as:
-
-- Performance testing
-- Load testing
-- Security testing
-- UI testing
 
 You can also apply what you've learned to your own projects, writing integration tests for your APIs to ensure they work correctly.
 
