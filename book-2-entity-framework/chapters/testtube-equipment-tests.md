@@ -85,7 +85,7 @@ cd TestTubes.Tests
 dotnet test
 ```
 
-If everything is implemented correctly, all tests should pass.
+If everything is implemented correctly, both of the equipment tests should be passing.
 
 ## Next Steps
 

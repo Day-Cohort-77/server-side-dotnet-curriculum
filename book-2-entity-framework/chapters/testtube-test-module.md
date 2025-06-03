@@ -199,6 +199,8 @@ dotnet test
 
 You will notice that some passed, and some failed, because right now, not all tests have been implemented.
 
+![terminal output of two failing tests](./images/first-failed-tests.png)
+
 ## Next Steps
 
 Now that we understand the structure of a test module, let's implement the equipment tests.

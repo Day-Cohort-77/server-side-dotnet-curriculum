@@ -67,14 +67,16 @@ cd TestTubes.Tests
 dotnet test
 ```
 
-If everything is implemented correctly, all tests should pass.
+If everything is implemented correctly, all four tests should pass.
+
+![terminal output showing all tests passing](./images/all-tests-passing.png)
 
 ## Optional Learning
 
 If you want to build your competency with implementing API endpoints, and their corresponding tests, you can work on the following tasks.
 
-1. Implement a `MapPut()` method in your scientist endpoint in your API project that will support PUT operations to `/scientists`.
-2. Then implement a test method named `UpdateScientist_ModifiesExistingScientist` which tests that the PUT `/scientist/{id}` endpoint updates an existing scientist
+1. Implement a `MapPost()` method in your scientist endpoint in your API project that will support POST operations to `/scientists`.
+2. Then implement a test method named `CreateScientist_ReturnsNewScientist` which tests that the POST operation `/scientist/{id}` endpoint creates a new scientist and returns the JSON representation of it
 3. Implement a `MapDelete()` method in your scientist endpoint in your API project that will support DELETE operations to `/scientists/{id}`.
 4. Implement a test method named `DeleteScientist_RemovesScientist` which tests that the DELETE `/scientist/{id}` endpoint removes a scientist
 
