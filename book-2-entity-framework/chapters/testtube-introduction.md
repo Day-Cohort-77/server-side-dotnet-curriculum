@@ -75,8 +75,14 @@ By the end of this series, you'll have implemented integration tests for key end
 
 ## Getting Started
 
-In the next chapter, we'll set up a test project and configure it to work with our API. We'll use the GitHub repository template at https://github.com/nashville-software-school/TestTube as our starting point.
+1. Visit the [TestTube GitHub template repository](https://github.com/nashville-software-school/TestTube) template at  as our starting point.
+2. Click the **Use this template** button
+3. Choose **Create a new repository**
+4. Choose your account and give it a name of **TestTube**
+5. Once generated, clone the repo to your machine
 
 ## Next Steps
+
+In the next chapter, there are instsructions on how you can set up an API+testing project in the future.
 
 [Setting Up a Test Project](./testtube-setup.md)
