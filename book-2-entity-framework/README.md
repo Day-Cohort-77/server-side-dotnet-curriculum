@@ -2,10 +2,6 @@
 
 In this section of the course, you'll learn how to use Entity Framework Core (EF Core) to interact with a SQL database. EF Core is an object-relational mapper (ORM) that allows .NET developers to work with a database using .NET objects, eliminating the need to write most of the data-access code.
 
-## Installations
-
-Before you start work on the projects in this section, you need to complete all of the [installations](./chapters/book-2-installs.md). Once done, come back to this page and start on the first project.
-
 ## Projects
 
 | # | 🏕️ Creek River<br/><sub>(_EF Introduction_)</sub> | 📚 Loncotes Library<br/><sub>(_Data Transfer Objects_)</sub> | 🧁 Tiny Treats<br/><sub>(_Authentication_)</sub> | 🧪 TestTubes<br/><sub>(_Integration Testing_)</sub> |

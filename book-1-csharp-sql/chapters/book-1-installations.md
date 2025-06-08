@@ -1,14 +1,14 @@
-# Installations for Book 1
+# Installations for this course
 
 To complete the exercises and projects in Book 1, you'll need to install several tools and software packages. This guide will walk you through the installation process for each required component.
 
 ## Required Software
 
 1. **.NET SDK** - For C# development
-2. **Visual Studio Code** - Code editor
+2. **PostgreSQL** - Database system
 3. **C# Dev Kit Extension** - For C# development in VS Code
-4. **PostgreSQL** - Database system
-5. **pgAdmin** - PostgreSQL management tool
+4. **SQLTools Extension** - VSCode database management tool
+5. **Postgres Extension** - VSCode extension for connecting to a Postgres database
 6. **Yaak** - API testing tool
 
 ## Installing .NET SDK
@@ -88,6 +88,20 @@ To ensure everything is installed correctly:
 3. Both commands should return version information
 4. Open VS Code and ensure the C# Dev Kit extension is active
 5. Open pgAdmin and verify you can connect to your PostgreSQL server
+
+## SQLTools and Postgres Driver Extensions
+
+1. Open Visual Studio Code
+2. Click on the Extensions icon in the sidebar (or press Ctrl+Shift+X)
+3. Search for **SQLTools**
+4. Click "Install"
+5. Search for **SQLTools PostgreSQL/Cockroach Driver**
+6. Click "Install"
+7. Restart VSCode, or the extensions, if you are prompted to
+
+## Yaak
+
+If you haven't install Yaak yet, <a href="https://yaak.app/" target="_blank">visit its website</a> to download and install it. It's a fast, open-source API client that is easy to use.
 
 ## Troubleshooting
 

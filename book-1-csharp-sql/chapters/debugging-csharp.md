@@ -18,7 +18,6 @@ Once the extension is installed, you can set up debugging for your C# applicatio
 3. Click on "create a launch.json file" and select ".NET Core" from the dropdown
 4. VS Code will create a `.vscode/launch.json` file with default configurations and open the contents
 5. Replace the default content with the following JSON. Note that the `program` key has a path to a file named `HarborMaster.dll`. The name of this file will change for every project — all other values will remain the same.
-
    ```json
    {
        // Use IntelliSense to learn about possible attributes.

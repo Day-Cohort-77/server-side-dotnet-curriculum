@@ -96,23 +96,13 @@ namespace HarborMaster.Models
 
 ## Step 4: Setting Up Database Connection
 
-Now, let's set up the database connection:
+Now, let's set up the database connection. Run the following commands in your terminal to create the connection string that you program will use to create, and connect to, your database for the project.
 
-1. Update `appsettings.json` to include the connection string. Update `your_password` with the password that you created when you installed Postgres/pgAdmin.
+Replace *your_password* with the password that you created for the **postgres** user.
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Database=harbormaster;Username=postgres;Password=your_password"
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-}
+```sh
+dotnet user-secrets init
+dotnet user-secrets set 'HarborMasterConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=your_password;Database=harbormaster'
 ```
 
 2. Create a database service to handle database operations. Create `Services/DatabaseService.cs`:
@@ -130,8 +120,8 @@ namespace HarborMaster.Services
 
         public DatabaseService(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") ??
-                throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _connectionString = configuration.GetConnectionString("HarborMasterConnectionString") ??
+                throw new InvalidOperationException("Connection string 'HarborMasterConnectionString' not found.");
         }
 
         public NpgsqlConnection CreateConnection()

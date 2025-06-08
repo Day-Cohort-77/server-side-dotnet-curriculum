@@ -99,6 +99,38 @@ Now when you restart the debugger to activate this code, it will perform two tas
 1. Initialize the database
 2. Add some starter data _(a.k.a. seeding)_ to the database
 
+## Testing the Seeding
+
+Let's run the application to test our seeding logic:
+
+1. Restart the debugger, which will execute all of your database seeding logic
+2. Go to the **SQLTools** extension panel in VSCode
+3. Click **Add New Connection**
+4. Enter **HarborMaster** as the connection name
+5. Enter **harbormaster** as the database
+6. Enter **postgres** for the username
+7. Scroll down and click **Test Connection**
+8. You will be asked to enter in your postgres user password
+9. You should then see **Successfully connected!** message
+10. Click the **Save Connection** button
+
+You will see a new connection in your SQLTools panel. To view the data:
+
+1. Expand the connection until you see the **Tables** item.
+2. Once you expand that, you should see the docks, haulers, and ships tables.
+3. Click the icon of the magnifying glass with the plus sign inside of it for each table
+4. Verify that each table has data in it
+
+![walkthrough of connecting to database with sqltools](./images/harbormaster-db-connect.gif)
+
+If you have issues with any of these steps, reach out to your instructor ASAP.
+
+## Conclusion
+
+In this chapter, you've learned how to seed a PostgreSQL database with initial data using SQL queries through Npgsql. You've implemented a method to check if data already exists and to insert sample data for the Harbor Master project.
+
+In the next chapter, we'll learn how to implement GET operations to retrieve ship data from the database.
+
 ## Alternative Approach: Using a SQL Script
 
 Another approach to seeding the database is to use a SQL script. This can be useful for more complex seeding operations or when you want to keep all your database operations in SQL files.
@@ -158,27 +190,6 @@ public async Task SeedDatabaseAsync()
 ```
 
 This approach keeps all your SQL logic in SQL files, which can be easier to manage for complex database operations.
-
-## Testing the Seeding
-
-Let's run the application to test our seeding logic:
-
-1. Restart the debugger
-
-2. Use pgAdmin to connect to your database and verify that the tables have been created and populated with data.
-
-3. You should see:
-   - 3 records in the docks table
-   - 3 records in the haulers table
-   - 18 records in the ships table
-
-![use pgadmin to view data in tables](./images/verify-seeded-data.gif)
-
-## Conclusion
-
-In this chapter, you've learned how to seed a PostgreSQL database with initial data using SQL queries through Npgsql. You've implemented a method to check if data already exists and to insert sample data for the Harbor Master project.
-
-In the next chapter, we'll learn how to implement GET operations to retrieve ship data from the database.
 
 ## Next Steps
 

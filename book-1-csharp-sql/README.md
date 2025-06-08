@@ -2,7 +2,7 @@
 
 ## Installations
 
-Before you start work on the project in this course, you need to complete all of the [installations](./chapters/book-1-installations.md). Once done, come back to this page and start on the first project.
+Before you start work on the projects in this course, you need to complete all of the [installations](./chapters/book-1-installations.md).
 
 ## Projects
 
