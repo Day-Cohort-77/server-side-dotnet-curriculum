@@ -317,9 +317,9 @@ This will create the database and all the tables based on your models.
 
 ## Verifying the Database
 
-After applying the migration, you can verify that the database was created correctly by connecting to it using a tool like pgAdmin or the PostgreSQL command-line client.
+Verify that the database was created correctly by creating a new connection in your **SQLTools** extension panel that connects to the **TinyTreats** database with the **postgres** user.
 
-You should see the following tables:
+Once connected, you should see the following tables:
 - `AspNetUsers` (Identity users)
 - `AspNetRoles` (Identity roles)
 - `AspNetUserRoles` (User-role assignments)
