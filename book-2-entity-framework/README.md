@@ -8,7 +8,7 @@ Before you start work on the projects in this section, you need to complete all 
 
 ## Projects
 
-| # | 🏕️ Creek River | 📚 Loncotes Library | 🧁 Tiny Treats | 🧪 TestTubes |
+| # | 🏕️ Creek River<br/><sub>(_EF Introduction_)</sub> | 📚 Loncotes Library<br/><sub>(_Data Transfer Objects_)</sub> | 🧁 Tiny Treats<br/><sub>(_Authentication_)</sub> | 🧪 TestTubes<br/><sub>(_Integration Testing_)</sub> |
 |--|--|--|--|--|
 | 1 | [Introduction to Entity Framework](./chapters/creek-river-initializing.md) | [Introduction to DTOs](./chapters/loncotes-dto-introduction.md) | [Introduction to Authentication](./chapters/tinytreats-introduction.md) | [Introduction to Integration Testing](./chapters/testtube-introduction.md) |
 | 2 | [Entity Framework Models](./chapters/creek-river-models.md) | [Basic DTO Features](./chapters/loncotes-dto-basic-features.md) | [Models and DTOs](./chapters/tinytreats-models-dtos.md) | [Setting Up a Test Project](./chapters/testtube-setup.md) |
