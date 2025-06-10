@@ -70,3 +70,4 @@ You've been using your API client _(e.g. Yaak)_ to test your endpoints thus far.
 
 You can build a React-based client for either Harbor Master or Jewelry Junction.
 
+[Back to project list >](../README.md)

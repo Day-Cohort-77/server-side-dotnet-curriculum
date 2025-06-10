@@ -26,7 +26,7 @@ This schema represents a typical e-commerce database with relationships between 
 
 ## Creating the Database Schema
 
-To create our enhanced database schema, we'll write a SQL script that defines all the tables and their relationships. This script will:
+Create a `jewelry-database-setup.sql` SQL script to define all the tables and relationships. This script will:
 
 1. Drop existing tables if they exist (for clean initialization)
 2. Create tables for all entities in the correct order to respect foreign key constraints
@@ -43,6 +43,20 @@ The script will include CREATE TABLE statements for:
 Each table will have appropriate columns with data types, constraints, and foreign key relationships.
 
 > 🤖 This is a wonderful opportunity to use an LLM to save you from the tedious task of authoring all of the **CREATE TABLE** statement. Take the DBML from dbdiagram.io and provide it as context, and instruct the LLM to generate the SQL for each table.
+
+## Setting Up Database Connection
+
+To connect to our PostgreSQL database, we'll:
+
+1. Add a connection string to your user secrets
+    ```sh
+    dotnet user-secrets init
+    dotnet user-secrets set 'JewelryJunctionConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=your_password;Database=JewelryJunction'
+    ```
+2. Create a **DatabaseService** class that will handle all database operations
+3. Implement methods to create a database connection and execute SQL commands
+
+The **DatabaseService** will be the central point for all database interactions in our application, just as it was in Harbor Master.
 
 ## Implementing the Database Service
 
@@ -114,3 +128,9 @@ Once you have the initial implementation done, you can deepen your learning by e
 3. Implementing a method to get the most popular products based on order history
 4. Adding a method to get all products with a specific metal and gemstone combination
 5. Creating a method to get all products of a specific style sorted by price
+
+## Next Steps
+
+In the next chapter, you will implement the functionality that will allow a client application to retrieve a list of all available products at Jewelry Junction.
+
+[Getting all products >](./jewelry-get-all.md)

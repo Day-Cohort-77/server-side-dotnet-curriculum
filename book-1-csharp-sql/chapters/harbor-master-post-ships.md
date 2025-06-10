@@ -87,8 +87,6 @@ public async Task<bool> DockHasAvailableCapacityAsync(int dockId)
 }
 ```
 
-![using psql to check if a dock has any capacity](./images/dock-capacity-check.gif)
-
 We've added two methods:
 1. `CreateShipAsync` - Inserts a new ship record with an optional dock assignment
 2. `DockHasAvailableCapacityAsync` - Checks if a dock exists and has available capacity

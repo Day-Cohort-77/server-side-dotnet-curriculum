@@ -84,6 +84,10 @@ namespace HarborMaster.Endpoints
 {
     public static class ShipEndpoints
     {
+        /*
+           This method becomes an extension method of the app
+           defined in Program.cs by using the `this` keyword
+        */
         public static void MapShipEndpoints(this WebApplication app)
         {
             // GET /ships - Get all ships
@@ -118,7 +122,7 @@ using HarborMaster.Endpoints;
 
 // ... rest of code ...
 
-// Map ship endpoints
+// Map ship endpoints by invoking the extension method
 app.MapShipEndpoints();
 
 app.Run();
@@ -139,6 +143,7 @@ app.MapGet("/ships", async (DatabaseService db) =>
 This endpoint:
 1. Maps a GET request to the `/ships` route
 2. Uses dependency injection to get an instance of `DatabaseService`
+    - This was added to the dependency injection container as an available service in the `Program.cs` module with `builder.Services.AddSingleton<DatabaseService>();`
 3. Calls the `GetAllShipsAsync` method to retrieve all ships
 4. Returns the list of ships as a JSON response
 
@@ -154,16 +159,20 @@ app.MapGet("/ships/{id}", async (int id, DatabaseService db) =>
 
 This endpoint:
 1. Maps a GET request to the `/ships/{id}` route, where `{id}` is a route parameter
+
 2. Uses dependency injection to get an instance of `DatabaseService`
+
 3. Calls the `GetShipByIdAsync` method to retrieve a ship by ID
+
 4. Returns the ship as a JSON response with a 200 OK status if found
+
 5. Returns a 404 Not Found status if the ship doesn't exist
 
 ## Testing the Endpoints
 
 1. Restart your debugger
 
-2. Open Yaak — or your preferred API client
+2. Open Yaak
 
 3. Test the `GET /ships` endpoint: You should see a response with the list of ships
 

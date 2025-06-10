@@ -1,6 +1,6 @@
 # Project Setup
 
-In this chapter, we'll set up the Jewelry Junction project, a minimal API for managing a jewelry store's inventory and orders. This project will build on the concepts you've learned in the previous tracks, applying them to a new domain.
+In this chapter, you will set up the Jewelry Junction project, a minimal API for managing a jewelry store's inventory and orders. This project will build on the concepts you've learned in the previous tracks, applying them to a new domain.
 
 ## Learning Objectives
 
@@ -25,10 +25,10 @@ Throughout this track, you'll build this API step by step, learning how to imple
 
 ## Setting Up the Project
 
-To begin, you'll create a new minimal API project using the ASP.NET Core framework. This involves:
+To begin, you'll create a new minimal API project using the ASP.NET Core framework. You can refer to the content from previous projects for these steps.
 
-1. Creating a new project using the webapi template with the minimal API option
-2. Setting up the project directory structure with folders for Models and Services
+1. Creating a new project using the `dotnet new webapi` template with the minimal API option
+2. Setting up the project directory structure with folders for Endpoints, Models and Services
 3. Adding the Npgsql package to connect to PostgreSQL
 4. Opening the project in VS Code
 
@@ -46,54 +46,33 @@ Before diving into implementation, it's important to understand the domain of ou
 
 Understanding these entities and their relationships is crucial for designing an effective database schema.
 
+## Creating the Database
+
+In the next chapter, you will follow the steps for creating the database, the tables, and the `DatabaseService`. Once created, you will verify that the tables exist by creating a new connection with the **SQLTools** VSCode extension.
+
 ## Defining the Data Models
 
-Based on our domain understanding, we need to create several model classes to represent our entities:
+Based on your domain understanding, you will need to create several model classes to represent your entities:
 
 1. **Product**: Represents jewelry items with properties like `Id`, `Name`, `Description`, and `Price`. It will have foreign key references to Metal, Gemstone, and Style.
 2. **Metal**: Represents materials like gold, silver, and platinum with properties like `Id`, `Name`, and `PricePerGram`.
 3. **Gemstone**: Represents precious stones like diamonds, rubies, and emeralds with properties like `Id`, `Name`, and `PricePerCarat`.
 4. **Style**: Represents design styles like classic, modern, art deco, and minimalist with properties like `Id` and `Name`.
-5. **Order**: Represents customer orders with properties like `Id`, `OrderDate`, `TotalAmount`, and `Status`.
+5. **Order**: Represents customer orders with properties like `Id`, `OrderDate`, `CustomerName`, and `Status`.
 6. **OrderItem**: Represents items within an order with properties like `Id`, `OrderId`, `ProductId`, `Quantity`, and `UnitPrice`.
 
-Refer to your model classes in the previous project as guidance for creating these. Use dbdiagram.io, or your preferred tool, to make an ERD for this project. Your teammates and coaching team are great resources to review this with you.
+Refer to your model classes in the previous project as guidance for creating these. Use dbdiagram.io to make an ERD for this project. Your teammates and coaching team are great resources to review this with you.
 
-## Setting Up Database Connection
+## Defining the DTO Classes
 
-To connect to our PostgreSQL database, we'll:
+Once you have your database model classes defined, you will create DTO classes to represent that form that the JSON reponses to your client will take.
 
-1. Add a connection string to the `appsettings.json` file
-2. Create a **DatabaseService** class that will handle all database operations
-3. Implement methods to create a database connection and execute SQL commands
-
-The **DatabaseService** will be the central point for all database interactions in our application, just as it was in Harbor Master.
-
-## Creating the Database Schema
-
-Next, we'll create the database schema using SQL scripts. This involves:
-
-1. Creating a SQL script to define all the tables and relationships
-2. Implementing a method in the DatabaseService to initialize the database
-3. Ensuring the database is created when the application starts
-
-The SQL script will define tables for all our entities and establish the necessary relationships between them.
-
-## Seeding the Database
-
-To have some initial data to work with, we'll seed the database with:
-
-1. Metals (Gold, Silver, Platinum)
-2. Gemstones (Diamond, Ruby, Emerald, Sapphire)
-3. Styles (Classic, Modern, Art Deco, Minimalist)
-4. Sample products
-5. Sample orders
-
-This seed data will be added using SQL INSERT statements executed by the **DatabaseService**. Refer to Harbor Master content to review the two strategies for seeding the database.
+- Do all database fields need to be on each DTO?
+- Should `OrderItem` be a DTO, or should they be embedded in the `Order` DTO?
 
 ## Implementing Basic Endpoints
 
-Finally, we'll implement some basic endpoints to verify our setup:
+Finally, you will implement some basic endpoints to verify your setup:
 
 1. A welcome endpoint at the root URL
 2. An endpoint to get all products
@@ -103,27 +82,15 @@ These endpoints will allow us to test that our API is working correctly and can 
 
 ## Running and Testing the API
 
-After setting up the project, we'll:
+After setting up the project, you will:
 
-1. Run the API using the `dotnet run` command
-2. Access the Swagger UI to explore and test our endpoints
+1. Create the `launch.json` and `tasks.json` file for configuring your debugger
+2. Open Yaak for testing your functionality
 3. Test the GET `/products` endpoint to retrieve all products
 4. Test the GET `/products/{id}` endpoint to retrieve a specific product
 
-Swagger provides a user-friendly interface for testing our API without needing additional tools.
+## Next Steps
 
-## Conclusion
+In the next chapter you will create all assets needed for creating and seeding your database.
 
-In this chapter, you've learned how to set up the Jewelry Junction project, define the data models, create a database schema, and implement basic endpoints. You've also learned how to seed the database with initial data and test the API.
-
-In the next chapter, we'll expand the API by implementing endpoints for managing the jewelry database, including creating, updating, and deleting products.
-
-## Practice Exercise
-
-Enhance your Jewelry Junction API by:
-
-1. Adding endpoints for managing metals (GET, POST, PUT, DELETE)
-2. Adding endpoints for managing gemstones (GET, POST, PUT, DELETE)
-3. Implementing a search endpoint that allows filtering products by type, metal, or price range
-4. Adding validation to ensure that product prices are positive and stock quantities are non-negative
-5. Creating a simple endpoint that returns statistics about the inventory (total number of products, average price, etc.)
+[Database setup >](./jewelry-database.md)
