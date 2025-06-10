@@ -104,3 +104,9 @@ This restoration process essentially reverses the soft delete operation, but wit
 
 1. Adding support for partial order cancellation (cancelling specific items in an order)
 2. Implementing deletion rules based on the order date _(i.e., recent orders can be deleted, older orders cannot. You can pick any timespan for your implementation)_
+
+## Next Steps
+
+In the next chapter, you will implement the functionality that will allow a client application to update a product at Jewelry Junction.
+
+[Update a product >](./jewelry-update-product.md)

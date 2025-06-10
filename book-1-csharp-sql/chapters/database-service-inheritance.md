@@ -158,3 +158,9 @@ Refactor your Harbor Master project to use the inheritance pattern described in 
 4. Test your application to ensure everything still works as expected
 
 This exercise will give you hands-on experience with inheritance and help you understand how it can be used to improve code organization and maintainability.
+
+## Next Steps
+
+The next chapter is an optional one that will challenge your prompt design skills with your favorite LLM to enhance your API with new functionality.
+
+[Generate new features with an LLM >](./llm-guided-tasks.md)

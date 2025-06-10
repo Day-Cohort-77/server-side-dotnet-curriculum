@@ -98,3 +98,9 @@ Enhance your Get Single Product endpoint by:
 3. Creating a new endpoint that returns similar products (products with the same style or with the same metal)
 4. Adding an endpoint to get all products with a specific metal and gemstone combination
 5. Implementing an endpoint to get products sorted by price within a specific style
+
+## Next Steps
+
+In the next chapter, you will implement the functionality that will allow a client application to create a new order for a customer of Jewelry Junction.
+
+[Create an order >](./jewelry-create-order.md)

@@ -103,3 +103,9 @@ This validation happens before any database operations, preventing invalid reque
 In this chapter, you've learned how to implement the endpoint for creating a new order in the Jewelry Junction API. You've used transactions to ensure data consistency, validated the order data before processing, updated related data, and handled errors and edge cases. You've also learned how to structure the response to provide useful information to clients.
 
 In the next chapter, we'll implement the endpoint for deleting an order.
+
+## Next Steps
+
+In the next chapter, you will implement the functionality that will allow a client application to cancel an order at Jewelry Junction.
+
+[Delete an order >](./jewelry-delete-order.md)

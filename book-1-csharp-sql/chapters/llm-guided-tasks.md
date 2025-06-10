@@ -1,4 +1,4 @@
-# Next Steps
+# Using an LLM to generate more features
 
 Now that you've completed the projects, you can try one of the following exercises to deepen your learning.
 

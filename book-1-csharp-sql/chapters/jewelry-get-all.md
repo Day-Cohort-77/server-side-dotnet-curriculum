@@ -94,3 +94,9 @@ The implementation will:
 3. Provide a default sort order (by ID) if no sort parameter is specified
 
 This sorting functionality gives clients control over how the data is organized in the response.
+
+## Next Steps
+
+In the next chapter, you will implement the functionality that will allow a client application to retrieve a single product at Jewelry Junction.
+
+[Getting a single product >](./jewelry-get-single.md)
