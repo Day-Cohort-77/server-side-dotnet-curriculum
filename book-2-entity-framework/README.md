@@ -4,6 +4,8 @@ In this section of the course, you'll learn how to use Entity Framework Core (EF
 
 ## Projects
 
+You need to complete the first four projects in two weeks. Each project has you focusing a specific skill and concept to prepare you for the final sprints of your NSS experience. The fifth column is available for those who finish the required projects early.
+
 | # | 🏕️ Creek River<br/><sub>(_EF Introduction_)</sub> | 📚 Loncotes Library<br/><sub>(_Data Transfer Objects_)</sub> | 🧁 Tiny Treats<br/><sub>(_Authentication_)</sub> | 🧪 TestTubes<br/><sub>(_Integration Testing_)</sub> |
 |--|--|--|--|--|
 | 1 | [Introduction to Entity Framework](./chapters/creek-river-initializing.md) | [Introduction to DTOs](./chapters/loncotes-dto-introduction.md) | [Introduction to Authentication](./chapters/tinytreats-introduction.md) | [Introduction to Integration Testing](./chapters/testtube-introduction.md) |

@@ -6,7 +6,7 @@ Before you start work on the projects in this course, you need to complete all o
 
 ## Projects
 
-You need to complete all of columns in 2 weeks. You want to be working on the final two columns for the majority of week 2 since they are most cognitively challenging.
+You need to complete all projects in two weeks. You want to be working on the final two columns for the majority of week 2 since they are most cognitively challenging.
 
 | # | C# Quick Intro | 🌿 🌱 <br/> ExtraVert Garden | 🧑🏽‍💻 SQL Intro | 🛳️ ⛴️ <br/> Harbor Master | 💎 💍 <br/> Jewelry Junction |
 |--|--|--|--|--|--|
