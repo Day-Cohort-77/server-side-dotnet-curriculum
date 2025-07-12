@@ -461,4 +461,4 @@ The database context is a crucial component that bridges our C# models with the 
 
 In the next chapter, we'll implement the authentication endpoints for our TinyTreats application.
 
-[Next: Authentication endpoints](./tinytreats-auth-endpoints.md)
+[Next: Configure the program and create database](./tinytreats-program.md)

@@ -354,17 +354,6 @@ In this chapter, we've implemented the `Program.cs` file to tie together all the
 - Middleware configuration
 - Endpoint mapping
 
-We've also provided instructions for creating and applying database migrations, verifying the database, running the application, and deploying it to production.
-
-This completes our TinyTreats bakery management system. You now have a fully functional API with:
-
-- User authentication and authorization
-- Role management
-- Product management
-- Order management
-
-You can use this as a foundation for building more complex features or integrating with a frontend application.
-
 ## Next Steps
 
-Test out all of the functionality using the React client that you cloned at the beginning of this project. Check the port that your API is running on and then check the `vite.config.js` file in the client project and ensure that the port in that file matches.
+[Next: Authentication endpoints](./tinytreats-auth-endpoints.md)
