@@ -1,51 +1,10 @@
 # Tiny Treats: Implementing AutoMapper
 
-## Introduction to AutoMapper
-
-As our Tiny Treats application grows, you may have noticed that we're writing a lot of repetitive code to map between our domain models and DTOs. This is particularly evident in our endpoint implementations where we manually map properties from models to DTOs and vice versa.
-
-AutoMapper is a popular library in the .NET ecosystem that simplifies the mapping between different object types. It uses a convention-based approach to automatically map properties from one object to another, reducing the amount of boilerplate code we need to write.
-
-## The Problem with Manual Mapping
-
-Let's look at an example of manual mapping from our product endpoints:
-
-```csharp
-// Manual mapping from Product to ProductDto
-var productDtos = products.Select(p => new ProductDto
-{
-    Id = p.Id,
-    Name = p.Name,
-    Description = p.Description,
-    Price = p.Price,
-    IsAvailable = p.IsAvailable,
-    ImageUrl = p.ImageUrl
-}).ToList();
-```
-
-And for creating a new product:
-
-```csharp
-// Manual mapping from ProductCreateDto to Product
-var product = new Product
-{
-    Name = productDto.Name,
-    Description = productDto.Description,
-    Price = productDto.Price,
-    IsAvailable = productDto.IsAvailable,
-    ImageUrl = productDto.ImageUrl
-};
-```
-
-This approach has several drawbacks:
-1. It's verbose and repetitive
-2. It's error-prone (easy to miss a property)
-3. It's hard to maintain (if you add a property to the model, you need to update all the mapping code)
-4. It clutters your business logic with mapping code
+As your Tiny Treats application grows, you would end up writing a lot of repetitive code to map between our domain models and DTOs in your endpoint methods. To eliminate this from the start, you will install and use AutoMapper—which significantly reduces the noise of your code.
 
 ## Adding AutoMapper to the Project
 
-Let's add AutoMapper to our project to simplify these mappings. First, we need to add the necessary NuGet packages:
+Add AutoMapper to our project to simplify these mappings. First, you need to add the necessary NuGet packages:
 
 ```bash
 dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
@@ -55,7 +14,7 @@ This package includes both AutoMapper and the integration with ASP.NET Core's de
 
 ## Creating Mapping Profiles
 
-AutoMapper uses profiles to define mapping configurations. Let's create a new folder called `Mapping` in our project and add a profile for each of our entity types:
+AutoMapper uses profiles to define mapping configurations. Create a new folder called `Mapping` in your project and add a profile for each of your entity types:
 
 ```csharp
 // Mapping/ProductMappingProfile.cs
@@ -214,16 +173,6 @@ var productDtos = await dbContext.Products
 ```
 
 This can be more efficient than mapping after the query, as it only selects the properties needed for the DTO.
-
-## Benefits of Using AutoMapper
-
-By implementing AutoMapper in our Tiny Treats application, we gain several benefits:
-
-1. **Reduced boilerplate code**: We no longer need to manually map properties between objects.
-2. **Improved maintainability**: When we add new properties to our models or DTOs, we don't need to update mapping code in multiple places.
-3. **Fewer bugs**: Manual mapping is error-prone, especially when properties are added or renamed.
-4. **Cleaner controller code**: Our endpoints can focus on business logic rather than object mapping.
-5. **More efficient queries**: Using `ProjectTo` can optimize our database queries.
 
 ## Summary
 
