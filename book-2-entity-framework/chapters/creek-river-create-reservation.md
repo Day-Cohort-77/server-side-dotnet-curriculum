@@ -23,11 +23,11 @@ Let's create an endpoint to add a new reservation to our database:
 2. Add the following endpoint after the existing endpoints:
 
 ```csharp
-app.MapPost("/api/reservations", (CreekRiverDbContext db, Reservation newRes) =>
+app.MapPost("/reservations", (CreekRiverDbContext db, Reservation newRes) =>
 {
     db.Reservations.Add(newRes);
     db.SaveChanges();
-    return Results.Created($"/api/reservations/{newRes.Id}", newRes);
+    return Results.Created($"/reservations/{newRes.Id}", newRes);
 });
 ```
 
@@ -38,7 +38,7 @@ This is a basic implementation that adds the new reservation to the database and
 Let's add validation to ensure that the reservation is valid:
 
 ```csharp
-app.MapPost("/api/reservations", (CreekRiverDbContext db, Reservation newRes) =>
+app.MapPost("/reservations", (CreekRiverDbContext db, Reservation newRes) =>
 {
     try
     {
@@ -92,7 +92,7 @@ app.MapPost("/api/reservations", (CreekRiverDbContext db, Reservation newRes) =>
         db.Reservations.Add(newRes);
         db.SaveChanges();
 
-        return Results.Created($"/api/reservations/{newRes.Id}", newRes);
+        return Results.Created($"/reservations/{newRes.Id}", newRes);
     }
     catch (DbUpdateException ex)
     {
@@ -123,7 +123,7 @@ Let's break down this code:
 In addition to creating reservations, you might want to allow users to cancel their reservations. Let's create an endpoint to delete a reservation:
 
 ```csharp
-app.MapDelete("/api/reservations/{id}", (CreekRiverDbContext db, int id) =>
+app.MapDelete("/reservations/{id}", (CreekRiverDbContext db, int id) =>
 {
     try
     {
@@ -158,7 +158,7 @@ Now that we've created our endpoints, let's test them:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a tool like Yaak to send a POST request to `https://localhost:<port>/api/reservations` with a JSON payload like:
+2. Use a tool like Yaak to send a POST request to `https://localhost:<port>/reservations` with a JSON payload like:
 
 ```json
 {
@@ -171,7 +171,7 @@ Now that we've created our endpoints, let's test them:
 
 3. You should receive a 201 Created response with the newly created reservation in the response body if all validations pass, or a 400 Bad Request response with an error message if any validation fails.
 
-4. To test the cancellation endpoint, send a DELETE request to `https://localhost:<port>/api/reservations/1` (replace `1` with the ID of a reservation you want to cancel).
+4. To test the cancellation endpoint, send a DELETE request to `https://localhost:<port>/reservations/1` (replace `1` with the ID of a reservation you want to cancel).
 
 ## Conclusion
 

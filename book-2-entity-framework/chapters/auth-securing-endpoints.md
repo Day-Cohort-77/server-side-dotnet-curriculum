@@ -12,7 +12,7 @@ The simplest form requires a user to be authenticated, but doesn't check for any
 
 ```csharp
 // In AuthEndpoints.cs or any other endpoint class
-app.MapGet("/api/secure-data", () =>
+app.MapGet("/secure-data", () =>
 {
     // Only authenticated users can access this
     return Results.Ok("This is secure data");
@@ -25,7 +25,7 @@ We can restrict access to specific roles:
 
 ```csharp
 // In OrderEndpoints.cs
-app.MapGet("/api/admin-data", () =>
+app.MapGet("/admin-data", () =>
 {
     // Only users in the Admin role can access this
     return Results.Ok("This is admin-only data");
@@ -36,7 +36,7 @@ We can also allow multiple roles:
 
 ```csharp
 // In OrderEndpoints.cs
-app.MapGet("/api/staff-data", () =>
+app.MapGet("/staff-data", () =>
 {
     // Users in either Admin OR Baker role can access this
     return Results.Ok("This is staff-only data");
@@ -59,7 +59,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 // Using the policy in an endpoint (in OrderEndpoints.cs)
-app.MapGet("/api/staff-data", () =>
+app.MapGet("/staff-data", () =>
 {
     // Only users that satisfy the "BakeryStaff" policy can access this
     return Results.Ok("This is staff-only data");
@@ -78,7 +78,7 @@ We can apply authorization to a group of endpoints:
 // In OrderEndpoints.cs
 public static void MapOrderEndpoints(this WebApplication app)
 {
-    var adminGroup = app.MapGroup("/api/admin")
+    var adminGroup = app.MapGroup("/admin")
         .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
     // All endpoints in this group require Admin role
@@ -96,21 +96,21 @@ Each endpoint can have its own authorization requirements:
 ```csharp
 // In various endpoint classes
 // Public endpoint - no authorization
-app.MapGet("/api/public-data", () =>
+app.MapGet("/public-data", () =>
     Results.Ok("This is public data"));
 
 // User-only endpoint - requires authentication
-app.MapGet("/api/user-data", () =>
+app.MapGet("/user-data", () =>
     Results.Ok("This is user-only data"))
     .RequireAuthorization();
 
 // Admin-only endpoint - requires Admin role
-app.MapGet("/api/admin-data", () =>
+app.MapGet("/admin-data", () =>
     Results.Ok("This is admin-only data"))
     .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
 // Baker-only endpoint - requires Baker role
-app.MapGet("/api/baker-data", () =>
+app.MapGet("/baker-data", () =>
     Results.Ok("This is baker-only data"))
     .RequireAuthorization(policy => policy.RequireRole("Baker"));
 ```
@@ -189,7 +189,7 @@ public static class OrderEndpoints
     public static void MapOrderEndpoints(this WebApplication app)
     {
         // Get all orders - Admin can see all, others see only their own
-        app.MapGet("/api/order", async (
+        app.MapGet("/order", async (
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
             TinyTreatsDbContext dbContext) =>
@@ -231,7 +231,7 @@ public static class OrderEndpoints
         // Other order endpoints...
 
         // Update order status - Only Bakers and Admins
-        app.MapPatch("/api/order/{id}/status", async (
+        app.MapPatch("/order/{id}/status", async (
             int id,
             string newStatus,
             TinyTreatsDbContext dbContext) =>

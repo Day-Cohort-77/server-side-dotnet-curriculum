@@ -33,7 +33,7 @@ public static class OrderEndpoints
     public static void MapOrderEndpoints(this WebApplication app)
     {
         // Get all orders - Admin can see all, Baker can see all, Customer can see only their own
-        app.MapGet("/api/orders", async (
+        app.MapGet("/orders", async (
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
             TinyTreatsDbContext dbContext) =>
@@ -96,7 +96,7 @@ public static class OrderEndpoints
         }).RequireAuthorization();
 
         // Get order by ID - Admin can see any, Baker can see any, Customer can see only their own
-        app.MapGet("/api/orders/{id}", async (
+        app.MapGet("/orders/{id}", async (
             int id,
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
@@ -162,7 +162,7 @@ public static class OrderEndpoints
         }).RequireAuthorization();
 
         // Create a new order - Any authenticated user
-        app.MapPost("/api/orders", async (
+        app.MapPost("/orders", async (
             OrderCreateDto orderDto,
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
@@ -239,11 +239,11 @@ public static class OrderEndpoints
                 TotalAmount = order.TotalAmount
             };
 
-            return Results.Created($"/api/orders/{order.Id}", createdOrderDto);
+            return Results.Created($"/orders/{order.Id}", createdOrderDto);
         }).RequireAuthorization();
 
         // Update order status - Only Bakers and Admins
-        app.MapPatch("/api/orders/{id}/status", async (
+        app.MapPatch("/orders/{id}/status", async (
             int id,
             OrderStatusUpdateDto statusDto,
             TinyTreatsDbContext dbContext) =>
@@ -273,7 +273,7 @@ public static class OrderEndpoints
         }).RequireAuthorization(policy => policy.RequireRole("Baker", "Admin"));
 
         // Cancel an order - Admin can cancel any, Customer can cancel only their own pending orders
-        app.MapDelete("/api/orders/{id}", async (
+        app.MapDelete("/orders/{id}", async (
             int id,
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
@@ -338,10 +338,10 @@ Let's break down each endpoint:
 
 ### Get All Orders
 
-The get all orders endpoint (`/api/orders`) returns orders based on the user's role:
+The get all orders endpoint (`/orders`) returns orders based on the user's role:
 
 ```csharp
-app.MapGet("/api/orders", async (
+app.MapGet("/orders", async (
     ClaimsPrincipal user,
     UserManager<IdentityUser> userManager,
     TinyTreatsDbContext dbContext) =>
@@ -417,10 +417,10 @@ This endpoint:
 
 ### Get Order by ID
 
-The get order by ID endpoint (`/api/orders/{id}`) returns a specific order:
+The get order by ID endpoint (`/orders/{id}`) returns a specific order:
 
 ```csharp
-app.MapGet("/api/orders/{id}", async (
+app.MapGet("/orders/{id}", async (
     int id,
     ClaimsPrincipal user,
     UserManager<IdentityUser> userManager,
@@ -499,10 +499,10 @@ This endpoint:
 
 ### Create Order
 
-The create order endpoint (`/api/orders`) creates a new order:
+The create order endpoint (`/orders`) creates a new order:
 
 ```csharp
-app.MapPost("/api/orders", async (
+app.MapPost("/orders", async (
     OrderCreateDto orderDto,
     ClaimsPrincipal user,
     UserManager<IdentityUser> userManager,
@@ -579,7 +579,7 @@ app.MapPost("/api/orders", async (
         TotalAmount = order.TotalAmount
     };
 
-    return Results.Created($"/api/orders/{order.Id}", createdOrderDto);
+    return Results.Created($"/orders/{order.Id}", createdOrderDto);
 }).RequireAuthorization();
 ```
 
@@ -596,10 +596,10 @@ This endpoint:
 
 ### Update Order Status
 
-The update order status endpoint (`/api/orders/{id}/status`) updates the status of an order:
+The update order status endpoint (`/orders/{id}/status`) updates the status of an order:
 
 ```csharp
-app.MapPatch("/api/orders/{id}/status", async (
+app.MapPatch("/orders/{id}/status", async (
     int id,
     OrderStatusUpdateDto statusDto,
     TinyTreatsDbContext dbContext) =>
@@ -640,10 +640,10 @@ This endpoint:
 
 ### Cancel Order
 
-The cancel order endpoint (`/api/orders/{id}`) cancels an order:
+The cancel order endpoint (`/orders/{id}`) cancels an order:
 
 ```csharp
-app.MapDelete("/api/orders/{id}", async (
+app.MapDelete("/orders/{id}", async (
     int id,
     ClaimsPrincipal user,
     UserManager<IdentityUser> userManager,
@@ -717,12 +717,12 @@ Notice the different authorization patterns we're using:
 
 1. **Basic authentication**: Requires the user to be authenticated
    ```csharp
-   app.MapPost("/api/orders", ...).RequireAuthorization();
+   app.MapPost("/orders", ...).RequireAuthorization();
    ```
 
 2. **Role-based authorization**: Requires the user to have specific roles
    ```csharp
-   app.MapPatch("/api/orders/{id}/status", ...).RequireAuthorization(policy => policy.RequireRole("Baker", "Admin"));
+   app.MapPatch("/orders/{id}/status", ...).RequireAuthorization(policy => policy.RequireRole("Baker", "Admin"));
    ```
 
 3. **Custom authorization logic**: Checks permissions in the endpoint handler
@@ -758,7 +758,7 @@ You can test these endpoints using a tool like Yaak:
 
 2. Create a new order:
    ```http
-   POST /api/orders
+   POST /orders
    Content-Type: application/json
 
    {
@@ -777,12 +777,12 @@ You can test these endpoints using a tool like Yaak:
 
 3. Get all orders:
    ```http
-   GET /api/orders
+   GET /orders
    ```
 
 4. Get a specific order:
    ```http
-   GET /api/orders/1
+   GET /orders/1
    ```
 
 5. Login as a baker:
@@ -798,7 +798,7 @@ You can test these endpoints using a tool like Yaak:
 
 6. Update an order status:
    ```http
-   PATCH /api/orders/1/status
+   PATCH /orders/1/status
    Content-Type: application/json
 
    {
@@ -819,7 +819,7 @@ You can test these endpoints using a tool like Yaak:
 
 8. Cancel an order:
    ```http
-   DELETE /api/orders/1
+   DELETE /orders/1
    ```
 
 ## Summary

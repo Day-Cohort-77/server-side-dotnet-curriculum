@@ -43,7 +43,7 @@ Notice how we've added two calculated properties:
 Now, let's implement an endpoint to get all overdue checkouts:
 
 ```csharp
-app.MapGet("/api/checkouts/overdue", (LoncotesLibraryDbContext db) =>
+app.MapGet("/checkouts/overdue", (LoncotesLibraryDbContext db) =>
 {
     return db.Checkouts
         .Include(c => c.Material)
@@ -145,7 +145,7 @@ Now, when a librarian retrieves the list of overdue checkouts, they'll also get 
 Let's take this a step further and implement an endpoint to send email notifications for all overdue checkouts:
 
 ```csharp
-app.MapPost("/api/checkouts/overdue/send-notifications", (LoncotesLibraryDbContext db) =>
+app.MapPost("/checkouts/overdue/send-notifications", (LoncotesLibraryDbContext db) =>
 {
     var overdueCheckouts = db.Checkouts
         .Include(c => c.Material)
@@ -208,7 +208,7 @@ In this case, we're providing librarians with useful information about overdue c
 
 To test this endpoint, you'll need to have some checkouts in your database that are overdue. You can use the endpoints we created in the previous chapters to add checkouts, and then wait until they become overdue (or manipulate the checkout dates in the database).
 
-Try calling the `/api/checkouts/overdue` endpoint and observe the response. You should see a list of overdue checkouts with their due dates, days overdue, and email templates.
+Try calling the `/checkouts/overdue` endpoint and observe the response. You should see a list of overdue checkouts with their due dates, days overdue, and email templates.
 
 In the next chapter, we'll explore how to use DTOs to calculate late fees for overdue materials.
 

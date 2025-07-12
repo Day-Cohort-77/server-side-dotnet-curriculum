@@ -29,7 +29,7 @@ Let's create an endpoint to retrieve all reservations with their related data:
 2. Add the following endpoint after the existing endpoints:
 
 ```csharp
-app.MapGet("/api/reservations", (CreekRiverDbContext db) =>
+app.MapGet("/reservations", (CreekRiverDbContext db) =>
 {
     return db.Reservations
         .Include(r => r.UserProfile)
@@ -42,7 +42,7 @@ app.MapGet("/api/reservations", (CreekRiverDbContext db) =>
 
 Let's break down this code:
 
-- `app.MapGet("/api/reservations", ...)`: This maps HTTP GET requests to the `/api/reservations` URL to our handler function.
+- `app.MapGet("/reservations", ...)`: This maps HTTP GET requests to the `/reservations` URL to our handler function.
 
 - `(CreekRiverDbContext db) => { ... }`: This is the handler function. The `CreekRiverDbContext` parameter is injected by ASP.NET Core's dependency injection system.
 
@@ -82,7 +82,7 @@ Now that we've created our endpoint, let's test it:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a web browser or a tool like Yaak to send a GET request to `https://localhost:<port>/api/reservations`.
+2. Use a web browser or a tool like Yaak to send a GET request to `https://localhost:<port>/reservations`.
 
 3. You should see a JSON response with the reservations and their related data.
 
@@ -162,7 +162,7 @@ public class Campsite
 In a real-world application, you might want to add filtering and pagination to your endpoint to limit the number of results and improve performance. Here's how you might modify the endpoint to support filtering by date range and pagination:
 
 ```csharp
-app.MapGet("/api/reservations", (CreekRiverDbContext db, DateTime? startDate, DateTime? endDate, int? page, int? pageSize) =>
+app.MapGet("/reservations", (CreekRiverDbContext db, DateTime? startDate, DateTime? endDate, int? page, int? pageSize) =>
 {
     IQueryable<Reservation> query = db.Reservations
         .Include(r => r.UserProfile)

@@ -222,6 +222,6 @@ Up Next: [DbContext to manage database operations](./creek-river-dbcontext.md)
 
 ## 🔍 Additional Materials
 
-- [System.ComponentModel.DataAnnotations Namespace](https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.dataannotations)
+- [System.ComponentModel.DataAnnotations Namespace](https://docs.microsoft.com/en-us/dotnet/system.componentmodel.dataannotations)
 - [EF Core - Data Annotations](https://docs.microsoft.com/en-us/ef/core/modeling/entity-properties?tabs=data-annotations)
 - [Validation in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/mvc/models/validation)

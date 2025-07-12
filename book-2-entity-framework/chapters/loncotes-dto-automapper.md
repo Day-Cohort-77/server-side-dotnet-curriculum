@@ -106,7 +106,7 @@ Now that we have AutoMapper configured, let's update our endpoints to use it.
 ### Get All Materials
 
 ```csharp
-app.MapGet("/api/materials", (LoncotesLibraryDbContext db, IMapper mapper) =>
+app.MapGet("/materials", (LoncotesLibraryDbContext db, IMapper mapper) =>
 {
     var materials = db.Materials
         .Include(m => m.Genre)
@@ -121,7 +121,7 @@ app.MapGet("/api/materials", (LoncotesLibraryDbContext db, IMapper mapper) =>
 ### Get Material Details
 
 ```csharp
-app.MapGet("/api/materials/{id}", (LoncotesLibraryDbContext db, IMapper mapper, int id) =>
+app.MapGet("/materials/{id}", (LoncotesLibraryDbContext db, IMapper mapper, int id) =>
 {
     var material = db.Materials
         .Include(m => m.Genre)
@@ -142,7 +142,7 @@ app.MapGet("/api/materials/{id}", (LoncotesLibraryDbContext db, IMapper mapper, 
 ### Get Available Materials
 
 ```csharp
-app.MapGet("/api/materials/available", (LoncotesLibraryDbContext db, IMapper mapper) =>
+app.MapGet("/materials/available", (LoncotesLibraryDbContext db, IMapper mapper) =>
 {
     var materials = db.Materials
         .Include(m => m.Genre)
@@ -159,7 +159,7 @@ app.MapGet("/api/materials/available", (LoncotesLibraryDbContext db, IMapper map
 ### Get Overdue Checkouts
 
 ```csharp
-app.MapGet("/api/checkouts/overdue", (LoncotesLibraryDbContext db, IMapper mapper) =>
+app.MapGet("/checkouts/overdue", (LoncotesLibraryDbContext db, IMapper mapper) =>
 {
     var checkouts = db.Checkouts
         .Include(c => c.Material)
@@ -176,7 +176,7 @@ app.MapGet("/api/checkouts/overdue", (LoncotesLibraryDbContext db, IMapper mappe
 ### Get Patron with Balance
 
 ```csharp
-app.MapGet("/api/patrons/{id}/balance", (LoncotesLibraryDbContext db, IMapper mapper, int id) =>
+app.MapGet("/patrons/{id}/balance", (LoncotesLibraryDbContext db, IMapper mapper, int id) =>
 {
     var patron = db.Patrons
         .Include(p => p.Checkouts)
@@ -208,7 +208,7 @@ Then, update our endpoints to use `ProjectTo`:
 ### Get All Materials
 
 ```csharp
-app.MapGet("/api/materials", (LoncotesLibraryDbContext db, IMapper mapper) =>
+app.MapGet("/materials", (LoncotesLibraryDbContext db, IMapper mapper) =>
 {
     return db.Materials
         .Where(m => m.OutOfCirculationSince == null)
@@ -220,7 +220,7 @@ app.MapGet("/api/materials", (LoncotesLibraryDbContext db, IMapper mapper) =>
 ### Get Material Types
 
 ```csharp
-app.MapGet("/api/materialtypes", (LoncotesLibraryDbContext db, IMapper mapper) =>
+app.MapGet("/materialtypes", (LoncotesLibraryDbContext db, IMapper mapper) =>
 {
     return db.MaterialTypes
         .ProjectTo<MaterialTypeDto>(mapper.ConfigurationProvider)
@@ -231,7 +231,7 @@ app.MapGet("/api/materialtypes", (LoncotesLibraryDbContext db, IMapper mapper) =
 ### Get Genres
 
 ```csharp
-app.MapGet("/api/genres", (LoncotesLibraryDbContext db, IMapper mapper) =>
+app.MapGet("/genres", (LoncotesLibraryDbContext db, IMapper mapper) =>
 {
     return db.Genres
         .ProjectTo<GenreDto>(mapper.ConfigurationProvider)
@@ -242,7 +242,7 @@ app.MapGet("/api/genres", (LoncotesLibraryDbContext db, IMapper mapper) =>
 ### Get Patrons
 
 ```csharp
-app.MapGet("/api/patrons", (LoncotesLibraryDbContext db, IMapper mapper) =>
+app.MapGet("/patrons", (LoncotesLibraryDbContext db, IMapper mapper) =>
 {
     return db.Patrons
         .ProjectTo<PatronDto>(mapper.ConfigurationProvider)

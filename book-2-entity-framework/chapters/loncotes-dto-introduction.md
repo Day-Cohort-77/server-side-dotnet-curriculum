@@ -2,7 +2,28 @@
 
 ## What are DTOs?
 
-DTO stands for Data Transfer Object. DTOs are objects that define how the data will be sent over the network. They are simple objects that don't contain any business logic but may contain serialization and deserialization logic.
+DTO stands for Data Transfer Object. DTOs are objects that define the structure of the JSON that will be in an HTTP response from the API. They are simple objects that don't contain any business logic but may contain serialization and deserialization logic.
+
+For example, you could have a database model class for a user that has sensitive information—like a social security number.
+
+```cs
+public class User {
+    public string name { get; set; }
+    public string address { get; set; }
+    public string SSN { get; set; }
+}
+```
+
+Now, when a client wants to get user information, you don't want the SSN to be exposed to the client, so you would create a separate class that would exclude it.
+
+```cs
+public class UserDTO {
+    public string name { get; set; }
+    public string address { get; set; }
+}
+```
+
+Your logic will use **this** class to construct the JSON response body.
 
 ### Why use DTOs?
 

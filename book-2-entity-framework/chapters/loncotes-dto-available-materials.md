@@ -15,7 +15,7 @@ The second condition is more complex because we need to check that *all* of a ma
 Let's create an endpoint to get all available materials:
 
 ```csharp
-app.MapGet("/api/materials/available", (LoncotesLibraryDbContext db) =>
+app.MapGet("/materials/available", (LoncotesLibraryDbContext db) =>
 {
     return db.Materials
         .Include(m => m.Genre)
@@ -90,7 +90,7 @@ Notice how we've added two calculated properties:
 Now, let's update our endpoint to use this new DTO:
 
 ```csharp
-app.MapGet("/api/materials/available", (LoncotesLibraryDbContext db) =>
+app.MapGet("/materials/available", (LoncotesLibraryDbContext db) =>
 {
     return db.Materials
         .Include(m => m.Genre)
@@ -136,7 +136,7 @@ In this case, we're providing clients with useful information about material ava
 
 To test this endpoint, you'll need to have some materials in your database that are not checked out and not removed from circulation. You can use the endpoints we created in the previous chapter to add materials and manage checkouts.
 
-Try calling the `/api/materials/available` endpoint and observe the response. You should see a list of available materials with their due dates and checkout periods.
+Try calling the `/materials/available` endpoint and observe the response. You should see a list of available materials with their due dates and checkout periods.
 
 In the next chapter, we'll explore how to use DTOs to handle more complex scenarios, such as overdue checkouts and late fees.
 

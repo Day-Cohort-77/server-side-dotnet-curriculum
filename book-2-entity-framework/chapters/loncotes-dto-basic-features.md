@@ -7,7 +7,7 @@ In this chapter, we'll implement the basic features for the Loncotes Library API
 Let's start by implementing an endpoint to get all materials that are in circulation. We'll use DTOs to shape our response:
 
 ```csharp
-app.MapGet("/api/materials", (LoncotesLibraryDbContext db) =>
+app.MapGet("/materials", (LoncotesLibraryDbContext db) =>
 {
     return db.Materials
         .Include(m => m.Genre)
@@ -43,7 +43,7 @@ Notice how we're using the `Select` method to transform each `Material` entity i
 Now, let's enhance our endpoint to filter materials by genre and/or material type:
 
 ```csharp
-app.MapGet("/api/materials", (LoncotesLibraryDbContext db, int? genreId, int? materialTypeId) =>
+app.MapGet("/materials", (LoncotesLibraryDbContext db, int? genreId, int? materialTypeId) =>
 {
     var materials = db.Materials
         .Include(m => m.Genre)
@@ -92,7 +92,7 @@ This endpoint now accepts optional query parameters for `genreId` and `materialT
 Let's implement an endpoint to get details for a specific material, including its checkouts:
 
 ```csharp
-app.MapGet("/api/materials/{id}", (LoncotesLibraryDbContext db, int id) =>
+app.MapGet("/materials/{id}", (LoncotesLibraryDbContext db, int id) =>
 {
     var material = db.Materials
         .Include(m => m.Genre)
@@ -153,7 +153,7 @@ Notice how we're including the `Patron` for each checkout, and how the `FullName
 Now, let's implement an endpoint to add a new material:
 
 ```csharp
-app.MapPost("/api/materials", (LoncotesLibraryDbContext db, MaterialDto materialDto) =>
+app.MapPost("/materials", (LoncotesLibraryDbContext db, MaterialDto materialDto) =>
 {
     var material = new Material
     {
@@ -166,7 +166,7 @@ app.MapPost("/api/materials", (LoncotesLibraryDbContext db, MaterialDto material
     db.SaveChanges();
 
     // Return the newly created material with its ID
-    return Results.Created($"/api/materials/{material.Id}", new MaterialDto
+    return Results.Created($"/materials/{material.Id}", new MaterialDto
     {
         Id = material.Id,
         MaterialName = material.MaterialName,
@@ -184,7 +184,7 @@ Here, we're accepting a `MaterialDto` from the client, using it to create a new 
 Let's implement an endpoint to remove a material from circulation:
 
 ```csharp
-app.MapPut("/api/materials/{id}/remove-from-circulation", (LoncotesLibraryDbContext db, int id) =>
+app.MapPut("/materials/{id}/remove-from-circulation", (LoncotesLibraryDbContext db, int id) =>
 {
     var material = db.Materials.Find(id);
 
@@ -207,7 +207,7 @@ This endpoint performs a "soft delete" by setting the `OutOfCirculationSince` pr
 Let's implement an endpoint to get all material types:
 
 ```csharp
-app.MapGet("/api/materialtypes", (LoncotesLibraryDbContext db) =>
+app.MapGet("/materialtypes", (LoncotesLibraryDbContext db) =>
 {
     return db.MaterialTypes
         .Select(mt => new MaterialTypeDto
@@ -225,7 +225,7 @@ app.MapGet("/api/materialtypes", (LoncotesLibraryDbContext db) =>
 Similarly, let's implement an endpoint to get all genres:
 
 ```csharp
-app.MapGet("/api/genres", (LoncotesLibraryDbContext db) =>
+app.MapGet("/genres", (LoncotesLibraryDbContext db) =>
 {
     return db.Genres
         .Select(g => new GenreDto
@@ -242,7 +242,7 @@ app.MapGet("/api/genres", (LoncotesLibraryDbContext db) =>
 Let's implement an endpoint to get all patrons:
 
 ```csharp
-app.MapGet("/api/patrons", (LoncotesLibraryDbContext db) =>
+app.MapGet("/patrons", (LoncotesLibraryDbContext db) =>
 {
     return db.Patrons
         .Select(p => new PatronDto
@@ -266,7 +266,7 @@ Notice how the `FullName` property is automatically calculated for each patron.
 Let's implement an endpoint to get a patron with their checkouts:
 
 ```csharp
-app.MapGet("/api/patrons/{id}", (LoncotesLibraryDbContext db, int id) =>
+app.MapGet("/patrons/{id}", (LoncotesLibraryDbContext db, int id) =>
 {
     var patron = db.Patrons
         .Include(p => p.Checkouts)
@@ -319,7 +319,7 @@ app.MapGet("/api/patrons/{id}", (LoncotesLibraryDbContext db, int id) =>
 Let's implement an endpoint to update a patron's address and email:
 
 ```csharp
-app.MapPut("/api/patrons/{id}", (LoncotesLibraryDbContext db, int id, PatronDto patronDto) =>
+app.MapPut("/patrons/{id}", (LoncotesLibraryDbContext db, int id, PatronDto patronDto) =>
 {
     var patron = db.Patrons.Find(id);
 
@@ -342,7 +342,7 @@ app.MapPut("/api/patrons/{id}", (LoncotesLibraryDbContext db, int id, PatronDto 
 Let's implement an endpoint to deactivate a patron:
 
 ```csharp
-app.MapPut("/api/patrons/{id}/deactivate", (LoncotesLibraryDbContext db, int id) =>
+app.MapPut("/patrons/{id}/deactivate", (LoncotesLibraryDbContext db, int id) =>
 {
     var patron = db.Patrons.Find(id);
 
@@ -363,7 +363,7 @@ app.MapPut("/api/patrons/{id}/deactivate", (LoncotesLibraryDbContext db, int id)
 Let's implement an endpoint to checkout a material:
 
 ```csharp
-app.MapPost("/api/checkouts", (LoncotesLibraryDbContext db, CheckoutDto checkoutDto) =>
+app.MapPost("/checkouts", (LoncotesLibraryDbContext db, CheckoutDto checkoutDto) =>
 {
     var checkout = new Checkout
     {
@@ -375,7 +375,7 @@ app.MapPost("/api/checkouts", (LoncotesLibraryDbContext db, CheckoutDto checkout
     db.Checkouts.Add(checkout);
     db.SaveChanges();
 
-    return Results.Created($"/api/checkouts/{checkout.Id}", new CheckoutDto
+    return Results.Created($"/checkouts/{checkout.Id}", new CheckoutDto
     {
         Id = checkout.Id,
         MaterialId = checkout.MaterialId,
@@ -391,7 +391,7 @@ app.MapPost("/api/checkouts", (LoncotesLibraryDbContext db, CheckoutDto checkout
 Finally, let's implement an endpoint to return a material:
 
 ```csharp
-app.MapPut("/api/checkouts/{id}/return", (LoncotesLibraryDbContext db, int id) =>
+app.MapPut("/checkouts/{id}/return", (LoncotesLibraryDbContext db, int id) =>
 {
     var checkout = db.Checkouts.Find(id);
 

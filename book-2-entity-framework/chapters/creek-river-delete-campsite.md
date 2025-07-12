@@ -17,7 +17,7 @@ Let's create an endpoint to delete a campsite from our database:
 2. Add the following endpoint after the existing endpoints:
 
 ```csharp
-app.MapDelete("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
+app.MapDelete("/campsites/{id}", (CreekRiverDbContext db, int id) =>
 {
     Campsite campsite = db.Campsites.SingleOrDefault(campsite => campsite.Id == id);
     if (campsite == null)
@@ -32,7 +32,7 @@ app.MapDelete("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
 
 Let's break down this code:
 
-- `app.MapDelete("/api/campsites/{id}", ...)`: This maps HTTP DELETE requests to the `/api/campsites/{id}` URL to our handler function.
+- `app.MapDelete("/campsites/{id}", ...)`: This maps HTTP DELETE requests to the `/campsites/{id}` URL to our handler function.
 
 - `(CreekRiverDbContext db, int id) => { ... }`: This is the handler function. The `CreekRiverDbContext` parameter is injected by ASP.NET Core's dependency injection system, and the `id` parameter is bound to the `{id}` parameter in the URL.
 
@@ -58,7 +58,7 @@ Now that we've created our endpoint, let's test it:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a tool like Yaak to send a DELETE request to `https://localhost:<port>/api/campsites/1` (replace `1` with the ID of a campsite you want to delete).
+2. Use a tool like Yaak to send a DELETE request to `https://localhost:<port>/campsites/1` (replace `1` with the ID of a campsite you want to delete).
 
 3. You should receive a 204 No Content response if the campsite was successfully deleted, or a 404 Not Found response if no campsite with the specified ID was found.
 
@@ -67,7 +67,7 @@ Now that we've created our endpoint, let's test it:
 Our current endpoint doesn't handle exceptions that might occur during the database operation. Let's add exception handling:
 
 ```csharp
-app.MapDelete("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
+app.MapDelete("/campsites/{id}", (CreekRiverDbContext db, int id) =>
 {
     try
     {
@@ -94,7 +94,7 @@ This code catches `DbUpdateException`, which is thrown when there's an error sav
 Before deleting a campsite, you might want to check if there are any active reservations for that campsite. If there are, you might want to prevent the deletion or handle it differently:
 
 ```csharp
-app.MapDelete("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
+app.MapDelete("/campsites/{id}", (CreekRiverDbContext db, int id) =>
 {
     try
     {
@@ -135,7 +135,7 @@ This code includes the reservations when retrieving the campsite, then checks if
 Here's the complete endpoint with validation, error handling, and checking for active reservations:
 
 ```csharp
-app.MapDelete("/api/campsites/{id}", (CreekRiverDbContext db, int id) =>
+app.MapDelete("/campsites/{id}", (CreekRiverDbContext db, int id) =>
 {
     try
     {

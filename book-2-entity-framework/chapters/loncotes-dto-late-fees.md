@@ -69,7 +69,7 @@ The `LateFee` property handles several cases:
 Now, let's implement an endpoint to get all checkouts with late fees:
 
 ```csharp
-app.MapGet("/api/checkouts", (LoncotesLibraryDbContext db) =>
+app.MapGet("/checkouts", (LoncotesLibraryDbContext db) =>
 {
     return db.Checkouts
         .Include(c => c.Material)
@@ -132,7 +132,7 @@ public class SimpleCheckoutDto
 Now, let's update the material details endpoint to use this simplified DTO:
 
 ```csharp
-app.MapGet("/api/materials/{id}", (LoncotesLibraryDbContext db, int id) =>
+app.MapGet("/materials/{id}", (LoncotesLibraryDbContext db, int id) =>
 {
     var material = db.Materials
         .Include(m => m.Genre)
@@ -201,7 +201,7 @@ public bool Paid { get; set; }
 Now, let's implement an endpoint to mark a late fee as paid:
 
 ```csharp
-app.MapPut("/api/checkouts/{id}/pay", (LoncotesLibraryDbContext db, int id) =>
+app.MapPut("/checkouts/{id}/pay", (LoncotesLibraryDbContext db, int id) =>
 {
     var checkout = db.Checkouts.Find(id);
 
@@ -259,7 +259,7 @@ public class PatronWithBalanceDto
 Now, let's implement an endpoint to get a patron with their balance:
 
 ```csharp
-app.MapGet("/api/patrons/{id}/balance", (LoncotesLibraryDbContext db, int id) =>
+app.MapGet("/patrons/{id}/balance", (LoncotesLibraryDbContext db, int id) =>
 {
     var patron = db.Patrons
         .Include(p => p.Checkouts)
@@ -323,7 +323,7 @@ In this case, we're providing librarians with useful information about late fees
 
 To test these endpoints, you'll need to have some checkouts in your database with various return dates. You can use the endpoints we created in the previous chapters to add and manage checkouts.
 
-Try calling the `/api/checkouts` endpoint and observe the response. You should see a list of checkouts with their late fees (if any). Then, try calling the `/api/patrons/{id}/balance` endpoint for a patron with overdue checkouts, and observe their total balance.
+Try calling the `/checkouts` endpoint and observe the response. You should see a list of checkouts with their late fees (if any). Then, try calling the `/patrons/{id}/balance` endpoint for a patron with overdue checkouts, and observe their total balance.
 
 In the next chapter, we'll explore how to use AutoMapper to simplify the mapping between our models and DTOs.
 

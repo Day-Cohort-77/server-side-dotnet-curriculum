@@ -17,7 +17,7 @@ Let's create an endpoint to update a campsite in our database:
 2. Add the following endpoint after the existing endpoints:
 
 ```csharp
-app.MapPut("/api/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
+app.MapPut("/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
 {
     Campsite campsiteToUpdate = db.Campsites.SingleOrDefault(c => c.Id == id);
     if (campsiteToUpdate == null)
@@ -35,7 +35,7 @@ app.MapPut("/api/campsites/{id}", (CreekRiverDbContext db, int id, Campsite camp
 
 Let's break down this code:
 
-- `app.MapPut("/api/campsites/{id}", ...)`: This maps HTTP PUT requests to the `/api/campsites/{id}` URL to our handler function.
+- `app.MapPut("/campsites/{id}", ...)`: This maps HTTP PUT requests to the `/campsites/{id}` URL to our handler function.
 
 - `(CreekRiverDbContext db, int id, Campsite campsite) => { ... }`: This is the handler function. The `CreekRiverDbContext` parameter is injected by ASP.NET Core's dependency injection system, the `id` parameter is bound to the `{id}` parameter in the URL, and the `Campsite` parameter is bound to the JSON payload in the request body.
 
@@ -61,7 +61,7 @@ Now that we've created our endpoint, let's test it:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a tool like Yaak to send a PUT request to `https://localhost:<port>/api/campsites/1` (replace `1` with the ID of a campsite you want to update) with a JSON payload like:
+2. Use a tool like Yaak to send a PUT request to `https://localhost:<port>/campsites/1` (replace `1` with the ID of a campsite you want to update) with a JSON payload like:
 
 ```json
 {
@@ -79,7 +79,7 @@ Now that we've created our endpoint, let's test it:
 Our current endpoint accepts any campsite data without validation. Let's add some basic validation to ensure that the required fields are provided and that the campsite type exists:
 
 ```csharp
-app.MapPut("/api/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
+app.MapPut("/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
 {
     // Validate required fields
     if (string.IsNullOrEmpty(campsite.Nickname))
@@ -124,7 +124,7 @@ This code adds validation to ensure that:
 Our current endpoint doesn't handle exceptions that might occur during the database operation. Let's add exception handling:
 
 ```csharp
-app.MapPut("/api/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
+app.MapPut("/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
 {
     // Validation code...
 
@@ -157,7 +157,7 @@ This code catches `DbUpdateException`, which is thrown when there's an error sav
 In a real-world application, you might want to use DTOs (Data Transfer Objects) for input and output to decouple your API contract from your database schema. Here's how you might modify the endpoint to use DTOs:
 
 ```csharp
-app.MapPut("/api/campsites/{id}", (CreekRiverDbContext db, int id, CampsiteUpdateDTO campsiteDTO) =>
+app.MapPut("/campsites/{id}", (CreekRiverDbContext db, int id, CampsiteUpdateDTO campsiteDTO) =>
 {
     // Validate DTO...
 
@@ -200,7 +200,7 @@ public class CampsiteUpdateDTO
 Before updating a campsite, you might want to check if there are any active reservations for that campsite. If there are, you might want to prevent certain updates or handle them differently:
 
 ```csharp
-app.MapPut("/api/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
+app.MapPut("/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
 {
     // Validation code...
 
@@ -246,7 +246,7 @@ This code includes the reservations when retrieving the campsite, then checks if
 Here's the complete endpoint with validation, exception handling, and checking for active reservations:
 
 ```csharp
-app.MapPut("/api/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
+app.MapPut("/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite) =>
 {
     // Validate required fields
     if (string.IsNullOrEmpty(campsite.Nickname))

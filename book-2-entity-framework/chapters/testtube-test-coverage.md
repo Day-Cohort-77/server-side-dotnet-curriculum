@@ -98,7 +98,7 @@ public async Task CreateScientist_WithInvalidData_ReturnsBadRequest()
     };
 
     // Act
-    var response = await client.PostAsJsonAsync("/api/scientist", invalidScientist);
+    var response = await client.PostAsJsonAsync("/scientist", invalidScientist);
 
     // Assert
     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
