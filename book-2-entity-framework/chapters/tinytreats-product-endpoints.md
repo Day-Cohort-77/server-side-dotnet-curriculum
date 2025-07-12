@@ -23,6 +23,8 @@ using Microsoft.EntityFrameworkCore;
 using TinyTreats.Data;
 using TinyTreats.DTO;
 using TinyTreats.Models;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 namespace TinyTreats.Endpoints;
 
@@ -31,26 +33,18 @@ public static class ProductEndpoints
     public static void MapProductEndpoints(this WebApplication app)
     {
         // Get all products - Public
-        app.MapGet("/products", async (TinyTreatsDbContext dbContext) =>
+        app.MapGet("/products", async (TinyTreatsDbContext dbContext, IMapper mapper) =>
         {
             var products = await dbContext.Products
                 .Where(p => p.IsAvailable)
-                .Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    IsAvailable = p.IsAvailable,
-                    ImageUrl = p.ImageUrl
-                })
+                .ProjectTo<ProductDto>(mapper.ConfigurationProvider)
                 .ToListAsync();
 
             return Results.Ok(products);
         });
 
         // Get product by ID - Public
-        app.MapGet("/products/{id}", async (int id, TinyTreatsDbContext dbContext) =>
+        app.MapGet("/products/{id}", async (int id, TinyTreatsDbContext dbContext, IMapper mapper) =>
         {
             var product = await dbContext.Products.FindAsync(id);
 
@@ -65,30 +59,14 @@ public static class ProductEndpoints
                 return Results.NotFound();
             }
 
-            return Results.Ok(new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                IsAvailable = product.IsAvailable,
-                ImageUrl = product.ImageUrl
-            });
+            return Results.Ok(mapper.Map<ProductDto>(product));
         });
 
         // Get all products (including unavailable) - Admin only
-        app.MapGet("/admin/products", async (TinyTreatsDbContext dbContext) =>
+        app.MapGet("/admin/products", async (TinyTreatsDbContext dbContext, IMapper mapper) =>
         {
             var products = await dbContext.Products
-                .Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    IsAvailable = p.IsAvailable,
-                    ImageUrl = p.ImageUrl
-                })
+                .ProjectTo<ProductDto>(mapper.ConfigurationProvider)
                 .ToListAsync();
 
             return Results.Ok(products);
@@ -97,36 +75,23 @@ public static class ProductEndpoints
         // Create a new product - Admin only
         app.MapPost("/products", async (
             ProductCreateDto productDto,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
-            var product = new Product
-            {
-                Name = productDto.Name,
-                Description = productDto.Description,
-                Price = productDto.Price,
-                IsAvailable = productDto.IsAvailable,
-                ImageUrl = productDto.ImageUrl
-            };
+            var product = mapper.Map<Product>(productDto);
 
             dbContext.Products.Add(product);
             await dbContext.SaveChangesAsync();
 
-            return Results.Created($"/products/{product.Id}", new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                IsAvailable = product.IsAvailable,
-                ImageUrl = product.ImageUrl
-            });
+            return Results.Created($"/products/{product.Id}", mapper.Map<ProductDto>(product));
         }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
         // Update a product - Admin only
         app.MapPut("/products/{id}", async (
             int id,
             ProductUpdateDto productDto,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             var product = await dbContext.Products.FindAsync(id);
 
@@ -135,49 +100,19 @@ public static class ProductEndpoints
                 return Results.NotFound();
             }
 
-            // Update only the properties that are provided
-            if (productDto.Name != null)
-            {
-                product.Name = productDto.Name;
-            }
-
-            if (productDto.Description != null)
-            {
-                product.Description = productDto.Description;
-            }
-
-            if (productDto.Price.HasValue)
-            {
-                product.Price = productDto.Price.Value;
-            }
-
-            if (productDto.IsAvailable.HasValue)
-            {
-                product.IsAvailable = productDto.IsAvailable.Value;
-            }
-
-            if (productDto.ImageUrl != null)
-            {
-                product.ImageUrl = productDto.ImageUrl;
-            }
+            // Map from DTO to entity, updating only non-null properties
+            mapper.Map(productDto, product);
 
             await dbContext.SaveChangesAsync();
 
-            return Results.Ok(new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                IsAvailable = product.IsAvailable,
-                ImageUrl = product.ImageUrl
-            });
+            return Results.Ok(mapper.Map<ProductDto>(product));
         }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
         // Delete a product - Admin only
         app.MapDelete("/products/{id}", async (
             int id,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             var product = await dbContext.Products.FindAsync(id);
 
@@ -217,19 +152,11 @@ Let's break down each endpoint:
 The get all products endpoint (`/products`) returns all available products:
 
 ```csharp
-app.MapGet("/products", async (TinyTreatsDbContext dbContext) =>
+app.MapGet("/products", async (TinyTreatsDbContext dbContext, IMapper mapper) =>
 {
     var products = await dbContext.Products
         .Where(p => p.IsAvailable)
-        .Select(p => new ProductDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Price = p.Price,
-            IsAvailable = p.IsAvailable,
-            ImageUrl = p.ImageUrl
-        })
+        .ProjectTo<ProductDto>(mapper.ConfigurationProvider)
         .ToListAsync();
 
     return Results.Ok(products);
@@ -238,7 +165,7 @@ app.MapGet("/products", async (TinyTreatsDbContext dbContext) =>
 
 This endpoint:
 1. Retrieves all available products from the database
-2. Maps them to `ProductDto` objects
+2. Uses AutoMapper's `ProjectTo` method to efficiently map them to `ProductDto` objects directly in the query
 3. Returns a 200 OK response with the products
 4. Is publicly accessible (no authorization required)
 
@@ -247,7 +174,7 @@ This endpoint:
 The get product by ID endpoint (`/products/{id}`) returns a specific product:
 
 ```csharp
-app.MapGet("/products/{id}", async (int id, TinyTreatsDbContext dbContext) =>
+app.MapGet("/products/{id}", async (int id, TinyTreatsDbContext dbContext, IMapper mapper) =>
 {
     var product = await dbContext.Products.FindAsync(id);
 
@@ -262,22 +189,14 @@ app.MapGet("/products/{id}", async (int id, TinyTreatsDbContext dbContext) =>
         return Results.NotFound();
     }
 
-    return Results.Ok(new ProductDto
-    {
-        Id = product.Id,
-        Name = product.Name,
-        Description = product.Description,
-        Price = product.Price,
-        IsAvailable = product.IsAvailable,
-        ImageUrl = product.ImageUrl
-    });
+    return Results.Ok(mapper.Map<ProductDto>(product));
 });
 ```
 
 This endpoint:
 1. Retrieves a specific product by ID
 2. Returns a 404 Not Found response if the product doesn't exist or isn't available
-3. Maps the product to a `ProductDto` object
+3. Uses AutoMapper to map the product to a `ProductDto` object
 4. Returns a 200 OK response with the product
 5. Is publicly accessible
 
@@ -286,18 +205,10 @@ This endpoint:
 The get all products (admin) endpoint (`/admin/products`) returns all products, including unavailable ones:
 
 ```csharp
-app.MapGet("/admin/products", async (TinyTreatsDbContext dbContext) =>
+app.MapGet("/admin/products", async (TinyTreatsDbContext dbContext, IMapper mapper) =>
 {
     var products = await dbContext.Products
-        .Select(p => new ProductDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Price = p.Price,
-            IsAvailable = p.IsAvailable,
-            ImageUrl = p.ImageUrl
-        })
+        .ProjectTo<ProductDto>(mapper.ConfigurationProvider)
         .ToListAsync();
 
     return Results.Ok(products);
@@ -306,7 +217,7 @@ app.MapGet("/admin/products", async (TinyTreatsDbContext dbContext) =>
 
 This endpoint:
 1. Retrieves all products from the database, including unavailable ones
-2. Maps them to `ProductDto` objects
+2. Uses AutoMapper's `ProjectTo` method to efficiently map them to `ProductDto` objects
 3. Returns a 200 OK response with the products
 4. Requires the "Admin" role
 
@@ -317,36 +228,22 @@ The create product endpoint (`/products`) creates a new product:
 ```csharp
 app.MapPost("/products", async (
     ProductCreateDto productDto,
-    TinyTreatsDbContext dbContext) =>
+    TinyTreatsDbContext dbContext,
+    IMapper mapper) =>
 {
-    var product = new Product
-    {
-        Name = productDto.Name,
-        Description = productDto.Description,
-        Price = productDto.Price,
-        IsAvailable = productDto.IsAvailable,
-        ImageUrl = productDto.ImageUrl
-    };
+    var product = mapper.Map<Product>(productDto);
 
     dbContext.Products.Add(product);
     await dbContext.SaveChangesAsync();
 
-    return Results.Created($"/products/{product.Id}", new ProductDto
-    {
-        Id = product.Id,
-        Name = product.Name,
-        Description = product.Description,
-        Price = product.Price,
-        IsAvailable = product.IsAvailable,
-        ImageUrl = product.ImageUrl
-    });
+    return Results.Created($"/products/{product.Id}", mapper.Map<ProductDto>(product));
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 ```
 
 This endpoint:
-1. Creates a new product from the provided data
+1. Uses AutoMapper to map the `ProductCreateDto` to a new `Product` entity
 2. Adds it to the database
-3. Returns a 201 Created response with the created product
+3. Returns a 201 Created response with the created product (mapped back to a DTO using AutoMapper)
 4. Requires the "Admin" role
 
 ### Update Product
@@ -357,7 +254,8 @@ The update product endpoint (`/products/{id}`) updates an existing product:
 app.MapPut("/products/{id}", async (
     int id,
     ProductUpdateDto productDto,
-    TinyTreatsDbContext dbContext) =>
+    TinyTreatsDbContext dbContext,
+    IMapper mapper) =>
 {
     var product = await dbContext.Products.FindAsync(id);
 
@@ -366,52 +264,21 @@ app.MapPut("/products/{id}", async (
         return Results.NotFound();
     }
 
-    // Update only the properties that are provided
-    if (productDto.Name != null)
-    {
-        product.Name = productDto.Name;
-    }
-
-    if (productDto.Description != null)
-    {
-        product.Description = productDto.Description;
-    }
-
-    if (productDto.Price.HasValue)
-    {
-        product.Price = productDto.Price.Value;
-    }
-
-    if (productDto.IsAvailable.HasValue)
-    {
-        product.IsAvailable = productDto.IsAvailable.Value;
-    }
-
-    if (productDto.ImageUrl != null)
-    {
-        product.ImageUrl = productDto.ImageUrl;
-    }
+    // Map from DTO to entity, updating only non-null properties
+    mapper.Map(productDto, product);
 
     await dbContext.SaveChangesAsync();
 
-    return Results.Ok(new ProductDto
-    {
-        Id = product.Id,
-        Name = product.Name,
-        Description = product.Description,
-        Price = product.Price,
-        IsAvailable = product.IsAvailable,
-        ImageUrl = product.ImageUrl
-    });
+    return Results.Ok(mapper.Map<ProductDto>(product));
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 ```
 
 This endpoint:
 1. Retrieves the product by ID
 2. Returns a 404 Not Found response if the product doesn't exist
-3. Updates only the properties that are provided in the request
+3. Uses AutoMapper to map the DTO to the existing entity, updating only the properties that are provided
 4. Saves the changes to the database
-5. Returns a 200 OK response with the updated product
+5. Returns a 200 OK response with the updated product (mapped back to a DTO using AutoMapper)
 6. Requires the "Admin" role
 
 ### Delete Product

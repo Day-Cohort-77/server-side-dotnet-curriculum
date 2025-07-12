@@ -21,6 +21,7 @@ Let's create a new file called `Endpoints/RoleEndpoints.cs` to contain all our r
 using Microsoft.AspNetCore.Identity;
 using TinyTreats.DTO;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace TinyTreats.Endpoints;
 
@@ -393,4 +394,4 @@ In this chapter, we've implemented role management endpoints for our TinyTreats 
 
 These endpoints provide a way for administrators to manage user permissions in our application. In the next chapter, we'll implement product management endpoints to allow users to browse and manage bakery products.
 
-[Next: Product Management Endpoints](./tinytreats-product-endpoints.md)
+[Next: Authenticating with the client](./tinytreats-role-client-login.md)

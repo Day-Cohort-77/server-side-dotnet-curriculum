@@ -315,4 +315,4 @@ In this chapter, we've defined all the database models and DTOs needed for our T
 
 These models and DTOs provide a solid foundation for our application. In the next chapter, we'll create the database context that will manage these models and their relationships.
 
-[Next: Creating the TinyTreatsDbContext](./tinytreats-dbcontext.md)
+[Next: Install and configure AutoMapper](./tinytreats-automapper.md)

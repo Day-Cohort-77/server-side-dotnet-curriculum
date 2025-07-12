@@ -24,6 +24,7 @@ using System.Security.Claims;
 using TinyTreats.Data;
 using TinyTreats.DTO;
 using TinyTreats.Models;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace TinyTreats.Endpoints;
@@ -37,7 +38,8 @@ public static class AuthEndpoints
             RegistrationDto registration,
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             // Create a new Identity user
             var user = new IdentityUser
@@ -55,13 +57,9 @@ public static class AuthEndpoints
                 await userManager.AddToRoleAsync(user, "Customer");
 
                 // Create a UserProfile for the new user
-                dbContext.UserProfiles.Add(new UserProfile
-                {
-                    FirstName = registration.FirstName,
-                    LastName = registration.LastName,
-                    Address = registration.Address,
-                    IdentityUserId = user.Id
-                });
+                var userProfile = mapper.Map<UserProfile>(registration);
+                userProfile.IdentityUserId = user.Id;
+                dbContext.UserProfiles.Add(userProfile);
                 await dbContext.SaveChangesAsync();
 
                 // Log the user in
@@ -111,7 +109,8 @@ public static class AuthEndpoints
         app.MapGet("/auth/me", async (
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             // Get the user ID from the claims
             var identityUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -134,14 +133,18 @@ public static class AuthEndpoints
             var identityUser = await userManager.FindByIdAsync(identityUserId);
             var roles = await userManager.GetRolesAsync(identityUser);
 
+            // Map to UserProfileDto and add roles
+            var profileDto = mapper.Map<UserProfileDto>(profile);
+            profileDto.Email = user.FindFirstValue(ClaimTypes.Email);
+
             // Return the user profile with roles
             return Results.Ok(new
             {
-                profile.Id,
-                profile.FirstName,
-                profile.LastName,
-                profile.Address,
-                Email = user.FindFirstValue(ClaimTypes.Email),
+                profileDto.Id,
+                profileDto.FirstName,
+                profileDto.LastName,
+                profileDto.Address,
+                profileDto.Email,
                 Roles = roles
             });
         }).RequireAuthorization(); // This endpoint requires authentication
@@ -179,14 +182,10 @@ app.MapPost("/auth/register", async (
         // Assign the Customer role by default
         await userManager.AddToRoleAsync(user, "Customer");
 
-        // Create a UserProfile for the new user
-        dbContext.UserProfiles.Add(new UserProfile
-        {
-            FirstName = registration.FirstName,
-            LastName = registration.LastName,
-            Address = registration.Address,
-            IdentityUserId = user.Id
-        });
+        // Create a UserProfile for the new user using AutoMapper
+        var userProfile = mapper.Map<UserProfile>(registration);
+        userProfile.IdentityUserId = user.Id;
+        dbContext.UserProfiles.Add(userProfile);
         await dbContext.SaveChangesAsync();
 
         // Log the user in

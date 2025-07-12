@@ -24,6 +24,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TinyTreats.Data;
 using TinyTreats.DTO;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using TinyTreats.Models;
 
 namespace TinyTreats.Endpoints;
@@ -36,7 +38,8 @@ public static class OrderEndpoints
         app.MapGet("/orders", async (
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             // Get the current user's ID
             var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -72,25 +75,8 @@ public static class OrderEndpoints
 
             var orders = await ordersQuery.ToListAsync();
 
-            // Map to DTOs
-            var orderDtos = orders.Select(o => new OrderDto
-            {
-                Id = o.Id,
-                OrderDate = o.OrderDate,
-                DeliveryDate = o.DeliveryDate,
-                Status = o.Status,
-                UserProfileId = o.UserProfileId,
-                CustomerName = $"{o.UserProfile.FirstName} {o.UserProfile.LastName}",
-                Items = o.OrderItems.Select(oi => new OrderItemDto
-                {
-                    ProductId = oi.ProductId,
-                    ProductName = oi.Product.Name,
-                    ProductPrice = oi.Product.Price,
-                    Quantity = oi.Quantity,
-                    Subtotal = oi.Quantity * oi.Product.Price
-                }).ToList(),
-                TotalAmount = o.TotalAmount
-            }).ToList();
+            // Map to DTOs using AutoMapper
+            var orderDtos = mapper.Map<List<OrderDto>>(orders);
 
             return Results.Ok(orderDtos);
         }).RequireAuthorization();
@@ -100,7 +86,8 @@ public static class OrderEndpoints
             int id,
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             // Get the current user's ID
             var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -138,25 +125,8 @@ public static class OrderEndpoints
                 }
             }
 
-            // Map to DTO
-            var orderDto = new OrderDto
-            {
-                Id = order.Id,
-                OrderDate = order.OrderDate,
-                DeliveryDate = order.DeliveryDate,
-                Status = order.Status,
-                UserProfileId = order.UserProfileId,
-                CustomerName = $"{order.UserProfile.FirstName} {order.UserProfile.LastName}",
-                Items = order.OrderItems.Select(oi => new OrderItemDto
-                {
-                    ProductId = oi.ProductId,
-                    ProductName = oi.Product.Name,
-                    ProductPrice = oi.Product.Price,
-                    Quantity = oi.Quantity,
-                    Subtotal = oi.Quantity * oi.Product.Price
-                }).ToList(),
-                TotalAmount = order.TotalAmount
-            };
+            // Map to DTO using AutoMapper
+            var orderDto = mapper.Map<OrderDto>(order);
 
             return Results.Ok(orderDto);
         }).RequireAuthorization();
@@ -166,7 +136,8 @@ public static class OrderEndpoints
             OrderCreateDto orderDto,
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             // Get the current user's ID
             var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -196,17 +167,13 @@ public static class OrderEndpoints
                 return Results.BadRequest("One or more products are not available");
             }
 
-            // Create the order
+            // Create the order using AutoMapper
             var order = new Order
             {
                 OrderDate = DateTime.Now,
                 Status = "Pending",
                 UserProfileId = userProfile.Id,
-                OrderItems = orderDto.Items.Select(i => new OrderItem
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity
-                }).ToList()
+                OrderItems = mapper.Map<List<OrderItem>>(orderDto.Items)
             };
 
             dbContext.Orders.Add(order);
@@ -219,25 +186,8 @@ public static class OrderEndpoints
                 .Include(o => o.UserProfile)
                 .FirstOrDefaultAsync(o => o.Id == order.Id);
 
-            // Map to DTO
-            var createdOrderDto = new OrderDto
-            {
-                Id = order.Id,
-                OrderDate = order.OrderDate,
-                DeliveryDate = order.DeliveryDate,
-                Status = order.Status,
-                UserProfileId = order.UserProfileId,
-                CustomerName = $"{order.UserProfile.FirstName} {order.UserProfile.LastName}",
-                Items = order.OrderItems.Select(oi => new OrderItemDto
-                {
-                    ProductId = oi.ProductId,
-                    ProductName = oi.Product.Name,
-                    ProductPrice = oi.Product.Price,
-                    Quantity = oi.Quantity,
-                    Subtotal = oi.Quantity * oi.Product.Price
-                }).ToList(),
-                TotalAmount = order.TotalAmount
-            };
+            // Map to DTO using AutoMapper
+            var createdOrderDto = mapper.Map<OrderDto>(order);
 
             return Results.Created($"/orders/{order.Id}", createdOrderDto);
         }).RequireAuthorization();
@@ -246,7 +196,8 @@ public static class OrderEndpoints
         app.MapPatch("/orders/{id}/status", async (
             int id,
             OrderStatusUpdateDto statusDto,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             var order = await dbContext.Orders.FindAsync(id);
             if (order == null)
@@ -277,7 +228,8 @@ public static class OrderEndpoints
             int id,
             ClaimsPrincipal user,
             UserManager<IdentityUser> userManager,
-            TinyTreatsDbContext dbContext) =>
+            TinyTreatsDbContext dbContext,
+            IMapper mapper) =>
         {
             // Get the current user's ID
             var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -380,25 +332,8 @@ app.MapGet("/orders", async (
 
     var orders = await ordersQuery.ToListAsync();
 
-    // Map to DTOs
-    var orderDtos = orders.Select(o => new OrderDto
-    {
-        Id = o.Id,
-        OrderDate = o.OrderDate,
-        DeliveryDate = o.DeliveryDate,
-        Status = o.Status,
-        UserProfileId = o.UserProfileId,
-        CustomerName = $"{o.UserProfile.FirstName} {o.UserProfile.LastName}",
-        Items = o.OrderItems.Select(oi => new OrderItemDto
-        {
-            ProductId = oi.ProductId,
-            ProductName = oi.Product.Name,
-            ProductPrice = oi.Product.Price,
-            Quantity = oi.Quantity,
-            Subtotal = oi.Quantity * oi.Product.Price
-        }).ToList(),
-        TotalAmount = o.TotalAmount
-    }).ToList();
+    // Map to DTOs using AutoMapper
+    var orderDtos = mapper.Map<List<OrderDto>>(orders);
 
     return Results.Ok(orderDtos);
 }).RequireAuthorization();
@@ -462,25 +397,8 @@ app.MapGet("/orders/{id}", async (
         }
     }
 
-    // Map to DTO
-    var orderDto = new OrderDto
-    {
-        Id = order.Id,
-        OrderDate = order.OrderDate,
-        DeliveryDate = order.DeliveryDate,
-        Status = order.Status,
-        UserProfileId = order.UserProfileId,
-        CustomerName = $"{order.UserProfile.FirstName} {order.UserProfile.LastName}",
-        Items = order.OrderItems.Select(oi => new OrderItemDto
-        {
-            ProductId = oi.ProductId,
-            ProductName = oi.Product.Name,
-            ProductPrice = oi.Product.Price,
-            Quantity = oi.Quantity,
-            Subtotal = oi.Quantity * oi.Product.Price
-        }).ToList(),
-        TotalAmount = order.TotalAmount
-    };
+    // Map to DTO using AutoMapper
+    var orderDto = mapper.Map<OrderDto>(order);
 
     return Results.Ok(orderDto);
 }).RequireAuthorization();
