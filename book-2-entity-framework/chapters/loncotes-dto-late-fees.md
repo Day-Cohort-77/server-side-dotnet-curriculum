@@ -1,4 +1,4 @@
-# Late Fees with DTOs
+# Custom DTO: Late Fees
 
 In this chapter, we'll implement a feature to calculate late fees for overdue materials. This will demonstrate how DTOs can encapsulate complex business logic and provide calculated properties that don't exist in the database.
 
@@ -15,6 +15,7 @@ The Loncotes County Library charges a late fee of $0.50 per day for materials th
 Let's create a DTO specifically for checkouts that includes a calculated property for late fees:
 
 ```csharp
+// DTOs/CheckoutWithLateFeeDto.cs
 public class CheckoutWithLateFeeDto
 {
     private static decimal _lateFeePerDay = 0.50M; // $0.50 per day
@@ -26,6 +27,7 @@ public class CheckoutWithLateFeeDto
     public PatronDto Patron { get; set; }
     public DateTime CheckoutDate { get; set; }
     public DateTime? ReturnDate { get; set; }
+    public bool Paid { get; set; }
 
     // Calculated property for the due date
     public DateTime DueDate => CheckoutDate.AddDays(Material.MaterialType.CheckoutDays);
@@ -64,144 +66,73 @@ The `LateFee` property handles several cases:
 - If the material hasn't been returned, it uses today's date to calculate the current accrued fee
 - If the material was returned on time, it returns null (no fee)
 
-## Implementing the Endpoint
+## Updating the AutoMapper Profile
 
-Now, let's implement an endpoint to get all checkouts with late fees:
-
-```csharp
-app.MapGet("/checkouts", (LoncotesLibraryDbContext db) =>
-{
-    return db.Checkouts
-        .Include(c => c.Material)
-            .ThenInclude(m => m.MaterialType)
-        .Include(c => c.Patron)
-        .Select(c => new CheckoutWithLateFeeDto
-        {
-            Id = c.Id,
-            MaterialId = c.MaterialId,
-            Material = new MaterialDto
-            {
-                Id = c.Material.Id,
-                MaterialName = c.Material.MaterialName,
-                MaterialTypeId = c.Material.MaterialTypeId,
-                MaterialType = new MaterialTypeDto
-                {
-                    Id = c.Material.MaterialType.Id,
-                    Name = c.Material.MaterialType.Name,
-                    CheckoutDays = c.Material.MaterialType.CheckoutDays
-                },
-                GenreId = c.Material.GenreId,
-                OutOfCirculationSince = c.Material.OutOfCirculationSince
-            },
-            PatronId = c.PatronId,
-            Patron = new PatronDto
-            {
-                Id = c.Patron.Id,
-                FirstName = c.Patron.FirstName,
-                LastName = c.Patron.LastName,
-                Address = c.Patron.Address,
-                Email = c.Patron.Email,
-                IsActive = c.Patron.IsActive
-            },
-            CheckoutDate = c.CheckoutDate,
-            ReturnDate = c.ReturnDate
-        })
-        .ToList();
-});
-```
-
-This endpoint retrieves all checkouts and includes the calculated late fee for each one.
-
-## Handling Potential Regression Issues
-
-When we add calculated properties to DTOs that depend on related entities, we need to be careful about how we use those DTOs in other parts of our application. For example, if we have an endpoint that returns a material with its checkouts, we need to ensure that the `Material` and `MaterialType` properties are set for each checkout, or we'll get a null reference exception when the `LateFee` property tries to access them.
-
-One way to handle this is to create separate DTOs for different use cases. Let's create a simplified checkout DTO for use in the material details endpoint:
+Now, let's update our AutoMapper profile to include the mapping for the new DTO:
 
 ```csharp
-public class SimpleCheckoutDto
+// Mapping/AutoMapperProfiles.cs
+public class AutoMapperProfiles : Profile
 {
-    public int Id { get; set; }
-    public int PatronId { get; set; }
-    public PatronDto Patron { get; set; }
-    public DateTime CheckoutDate { get; set; }
-    public DateTime? ReturnDate { get; set; }
+    public AutoMapperProfiles()
+    {
+        CreateMap<Material, MaterialDto>();
+        CreateMap<MaterialType, MaterialTypeDto>();
+        CreateMap<Genre, GenreDto>();
+        CreateMap<Patron, PatronDto>();
+        CreateMap<Checkout, CheckoutDto>();
+        CreateMap<Material, AvailableMaterialDto>();
+        CreateMap<Checkout, OverdueCheckoutDto>();
+
+        // Add this mapping
+        CreateMap<Checkout, CheckoutWithLateFeeDto>();
+    }
 }
 ```
 
-Now, let's update the material details endpoint to use this simplified DTO:
+## Implementing the Endpoint
+
+Now, let's implement an endpoint to get all checkouts with late fees. Open the `Endpoints/CheckoutEndpoints.cs` file and add the following method:
 
 ```csharp
-app.MapGet("/materials/{id}", (LoncotesLibraryDbContext db, int id) =>
+// Add this to the MapCheckoutEndpoints method
+app.MapGet("/checkouts/with-late-fees", GetCheckoutsWithLateFees);
+
+// Add this method to the CheckoutEndpoints class
+private static IResult GetCheckoutsWithLateFees(LoncotesLibraryDbContext db, IMapper mapper)
 {
-    var material = db.Materials
-        .Include(m => m.Genre)
-        .Include(m => m.MaterialType)
-        .Include(m => m.Checkouts)
-            .ThenInclude(c => c.Patron)
-        .FirstOrDefault(m => m.Id == id);
+    var checkouts = db.Checkouts
+        .Include(c => c.Material)
+            .ThenInclude(m => m.MaterialType)
+        .Include(c => c.Patron)
+        .ToList();
 
-    if (material == null)
-    {
-        return Results.NotFound();
-    }
+    var checkoutDtos = mapper.Map<List<CheckoutWithLateFeeDto>>(checkouts);
 
-    return Results.Ok(new MaterialDto
-    {
-        Id = material.Id,
-        MaterialName = material.MaterialName,
-        MaterialTypeId = material.MaterialTypeId,
-        MaterialType = new MaterialTypeDto
-        {
-            Id = material.MaterialType.Id,
-            Name = material.MaterialType.Name,
-            CheckoutDays = material.MaterialType.CheckoutDays
-        },
-        GenreId = material.GenreId,
-        Genre = new GenreDto
-        {
-            Id = material.Genre.Id,
-            Name = material.Genre.Name
-        },
-        OutOfCirculationSince = material.OutOfCirculationSince,
-        Checkouts = material.Checkouts.Select(c => new SimpleCheckoutDto
-        {
-            Id = c.Id,
-            PatronId = c.PatronId,
-            Patron = new PatronDto
-            {
-                Id = c.Patron.Id,
-                FirstName = c.Patron.FirstName,
-                LastName = c.Patron.LastName,
-                Address = c.Patron.Address,
-                Email = c.Patron.Email,
-                IsActive = c.Patron.IsActive
-            },
-            CheckoutDate = c.CheckoutDate,
-            ReturnDate = c.ReturnDate
-        }).ToList()
-    });
-});
+    // Filter to only include checkouts with late fees
+    var checkoutsWithLateFees = checkoutDtos.Where(c => c.LateFee.HasValue).ToList();
+
+    return Results.Ok(checkoutsWithLateFees);
+}
 ```
 
-By using a different DTO for checkouts in this context, we avoid the potential null reference exception.
+Let's break down what's happening here:
 
-## Adding a Paid Flag to Checkouts
+1. We start by getting all checkouts and including their related data (Material, MaterialType, and Patron).
+2. We use AutoMapper to map the checkouts to `CheckoutWithLateFeeDto` objects.
+3. We filter the results to only include checkouts with late fees.
+4. We return the filtered list of checkouts with late fees.
 
-Let's enhance our model and DTOs to track whether a late fee has been paid:
+## Implementing an Endpoint to Pay a Late Fee
 
-```csharp
-// Add to the Checkout model
-public bool Paid { get; set; }
-
-// Add to the CheckoutWithLateFeeDto
-public bool Paid { get; set; }
-```
-
-Now, let's implement an endpoint to mark a late fee as paid:
+Now, let's implement an endpoint to mark a late fee as paid. Open the `Endpoints/CheckoutEndpoints.cs` file and add the following method:
 
 ```csharp
-app.MapPut("/checkouts/{id}/pay", (LoncotesLibraryDbContext db, int id) =>
+// Add this to the MapCheckoutEndpoints method
+app.MapPut("/checkouts/{id}/pay", PayLateFee);
+
+// Add this method to the CheckoutEndpoints class
+private static IResult PayLateFee(LoncotesLibraryDbContext db, int id)
 {
     var checkout = db.Checkouts.Find(id);
 
@@ -214,7 +145,7 @@ app.MapPut("/checkouts/{id}/pay", (LoncotesLibraryDbContext db, int id) =>
     db.SaveChanges();
 
     return Results.NoContent();
-});
+}
 ```
 
 ## Calculating a Patron's Total Balance
@@ -222,10 +153,9 @@ app.MapPut("/checkouts/{id}/pay", (LoncotesLibraryDbContext db, int id) =>
 Let's create a DTO that includes a calculated property for a patron's total unpaid late fees:
 
 ```csharp
+// DTOs/PatronWithBalanceDto.cs
 public class PatronWithBalanceDto
 {
-    private static decimal _lateFeePerDay = 0.50M; // $0.50 per day
-
     public int Id { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
@@ -256,10 +186,37 @@ public class PatronWithBalanceDto
 }
 ```
 
-Now, let's implement an endpoint to get a patron with their balance:
+Now, let's update our AutoMapper profile to include the mapping for the new DTO:
 
 ```csharp
-app.MapGet("/patrons/{id}/balance", (LoncotesLibraryDbContext db, int id) =>
+// Mapping/AutoMapperProfiles.cs
+public class AutoMapperProfiles : Profile
+{
+    public AutoMapperProfiles()
+    {
+        CreateMap<Material, MaterialDto>();
+        CreateMap<MaterialType, MaterialTypeDto>();
+        CreateMap<Genre, GenreDto>();
+        CreateMap<Patron, PatronDto>();
+        CreateMap<Checkout, CheckoutDto>();
+        CreateMap<Material, AvailableMaterialDto>();
+        CreateMap<Checkout, OverdueCheckoutDto>();
+        CreateMap<Checkout, CheckoutWithLateFeeDto>();
+
+        // Add this mapping
+        CreateMap<Patron, PatronWithBalanceDto>();
+    }
+}
+```
+
+Now, let's implement an endpoint to get a patron with their balance. Open the `Endpoints/PatronEndpoints.cs` file and add the following method:
+
+```csharp
+// Add this to the MapPatronEndpoints method
+app.MapGet("/patrons/{id}/balance", GetPatronBalance);
+
+// Add this method to the PatronEndpoints class
+private static IResult GetPatronBalance(LoncotesLibraryDbContext db, IMapper mapper, int id)
 {
     var patron = db.Patrons
         .Include(p => p.Checkouts)
@@ -272,42 +229,17 @@ app.MapGet("/patrons/{id}/balance", (LoncotesLibraryDbContext db, int id) =>
         return Results.NotFound();
     }
 
-    return Results.Ok(new PatronWithBalanceDto
-    {
-        Id = patron.Id,
-        FirstName = patron.FirstName,
-        LastName = patron.LastName,
-        Address = patron.Address,
-        Email = patron.Email,
-        IsActive = patron.IsActive,
-        Checkouts = patron.Checkouts.Select(c => new CheckoutWithLateFeeDto
-        {
-            Id = c.Id,
-            MaterialId = c.MaterialId,
-            Material = new MaterialDto
-            {
-                Id = c.Material.Id,
-                MaterialName = c.Material.MaterialName,
-                MaterialTypeId = c.Material.MaterialTypeId,
-                MaterialType = new MaterialTypeDto
-                {
-                    Id = c.Material.MaterialType.Id,
-                    Name = c.Material.MaterialType.Name,
-                    CheckoutDays = c.Material.MaterialType.CheckoutDays
-                },
-                GenreId = c.Material.GenreId,
-                OutOfCirculationSince = c.Material.OutOfCirculationSince
-            },
-            PatronId = c.PatronId,
-            CheckoutDate = c.CheckoutDate,
-            ReturnDate = c.ReturnDate,
-            Paid = c.Paid
-        }).ToList()
-    });
-});
+    return Results.Ok(mapper.Map<PatronWithBalanceDto>(patron));
+}
 ```
 
-This endpoint retrieves a patron with all their checkouts and calculates their total balance of unpaid late fees.
+## Testing the Endpoints
+
+To test these endpoints, you'll need to have some checkouts in your database with various return dates. You can use the endpoints we created in the previous chapters to add and manage checkouts.
+
+Try calling the `/checkouts/with-late-fees` endpoint and observe the response. You should see a list of checkouts with their late fees.
+
+Then, try calling the `/patrons/{id}/balance` endpoint for a patron with overdue checkouts, and observe their total balance.
 
 ## The Power of DTOs for Complex Business Logic
 
@@ -319,12 +251,10 @@ This example demonstrates how DTOs can encapsulate complex business logic and pr
 
 In this case, we're providing librarians with useful information about late fees and patron balances that isn't directly stored in our database.
 
-## Testing the Endpoints
+## Summary
 
-To test these endpoints, you'll need to have some checkouts in your database with various return dates. You can use the endpoints we created in the previous chapters to add and manage checkouts.
+In this chapter, we've implemented features to calculate late fees for overdue materials and to get a patron's total balance. We've seen how DTOs can help us encapsulate complex business logic and provide calculated properties based on that logic.
 
-Try calling the `/checkouts` endpoint and observe the response. You should see a list of checkouts with their late fees (if any). Then, try calling the `/patrons/{id}/balance` endpoint for a patron with overdue checkouts, and observe their total balance.
+In the next chapter, we'll explore how to use AutoMapper to simplify the mapping between our models and DTOs even further.
 
-In the next chapter, we'll explore how to use AutoMapper to simplify the mapping between our models and DTOs.
-
-Up Next: [Using AutoMapper with DTOs](./loncotes-dto-automapper.md)
+Up Next: [Quieter Code with AutoMapper](./loncotes-dto-automapper.md)

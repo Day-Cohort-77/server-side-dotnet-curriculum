@@ -1,33 +1,32 @@
-# Using AutoMapper with DTOs
+# Quieter Code with AutoMapper
 
-In this chapter, we'll introduce AutoMapper, a popular library that simplifies the mapping between domain models and DTOs. This will help us reduce the amount of repetitive code in our application.
+In this chapter, we'll explore how to use AutoMapper more effectively to simplify our code even further. We've already been using AutoMapper in our project, but there are additional features and techniques that can make our code even cleaner and more maintainable.
 
 ## The Problem with Manual Mapping
 
-In the previous chapters, we've been manually mapping between our domain models and DTOs. For example:
+Throughout this project, we've been using AutoMapper to map between our domain models and DTOs. This has already saved us a lot of code compared to manual mapping, which would look something like this:
 
 ```csharp
-return db.Materials
-    .Select(m => new MaterialDto
+// Manual mapping example
+var materialDtos = materials.Select(m => new MaterialDto
+{
+    Id = m.Id,
+    MaterialName = m.MaterialName,
+    MaterialTypeId = m.MaterialTypeId,
+    MaterialType = new MaterialTypeDto
     {
-        Id = m.Id,
-        MaterialName = m.MaterialName,
-        MaterialTypeId = m.MaterialTypeId,
-        MaterialType = new MaterialTypeDto
-        {
-            Id = m.MaterialType.Id,
-            Name = m.MaterialType.Name,
-            CheckoutDays = m.MaterialType.CheckoutDays
-        },
-        GenreId = m.GenreId,
-        Genre = new GenreDto
-        {
-            Id = m.Genre.Id,
-            Name = m.Genre.Name
-        },
-        OutOfCirculationSince = m.OutOfCirculationSince
-    })
-    .ToList();
+        Id = m.MaterialType.Id,
+        Name = m.MaterialType.Name,
+        CheckoutDays = m.MaterialType.CheckoutDays
+    },
+    GenreId = m.GenreId,
+    Genre = new GenreDto
+    {
+        Id = m.Genre.Id,
+        Name = m.Genre.Name
+    },
+    OutOfCirculationSince = m.OutOfCirculationSince
+}).ToList();
 ```
 
 This approach has several drawbacks:
@@ -35,165 +34,9 @@ This approach has several drawbacks:
 2. It's error-prone (easy to miss a property)
 3. It's hard to maintain (if you add a property to the model, you need to update all the mapping code)
 
-## Introducing AutoMapper
-
-AutoMapper is a library that simplifies the mapping between objects. It uses a convention-based approach to map properties from one object to another, based on property names.
-
-### Installing AutoMapper
-
-First, let's install the AutoMapper package:
-
-```bash
-dotnet add package AutoMapper
-dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
-```
-
-### Configuring AutoMapper
-
-Next, let's create a profile class that defines the mapping between our domain models and DTOs:
-
-```csharp
-using AutoMapper;
-
-public class AutoMapperProfiles : Profile
-{
-    public AutoMapperProfiles()
-    {
-        CreateMap<Material, MaterialDto>();
-        CreateMap<MaterialDto, Material>();
-
-        CreateMap<MaterialType, MaterialTypeDto>();
-        CreateMap<MaterialTypeDto, MaterialType>();
-
-        CreateMap<Genre, GenreDto>();
-        CreateMap<GenreDto, Genre>();
-
-        CreateMap<Patron, PatronDto>();
-        CreateMap<PatronDto, Patron>();
-
-        CreateMap<Checkout, CheckoutDto>();
-        CreateMap<CheckoutDto, Checkout>();
-
-        CreateMap<Checkout, CheckoutWithLateFeeDto>();
-        CreateMap<CheckoutWithLateFeeDto, Checkout>();
-
-        CreateMap<Patron, PatronWithBalanceDto>();
-        CreateMap<PatronWithBalanceDto, Patron>();
-
-        CreateMap<Material, AvailableMaterialDto>();
-        CreateMap<AvailableMaterialDto, Material>();
-    }
-}
-```
-
-This profile defines bidirectional mappings between our domain models and DTOs.
-
-### Registering AutoMapper with Dependency Injection
-
-Now, let's register AutoMapper with the dependency injection container in `Program.cs`:
-
-```csharp
-using AutoMapper;
-
-// Add AutoMapper
-builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
-```
-
-## Using AutoMapper in Our Endpoints
-
-Now that we have AutoMapper configured, let's update our endpoints to use it.
-
-### Get All Materials
-
-```csharp
-app.MapGet("/materials", (LoncotesLibraryDbContext db, IMapper mapper) =>
-{
-    var materials = db.Materials
-        .Include(m => m.Genre)
-        .Include(m => m.MaterialType)
-        .Where(m => m.OutOfCirculationSince == null)
-        .ToList();
-
-    return mapper.Map<List<MaterialDto>>(materials);
-});
-```
-
-### Get Material Details
-
-```csharp
-app.MapGet("/materials/{id}", (LoncotesLibraryDbContext db, IMapper mapper, int id) =>
-{
-    var material = db.Materials
-        .Include(m => m.Genre)
-        .Include(m => m.MaterialType)
-        .Include(m => m.Checkouts)
-            .ThenInclude(c => c.Patron)
-        .FirstOrDefault(m => m.Id == id);
-
-    if (material == null)
-    {
-        return Results.NotFound();
-    }
-
-    return Results.Ok(mapper.Map<MaterialDto>(material));
-});
-```
-
-### Get Available Materials
-
-```csharp
-app.MapGet("/materials/available", (LoncotesLibraryDbContext db, IMapper mapper) =>
-{
-    var materials = db.Materials
-        .Include(m => m.Genre)
-        .Include(m => m.MaterialType)
-        .Include(m => m.Checkouts)
-        .Where(m => m.OutOfCirculationSince == null)
-        .Where(m => m.Checkouts.All(co => co.ReturnDate != null))
-        .ToList();
-
-    return mapper.Map<List<AvailableMaterialDto>>(materials);
-});
-```
-
-### Get Overdue Checkouts
-
-```csharp
-app.MapGet("/checkouts/overdue", (LoncotesLibraryDbContext db, IMapper mapper) =>
-{
-    var checkouts = db.Checkouts
-        .Include(c => c.Material)
-            .ThenInclude(m => m.MaterialType)
-        .Include(c => c.Patron)
-        .Where(c => c.ReturnDate == null)
-        .Where(c => (DateTime.Today - c.CheckoutDate).Days > c.Material.MaterialType.CheckoutDays)
-        .ToList();
-
-    return mapper.Map<List<OverdueCheckoutDto>>(checkouts);
-});
-```
-
-### Get Patron with Balance
-
-```csharp
-app.MapGet("/patrons/{id}/balance", (LoncotesLibraryDbContext db, IMapper mapper, int id) =>
-{
-    var patron = db.Patrons
-        .Include(p => p.Checkouts)
-            .ThenInclude(c => c.Material)
-                .ThenInclude(m => m.MaterialType)
-        .FirstOrDefault(p => p.Id == id);
-
-    if (patron == null)
-    {
-        return Results.NotFound();
-    }
-
-    return Results.Ok(mapper.Map<PatronWithBalanceDto>(patron));
-});
-```
-
 ## Using AutoMapper's ProjectTo for More Efficient Queries
+
+So far, we've been using AutoMapper's `Map` method to map objects after we've retrieved them from the database. This works well, but it means we're retrieving all properties from the database, even if we don't need them all.
 
 AutoMapper provides a `ProjectTo` method that can be used with LINQ queries to project directly to DTOs. This can be more efficient than mapping after the query, as it only selects the properties needed for the DTO.
 
@@ -208,46 +51,168 @@ Then, update our endpoints to use `ProjectTo`:
 ### Get All Materials
 
 ```csharp
-app.MapGet("/materials", (LoncotesLibraryDbContext db, IMapper mapper) =>
+// Endpoints/MaterialEndpoints.cs
+private static IResult GetAllMaterials(LoncotesLibraryDbContext db, IMapper mapper)
 {
-    return db.Materials
+    return Results.Ok(db.Materials
+        .Include(m => m.Genre)
+        .Include(m => m.MaterialType)
         .Where(m => m.OutOfCirculationSince == null)
         .ProjectTo<MaterialDto>(mapper.ConfigurationProvider)
-        .ToList();
-});
+        .ToList());
+}
 ```
 
 ### Get Material Types
 
 ```csharp
-app.MapGet("/materialtypes", (LoncotesLibraryDbContext db, IMapper mapper) =>
+// Add this to the MapMaterialEndpoints method
+app.MapGet("/materialtypes", GetMaterialTypes);
+
+// Add this method to the MaterialEndpoints class
+private static IResult GetMaterialTypes(LoncotesLibraryDbContext db, IMapper mapper)
 {
-    return db.MaterialTypes
+    return Results.Ok(db.MaterialTypes
         .ProjectTo<MaterialTypeDto>(mapper.ConfigurationProvider)
-        .ToList();
-});
+        .ToList());
+}
 ```
 
 ### Get Genres
 
 ```csharp
-app.MapGet("/genres", (LoncotesLibraryDbContext db, IMapper mapper) =>
+// Add this to the MapMaterialEndpoints method
+app.MapGet("/genres", GetGenres);
+
+// Add this method to the MaterialEndpoints class
+private static IResult GetGenres(LoncotesLibraryDbContext db, IMapper mapper)
 {
-    return db.Genres
+    return Results.Ok(db.Genres
         .ProjectTo<GenreDto>(mapper.ConfigurationProvider)
-        .ToList();
-});
+        .ToList());
+}
 ```
 
 ### Get Patrons
 
 ```csharp
-app.MapGet("/patrons", (LoncotesLibraryDbContext db, IMapper mapper) =>
+// Endpoints/PatronEndpoints.cs
+private static IResult GetAllPatrons(LoncotesLibraryDbContext db, IMapper mapper)
 {
-    return db.Patrons
+    return Results.Ok(db.Patrons
         .ProjectTo<PatronDto>(mapper.ConfigurationProvider)
-        .ToList();
-});
+        .ToList());
+}
+```
+
+## Handling Circular References
+
+When mapping objects with circular references (e.g., a Material has Checkouts, and each Checkout has a Material), AutoMapper can get stuck in an infinite loop. To handle this, we can use the `ExplicitExpansion()` option:
+
+```csharp
+// Mapping/AutoMapperProfiles.cs
+public class AutoMapperProfiles : Profile
+{
+    public AutoMapperProfiles()
+    {
+        CreateMap<Material, MaterialDto>()
+            .ForMember(dest => dest.Checkouts, opt => opt.ExplicitExpansion());
+
+        CreateMap<MaterialType, MaterialTypeDto>();
+        CreateMap<Genre, GenreDto>();
+
+        CreateMap<Patron, PatronDto>()
+            .ForMember(dest => dest.Checkouts, opt => opt.ExplicitExpansion());
+
+        CreateMap<Checkout, CheckoutDto>()
+            .ForMember(dest => dest.Material, opt => opt.ExplicitExpansion())
+            .ForMember(dest => dest.Patron, opt => opt.ExplicitExpansion());
+
+        CreateMap<Material, AvailableMaterialDto>();
+        CreateMap<Checkout, OverdueCheckoutDto>();
+        CreateMap<Checkout, CheckoutWithLateFeeDto>();
+        CreateMap<Patron, PatronWithBalanceDto>();
+    }
+}
+```
+
+The `ExplicitExpansion` option tells AutoMapper to only include the specified property when explicitly requested. This prevents infinite loops when mapping circular references.
+
+## Using AutoMapper Profiles for Different Use Cases
+
+As our application grows, we might want to have different mappings for different use cases. For example, we might want a simplified version of a Material for a list view, and a detailed version for a detail view.
+
+Create simplified DTOs for list views:
+
+```csharp
+// DTOs/MaterialListDto.cs
+public class MaterialListDto
+{
+    public int Id { get; set; }
+    public string MaterialName { get; set; }
+    public string MaterialTypeName { get; set; }
+    public string GenreName { get; set; }
+}
+
+// DTOs/PatronListDto.cs
+public class PatronListDto
+{
+    public int Id { get; set; }
+    public string FullName { get; set; }
+    public bool IsActive { get; set; }
+}
+```
+
+
+Then create multiple profiles for different use cases:
+
+```csharp
+// Mapping/AutoMapperProfiles.cs
+public class AutoMapperProfiles : Profile
+{
+    public AutoMapperProfiles()
+    {
+        // Basic mappings
+        CreateMap<Material, MaterialDto>();
+        CreateMap<MaterialType, MaterialTypeDto>();
+        CreateMap<Genre, GenreDto>();
+        CreateMap<Patron, PatronDto>();
+        CreateMap<Checkout, CheckoutDto>();
+
+        // Specialized mappings
+        CreateMap<Material, AvailableMaterialDto>();
+        CreateMap<Checkout, OverdueCheckoutDto>();
+        CreateMap<Checkout, CheckoutWithLateFeeDto>();
+        CreateMap<Patron, PatronWithBalanceDto>();
+
+        // Simplified mappings for list views
+        CreateMap<Material, MaterialListDto>()
+            .ForMember(dest => dest.MaterialTypeName, opt => opt.MapFrom(src => src.MaterialType.Name))
+            .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genre.Name));
+
+        CreateMap<Patron, PatronListDto>()
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
+    }
+}
+```
+
+And use them in our endpoints:
+
+```csharp
+// Endpoints/MaterialEndpoints.cs
+// Add this to the MapMaterialEndpoints method
+app.MapGet("/materials/list", GetMaterialsList);
+
+// Add this method to the MaterialEndpoints class
+private static IResult GetMaterialsList(LoncotesLibraryDbContext db, IMapper mapper)
+{
+    return Results.Ok(db.Materials
+        .Include(m => m.Genre)
+        .Include(m => m.MaterialType)
+        .Where(m => m.OutOfCirculationSince == null)
+        .ProjectTo<MaterialListDto>(mapper.ConfigurationProvider)
+        .ToList());
+}
 ```
 
 ## Benefits of Using AutoMapper
@@ -261,7 +226,7 @@ Using AutoMapper provides several benefits:
 
 ## Conclusion
 
-In this chapter, we've seen how AutoMapper can simplify the mapping between our domain models and DTOs. By using AutoMapper, we've reduced the amount of repetitive code in our application and made it more maintainable.
+In this chapter, we've explored how to use AutoMapper more effectively to simplify our code even further. We've seen how to use `ProjectTo` for more efficient queries, how to handle circular references, and how to create multiple profiles for different use cases.
 
 DTOs are a powerful pattern for shaping the data that flows between our API and clients. They allow us to:
 

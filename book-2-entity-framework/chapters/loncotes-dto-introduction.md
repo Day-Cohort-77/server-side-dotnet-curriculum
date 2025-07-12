@@ -83,6 +83,40 @@ erDiagram
     Patron ||--o{ Checkout : ""
 ```
 
+## Project Structure
+
+In our approach, we'll organize our endpoints, models, DTOs, and services in separate files, following the pattern of separating endpoints by functionality. This approach offers several benefits:
+
+1. **Better organization** - Endpoints are grouped by functionality, making them easier to find and modify.
+2. **Improved maintainability** - The `Program.cs` file remains clean and focused on configuration.
+3. **Scalability** - As your application grows, you can add new endpoint classes without cluttering `Program.cs`.
+4. **Testability** - Endpoint classes can be tested independently.
+
+Here's how we'll structure our project:
+
+```
+LoncotesLibrary/
+├── Endpoints/
+│   ├── MaterialEndpoints.cs
+│   ├── PatronEndpoints.cs
+│   └── CheckoutEndpoints.cs
+├── Models/
+│   ├── Material.cs
+│   ├── MaterialType.cs
+│   ├── Genre.cs
+│   ├── Patron.cs
+│   └── Checkout.cs
+├── DTOs/
+│   ├── MaterialDto.cs
+│   ├── PatronDto.cs
+│   └── CheckoutDto.cs
+├── Data/
+│   └── LoncotesLibraryDbContext.cs
+├── Mapping/
+│   └── AutoMapperProfiles.cs
+├── Program.cs
+└── ...
+```
 
 ## Setting up the API
 
@@ -105,6 +139,10 @@ erDiagram
    ```bash
    dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0
    ```
+   and:
+   ```bash
+   dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
+   ```
 
 4. Run this to be able to store secrets for this app:
    ```bash
@@ -116,7 +154,12 @@ erDiagram
    dotnet user-secrets set 'LoncotesLibraryDbConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=<your_postgresql_password>;Database=LoncotesLibrary'
    ```
 
-6. Refer to the [debugging chapter](../../book-1-csharp-sql/chapters/debugging-csharp.md) to create your `.vscode/launch.json` and `.vscode/tasks.json`. Replace all instances of **HarborMaster** with **LoncotesLibrary**.
+6. Create the necessary directories for our project structure:
+   ```bash
+   mkdir Models DTOs Endpoints Data Mapping
+   ```
+
+7. Refer to the [debugging chapter](../../book-1-csharp-sql/chapters/debugging-csharp.md) to create your `.vscode/launch.json` and `.vscode/tasks.json`. Replace all instances of **HarborMaster** with **LoncotesLibrary**.
 
 ## Creating Model Classes
 
@@ -185,6 +228,7 @@ public class Checkout
     [Required]
     public DateTime CheckoutDate { get; set; }
     public DateTime? ReturnDate { get; set; }
+    public bool Paid { get; set; }
 }
 ```
 
@@ -203,7 +247,6 @@ public class MaterialDto
     public int GenreId { get; set; }
     public GenreDto Genre { get; set; }
     public DateTime? OutOfCirculationSince { get; set; }
-    public List<CheckoutDto> Checkouts { get; set; }
 }
 
 // DTOs/MaterialTypeDto.cs
@@ -250,84 +293,183 @@ public class CheckoutDto
 
 Notice how we've added a calculated property `FullName` to the `PatronDto` that doesn't exist in the `Patron` model. This is one of the advantages of using DTOs - we can add properties that are calculated from the model data but don't exist in the database.
 
-## Setting up the DbContext
+## Setting up AutoMapper
 
-Create a `LoncotesLibraryDbContext.cs` file:
+AutoMapper is a library that simplifies the mapping between objects. It uses a convention-based approach to map properties from one object to another, based on property names.
+
+Let's create a profile class that defines the mapping between our domain models and DTOs:
 
 ```csharp
-public class LoncotesLibraryDbContext : DbContext
+// Mapping/AutoMapperProfiles.cs
+using AutoMapper;
+using LoncotesLibrary.Models;
+using LoncotesLibrary.DTOs;
+
+namespace LoncotesLibrary.Mapping
 {
-    public DbSet<Material> Materials { get; set; }
-    public DbSet<MaterialType> MaterialTypes { get; set; }
-    public DbSet<Genre> Genres { get; set; }
-    public DbSet<Patron> Patrons { get; set; }
-    public DbSet<Checkout> Checkouts { get; set; }
-
-    public LoncotesLibraryDbContext(DbContextOptions<LoncotesLibraryDbContext> context) : base(context) { }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public class AutoMapperProfiles : Profile
     {
-        // Seed data
-        modelBuilder.Entity<MaterialType>().HasData(new MaterialType[]
+        public AutoMapperProfiles()
         {
-            new MaterialType { Id = 1, Name = "Book", CheckoutDays = 14 },
-            new MaterialType { Id = 2, Name = "CD", CheckoutDays = 7 },
-            new MaterialType { Id = 3, Name = "DVD", CheckoutDays = 7 }
-        });
+            CreateMap<Material, MaterialDto>();
+            CreateMap<MaterialType, MaterialTypeDto>();
+            CreateMap<Genre, GenreDto>();
+            CreateMap<Patron, PatronDto>();
+            CreateMap<Checkout, CheckoutDto>();
+        }
+    }
+}
+```
 
-        modelBuilder.Entity<Genre>().HasData(new Genre[]
-        {
-            new Genre { Id = 1, Name = "Fiction" },
-            new Genre { Id = 2, Name = "Non-Fiction" },
-            new Genre { Id = 3, Name = "Science Fiction" },
-            new Genre { Id = 4, Name = "Fantasy" },
-            new Genre { Id = 5, Name = "Biography" }
-        });
+This profile defines mappings between our domain models and DTOs. AutoMapper will automatically map properties with the same name from the source object to the destination object.
 
-        modelBuilder.Entity<Patron>().HasData(new Patron[]
-        {
-            new Patron { Id = 1, FirstName = "John", LastName = "Doe", Address = "123 Main St", Email = "john@example.com", IsActive = true },
-            new Patron { Id = 2, FirstName = "Jane", LastName = "Smith", Address = "456 Elm St", Email = "jane@example.com", IsActive = true }
-        });
+## Setting up the DbContext
 
-        modelBuilder.Entity<Material>().HasData(new Material[]
+Create a `LoncotesLibraryDbContext.cs` file in the `Data` directory:
+
+```csharp
+// Data/LoncotesLibraryDbContext.cs
+using Microsoft.EntityFrameworkCore;
+using LoncotesLibrary.Models;
+
+namespace LoncotesLibrary.Data
+{
+    public class LoncotesLibraryDbContext : DbContext
+    {
+        public DbSet<Material> Materials { get; set; }
+        public DbSet<MaterialType> MaterialTypes { get; set; }
+        public DbSet<Genre> Genres { get; set; }
+        public DbSet<Patron> Patrons { get; set; }
+        public DbSet<Checkout> Checkouts { get; set; }
+
+        public LoncotesLibraryDbContext(DbContextOptions<LoncotesLibraryDbContext> context) : base(context) { }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            new Material { Id = 1, MaterialName = "The Great Gatsby", MaterialTypeId = 1, GenreId = 1 },
-            new Material { Id = 2, MaterialName = "1984", MaterialTypeId = 1, GenreId = 3 },
-            new Material { Id = 3, MaterialName = "The Hobbit", MaterialTypeId = 1, GenreId = 4 },
-            new Material { Id = 4, MaterialName = "Steve Jobs", MaterialTypeId = 1, GenreId = 5 },
-            new Material { Id = 5, MaterialName = "The Beatles: Abbey Road", MaterialTypeId = 2, GenreId = 1 },
-            new Material { Id = 6, MaterialName = "Inception", MaterialTypeId = 3, GenreId = 3 },
-            new Material { Id = 7, MaterialName = "The Lord of the Rings: The Fellowship of the Ring", MaterialTypeId = 3, GenreId = 4 },
-            new Material { Id = 8, MaterialName = "A Brief History of Time", MaterialTypeId = 1, GenreId = 2 },
-            new Material { Id = 9, MaterialName = "The Shawshank Redemption", MaterialTypeId = 3, GenreId = 1 },
-            new Material { Id = 10, MaterialName = "The Dark Side of the Moon", MaterialTypeId = 2, GenreId = 1 }
-        });
+            // Seed data
+            modelBuilder.Entity<MaterialType>().HasData(new MaterialType[]
+            {
+                new MaterialType { Id = 1, Name = "Book", CheckoutDays = 14 },
+                new MaterialType { Id = 2, Name = "CD", CheckoutDays = 7 },
+                new MaterialType { Id = 3, Name = "DVD", CheckoutDays = 7 }
+            });
+
+            modelBuilder.Entity<Genre>().HasData(new Genre[]
+            {
+                new Genre { Id = 1, Name = "Fiction" },
+                new Genre { Id = 2, Name = "Non-Fiction" },
+                new Genre { Id = 3, Name = "Science Fiction" },
+                new Genre { Id = 4, Name = "Fantasy" },
+                new Genre { Id = 5, Name = "Biography" }
+            });
+
+            modelBuilder.Entity<Patron>().HasData(new Patron[]
+            {
+                new Patron { Id = 1, FirstName = "John", LastName = "Doe", Address = "123 Main St", Email = "john@example.com", IsActive = true },
+                new Patron { Id = 2, FirstName = "Jane", LastName = "Smith", Address = "456 Elm St", Email = "jane@example.com", IsActive = true }
+            });
+
+            modelBuilder.Entity<Material>().HasData(new Material[]
+            {
+                new Material { Id = 1, MaterialName = "The Great Gatsby", MaterialTypeId = 1, GenreId = 1 },
+                new Material { Id = 2, MaterialName = "1984", MaterialTypeId = 1, GenreId = 3 },
+                new Material { Id = 3, MaterialName = "The Hobbit", MaterialTypeId = 1, GenreId = 4 },
+                new Material { Id = 4, MaterialName = "Steve Jobs", MaterialTypeId = 1, GenreId = 5 },
+                new Material { Id = 5, MaterialName = "The Beatles: Abbey Road", MaterialTypeId = 2, GenreId = 1 },
+                new Material { Id = 6, MaterialName = "Inception", MaterialTypeId = 3, GenreId = 3 },
+                new Material { Id = 7, MaterialName = "The Lord of the Rings: The Fellowship of the Ring", MaterialTypeId = 3, GenreId = 4 },
+                new Material { Id = 8, MaterialName = "A Brief History of Time", MaterialTypeId = 1, GenreId = 2 },
+                new Material { Id = 9, MaterialName = "The Shawshank Redemption", MaterialTypeId = 3, GenreId = 1 },
+                new Material { Id = 10, MaterialName = "The Dark Side of the Moon", MaterialTypeId = 2, GenreId = 1 }
+            });
+
+            modelBuilder.Entity<Checkout>().HasData(new Checkout[]
+            {
+                new Checkout
+                {
+                    Id = 1,
+                    MaterialId = 1,
+                    PatronId = 1,
+                    CheckoutDate = DateTime.Now.AddDays(-14),
+                    ReturnDate = DateTime.Now.AddDays(-7),
+                    Paid = true
+                },
+                new Checkout
+                {
+                    Id = 2,
+                    MaterialId = 2,
+                    PatronId = 1,
+                    CheckoutDate = DateTime.Now.AddDays(-7),
+                    ReturnDate = null,
+                    Paid = false
+                },
+                new Checkout
+                {
+                    Id = 3,
+                    MaterialId = 3,
+                    PatronId = 2,
+                    CheckoutDate = DateTime.Now.AddDays(-21),
+                    ReturnDate = DateTime.Now.AddDays(-10),
+                    Paid = true
+                },
+                new Checkout
+                {
+                    Id = 4,
+                    MaterialId = 5,
+                    PatronId = 2,
+                    CheckoutDate = DateTime.Now.AddDays(-3),
+                    ReturnDate = null,
+                    Paid = false
+                },
+                new Checkout
+                {
+                    Id = 5,
+                    MaterialId = 7,
+                    PatronId = 1,
+                    CheckoutDate = DateTime.Now.AddDays(-30),
+                    ReturnDate = null,
+                    Paid = false
+                }
+            });
+        }
     }
 }
 ```
 
 ## Update Program.cs
 
-Update your `Program.cs` file to include the DbContext configuration:
+Update your `Program.cs` file to include the DbContext configuration and register AutoMapper:
 
 ```csharp
+using LoncotesLibrary.Data;
+using LoncotesLibrary.Mapping;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container
 builder.Services.AddNpgsql<LoncotesLibraryDbContext>(builder.Configuration["LoncotesLibraryDbConnectionString"]);
-```
 
-Make sure to add the connection string to your `appsettings.json` file:
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
-```json
+// Add CORS
+builder.Services.AddCors(options =>
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*",
-  "LoncotesLibraryDbConnectionString": "Host=localhost;Port=5432;Database=LoncotesLibrary;Username=postgres"
-}
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline
+app.UseCors();
+
+app.Run();
 ```
 
 ## Create the Initial Migration
