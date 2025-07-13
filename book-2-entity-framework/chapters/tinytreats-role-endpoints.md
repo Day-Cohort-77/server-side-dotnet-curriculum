@@ -146,6 +146,15 @@ public static class RoleEndpoints
 }
 ```
 
+## Activate your endpoints
+
+Add the following code to your `Program.cs` file under the "Map API endpoints" comment
+
+```cs
+app.MapRoleEndpoints();
+```
+
+
 ## Understanding the Role Endpoints
 
 Let's break down each endpoint:
@@ -154,30 +163,6 @@ Let's break down each endpoint:
 
 The create role endpoint (`/roles`) allows administrators to create new roles:
 
-```csharp
-app.MapPost("/roles", async (
-    RoleDto roleDto,
-    RoleManager<IdentityRole> roleManager) =>
-{
-    // Check if the role already exists
-    if (await roleManager.RoleExistsAsync(roleDto.Name))
-    {
-        return Results.BadRequest($"Role '{roleDto.Name}' already exists.");
-    }
-
-    // Create the role
-    var result = await roleManager.CreateAsync(new IdentityRole(roleDto.Name));
-
-    if (result.Succeeded)
-    {
-        return Results.Created($"/roles/{roleDto.Name}", new { name = roleDto.Name });
-    }
-
-    return Results.BadRequest(result.Errors);
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
-This endpoint:
 1. Checks if the role already exists
 2. Creates the role if it doesn't exist
 3. Returns a 201 Created response with the role name
@@ -187,15 +172,6 @@ This endpoint:
 
 The get all roles endpoint (`/roles`) returns a list of all roles:
 
-```csharp
-app.MapGet("/roles", async (RoleManager<IdentityRole> roleManager) =>
-{
-    var roles = await roleManager.Roles.Select(r => r.Name).ToListAsync();
-    return Results.Ok(roles);
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
-This endpoint:
 1. Gets all roles from the role manager
 2. Returns a 200 OK response with the role names
 3. Requires the "Admin" role
@@ -204,38 +180,6 @@ This endpoint:
 
 The assign role endpoint (`/users/roles`) assigns a role to a user:
 
-```csharp
-app.MapPost("/users/roles", async (
-    UserRoleDto userRoleDto,
-    UserManager<IdentityUser> userManager,
-    RoleManager<IdentityRole> roleManager) =>
-{
-    // Find the user
-    var user = await userManager.FindByEmailAsync(userRoleDto.Email);
-    if (user == null)
-    {
-        return Results.NotFound($"User with email '{userRoleDto.Email}' not found.");
-    }
-
-    // Check if the role exists
-    if (!await roleManager.RoleExistsAsync(userRoleDto.RoleName))
-    {
-        return Results.NotFound($"Role '{userRoleDto.RoleName}' not found.");
-    }
-
-    // Add the user to the role
-    var result = await userManager.AddToRoleAsync(user, userRoleDto.RoleName);
-
-    if (result.Succeeded)
-    {
-        return Results.NoContent();
-    }
-
-    return Results.BadRequest(result.Errors);
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
-This endpoint:
 1. Finds the user by email
 2. Checks if the role exists
 3. Adds the user to the role
@@ -246,26 +190,6 @@ This endpoint:
 
 The get user roles endpoint (`/users/{email}/roles`) returns the roles for a specific user:
 
-```csharp
-app.MapGet("/users/{email}/roles", async (
-    string email,
-    UserManager<IdentityUser> userManager) =>
-{
-    // Find the user
-    var user = await userManager.FindByEmailAsync(email);
-    if (user == null)
-    {
-        return Results.NotFound($"User with email '{email}' not found.");
-    }
-
-    // Get the user's roles
-    var roles = await userManager.GetRolesAsync(user);
-
-    return Results.Ok(roles);
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
-This endpoint:
 1. Finds the user by email
 2. Gets the user's roles
 3. Returns a 200 OK response with the roles
@@ -275,45 +199,6 @@ This endpoint:
 
 The remove role endpoint (`/users/{email}/roles/{roleName}`) removes a role from a user:
 
-```csharp
-app.MapDelete("/users/{email}/roles/{roleName}", async (
-    string email,
-    string roleName,
-    UserManager<IdentityUser> userManager,
-    RoleManager<IdentityRole> roleManager) =>
-{
-    // Find the user
-    var user = await userManager.FindByEmailAsync(email);
-    if (user == null)
-    {
-        return Results.NotFound($"User with email '{email}' not found.");
-    }
-
-    // Check if the role exists
-    if (!await roleManager.RoleExistsAsync(roleName))
-    {
-        return Results.NotFound($"Role '{roleName}' not found.");
-    }
-
-    // Check if the user is in the role
-    if (!await userManager.IsInRoleAsync(user, roleName))
-    {
-        return Results.BadRequest($"User '{email}' is not in role '{roleName}'.");
-    }
-
-    // Remove the user from the role
-    var result = await userManager.RemoveFromRoleAsync(user, roleName);
-
-    if (result.Succeeded)
-    {
-        return Results.NoContent();
-    }
-
-    return Results.BadRequest(result.Errors);
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
-This endpoint:
 1. Finds the user by email
 2. Checks if the role exists
 3. Checks if the user is in the role
@@ -392,6 +277,10 @@ In this chapter, we've implemented role management endpoints for our TinyTreats 
 - Get user roles endpoint for listing a user's roles
 - Remove role endpoint for removing roles from users
 
-These endpoints provide a way for administrators to manage user permissions in our application. In the next chapter, we'll implement product management endpoints to allow users to browse and manage bakery products.
+These endpoints provide a way for administrators to manage user permissions in our application.
+
+## Next steps
+
+In the next chapter, you will try the login functionality of your React client.
 
 [Next: Authenticating with the client](./tinytreats-role-client-login.md)

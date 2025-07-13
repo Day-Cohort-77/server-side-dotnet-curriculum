@@ -1,6 +1,6 @@
 # Client Authentication
 
-Now it is time for you to start the React client—if you haven't yet—and verify that the users and roles endpoints are working.
+Now it is time for you to start the React client if you haven't yet, and verify that the users and roles endpoints are working.
 
 ## Start the client
 
@@ -32,4 +32,9 @@ You should now see the admin dashboard which includes two sections:
 2. View the **Headers** > **Request URL** for the `/me` request, and then look at the **Response** JSON data.
 3. View the **Headers** > **Request URL** for the `/roles` request, and then look at the **Response** JSON data.
 
-[Next: Product Management Endpoints](./tinytreats-product-endpoints.md)
+## Next steps
+
+In the next chapter, we'll implement product management endpoints to allow users to browse and manage bakery products.
+
+
+[Next: Product management endpoints](./tinytreats-product-endpoints.md)

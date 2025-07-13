@@ -284,6 +284,14 @@ public static class OrderEndpoints
 }
 ```
 
+## Activate your endpoints
+
+Add the following code to your `Program.cs` file under the "Map API endpoints" comment
+
+```cs
+app.MapOrderEndpoints();
+```
+
 ## Understanding the Order Endpoints
 
 Let's break down each endpoint:

@@ -1,6 +1,6 @@
 # Program.cs and Database Migrations
 
-In this final chapter, we'll implement the `Program.cs` file to tie everything together and provide instructions for creating migrations and updating the database. This is where we'll configure all the services and middleware for our TinyTreats application.
+In this chapter, we'll implement the `Program.cs` file to tie everything together and provide instructions for creating migrations and updating the database. This is where we'll configure all the services and middleware for our TinyTreats application.
 
 ## Understanding Program.cs in Minimal API
 
@@ -89,9 +89,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add services for Swagger
-builder.Services.AddEndpointsApiExplorer();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -112,10 +109,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Map API endpoints
-app.MapAuthEndpoints();
-app.MapRoleEndpoints();
-app.MapProductEndpoints();
-app.MapOrderEndpoints();
+// In the next few chapters, you will implement the endpoints
+// and they will be activated here
 
 // Add a simple health check endpoint
 app.MapGet("/", () => "TinyTreats API is running!");
@@ -256,38 +251,9 @@ This configures the HTTP request pipeline with:
 - CORS middleware
 - Authentication and authorization middleware
 
-### Endpoint Mapping
-
-```csharp
-// Map API endpoints
-app.MapAuthEndpoints();
-app.MapRoleEndpoints();
-app.MapProductEndpoints();
-app.MapOrderEndpoints();
-
-// Add a simple health check endpoint
-app.MapGet("/", () => "TinyTreats API is running!");
-```
-
-This maps all our API endpoints using the extension methods we defined in our endpoint classes, and adds a simple health check endpoint.
-
 ## Creating Database Migrations
 
 Now that we have our models and database context defined, we need to create migrations to set up the database schema. Migrations are a way to incrementally update the database schema to match the data model while preserving existing data.
-
-### Installing the Entity Framework Core Tools
-
-First, make sure you have the Entity Framework Core tools installed:
-
-```bash
-dotnet tool install --global dotnet-ef
-```
-
-If you already have the tools installed, you can update them to the latest version:
-
-```bash
-dotnet tool update --global dotnet-ef
-```
 
 ### Creating the Initial Migration
 
@@ -334,13 +300,7 @@ Once connected, you should see the following tables:
 
 ## Running the Application
 
-Start your API is debug mode.
-
-> 🧨 Make sure you read the output as the port that your API starts on may differ from the one below.
-
-This will start the web server and make your API available at `https://localhost:7086` _(or a similar URL, depending on your configuration)_.
-
-You can test the API using a tool like Yaak, as described in the previous chapters.
+Start your API in debug mode. This will automatically seed the database with all of the objects defined in the DbContext module.
 
 ## Summary
 

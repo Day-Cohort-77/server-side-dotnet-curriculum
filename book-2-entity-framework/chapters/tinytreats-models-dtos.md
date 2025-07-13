@@ -294,16 +294,6 @@ Our DTOs are designed with specific purposes:
    - `OrderItemCreateDto`: For creating order items within an order
    - `OrderStatusUpdateDto`: For updating the status of an order
 
-## Benefits of Using DTOs
-
-Using DTOs provides several benefits:
-
-1. **Separation of concerns**: DTOs decouple your API contract from your database schema
-2. **Security**: You can exclude sensitive data from being sent to clients
-3. **Flexibility**: You can shape the data differently for different endpoints
-4. **Validation**: You can apply specific validation rules for API requests
-5. **Evolution**: You can evolve your API independently from your database schema
-
 ## Summary
 
 In this chapter, we've defined all the database models and DTOs needed for our TinyTreats bakery management system:

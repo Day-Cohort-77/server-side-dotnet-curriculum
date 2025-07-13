@@ -371,38 +371,6 @@ We first call the base implementation to set up the Identity tables, then config
 
 The `ConfigureRelationships` method configures the relationships between our entities:
 
-```csharp
-private void ConfigureRelationships(ModelBuilder modelBuilder)
-{
-    // Configure UserProfile to IdentityUser relationship (one-to-one)
-    modelBuilder.Entity<UserProfile>()
-        .HasOne(up => up.IdentityUser)
-        .WithOne()
-        .HasForeignKey<UserProfile>(up => up.IdentityUserId);
-
-    // Configure Order to UserProfile relationship (many-to-one)
-    modelBuilder.Entity<Order>()
-        .HasOne(o => o.UserProfile)
-        .WithMany(up => up.Orders)
-        .HasForeignKey(o => o.UserProfileId)
-        .OnDelete(DeleteBehavior.Restrict);
-
-    // Configure OrderItem relationships
-    modelBuilder.Entity<OrderItem>()
-        .HasOne(oi => oi.Order)
-        .WithMany(o => o.OrderItems)
-        .HasForeignKey(oi => oi.OrderId)
-        .OnDelete(DeleteBehavior.Cascade);
-
-    modelBuilder.Entity<OrderItem>()
-        .HasOne(oi => oi.Product)
-        .WithMany(p => p.OrderItems)
-        .HasForeignKey(oi => oi.ProductId)
-        .OnDelete(DeleteBehavior.Restrict);
-}
-```
-
-This method configures:
 - A one-to-one relationship between `UserProfile` and `IdentityUser`
 - A many-to-one relationship between `Order` and `UserProfile`
 - A many-to-one relationship between `OrderItem` and `Order` (with cascade delete)
@@ -410,29 +378,8 @@ This method configures:
 
 ### Seeding Data
 
-The `SeedData` method and its helper methods seed initial data for our application:
+The `SeedData` method and its helper methods seed initial data for our application, which includes:
 
-```csharp
-private void SeedData(ModelBuilder modelBuilder)
-{
-    // Seed roles
-    SeedRoles(modelBuilder);
-
-    // Seed users
-    SeedUsers(modelBuilder);
-
-    // Seed user profiles
-    SeedUserProfiles(modelBuilder);
-
-    // Assign users to roles
-    SeedUserRoles(modelBuilder);
-
-    // Seed products
-    SeedProducts(modelBuilder);
-}
-```
-
-This includes:
 - Roles (Admin, Baker, Customer)
 - Users (admin, bakers, customers)
 - User profiles
@@ -459,6 +406,6 @@ In this chapter, we've created the `TinyTreatsDbContext` class that:
 
 The database context is a crucial component that bridges our C# models with the database. It provides a clean, object-oriented way to interact with our data.
 
-In the next chapter, we'll implement the authentication endpoints for our TinyTreats application.
+## Next Step
 
 [Next: Configure the program and create database](./tinytreats-program.md)

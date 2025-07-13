@@ -143,6 +143,14 @@ public static class ProductEndpoints
 }
 ```
 
+## Activate your endpoints
+
+Add the following code to your `Program.cs` file under the "Map API endpoints" comment
+
+```cs
+app.MapProductEndpoints();
+```
+
 ## Understanding the Product Endpoints
 
 Let's break down each endpoint:
@@ -151,19 +159,6 @@ Let's break down each endpoint:
 
 The get all products endpoint (`/products`) returns all available products:
 
-```csharp
-app.MapGet("/products", async (TinyTreatsDbContext dbContext, IMapper mapper) =>
-{
-    var products = await dbContext.Products
-        .Where(p => p.IsAvailable)
-        .ProjectTo<ProductDto>(mapper.ConfigurationProvider)
-        .ToListAsync();
-
-    return Results.Ok(products);
-});
-```
-
-This endpoint:
 1. Retrieves all available products from the database
 2. Uses AutoMapper's `ProjectTo` method to efficiently map them to `ProductDto` objects directly in the query
 3. Returns a 200 OK response with the products
@@ -173,27 +168,6 @@ This endpoint:
 
 The get product by ID endpoint (`/products/{id}`) returns a specific product:
 
-```csharp
-app.MapGet("/products/{id}", async (int id, TinyTreatsDbContext dbContext, IMapper mapper) =>
-{
-    var product = await dbContext.Products.FindAsync(id);
-
-    if (product == null)
-    {
-        return Results.NotFound();
-    }
-
-    // Only return available products to the public
-    if (!product.IsAvailable)
-    {
-        return Results.NotFound();
-    }
-
-    return Results.Ok(mapper.Map<ProductDto>(product));
-});
-```
-
-This endpoint:
 1. Retrieves a specific product by ID
 2. Returns a 404 Not Found response if the product doesn't exist or isn't available
 3. Uses AutoMapper to map the product to a `ProductDto` object
@@ -204,18 +178,6 @@ This endpoint:
 
 The get all products (admin) endpoint (`/admin/products`) returns all products, including unavailable ones:
 
-```csharp
-app.MapGet("/admin/products", async (TinyTreatsDbContext dbContext, IMapper mapper) =>
-{
-    var products = await dbContext.Products
-        .ProjectTo<ProductDto>(mapper.ConfigurationProvider)
-        .ToListAsync();
-
-    return Results.Ok(products);
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
-This endpoint:
 1. Retrieves all products from the database, including unavailable ones
 2. Uses AutoMapper's `ProjectTo` method to efficiently map them to `ProductDto` objects
 3. Returns a 200 OK response with the products
@@ -225,22 +187,6 @@ This endpoint:
 
 The create product endpoint (`/products`) creates a new product:
 
-```csharp
-app.MapPost("/products", async (
-    ProductCreateDto productDto,
-    TinyTreatsDbContext dbContext,
-    IMapper mapper) =>
-{
-    var product = mapper.Map<Product>(productDto);
-
-    dbContext.Products.Add(product);
-    await dbContext.SaveChangesAsync();
-
-    return Results.Created($"/products/{product.Id}", mapper.Map<ProductDto>(product));
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
-This endpoint:
 1. Uses AutoMapper to map the `ProductCreateDto` to a new `Product` entity
 2. Adds it to the database
 3. Returns a 201 Created response with the created product (mapped back to a DTO using AutoMapper)
@@ -250,30 +196,6 @@ This endpoint:
 
 The update product endpoint (`/products/{id}`) updates an existing product:
 
-```csharp
-app.MapPut("/products/{id}", async (
-    int id,
-    ProductUpdateDto productDto,
-    TinyTreatsDbContext dbContext,
-    IMapper mapper) =>
-{
-    var product = await dbContext.Products.FindAsync(id);
-
-    if (product == null)
-    {
-        return Results.NotFound();
-    }
-
-    // Map from DTO to entity, updating only non-null properties
-    mapper.Map(productDto, product);
-
-    await dbContext.SaveChangesAsync();
-
-    return Results.Ok(mapper.Map<ProductDto>(product));
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
-This endpoint:
 1. Retrieves the product by ID
 2. Returns a 404 Not Found response if the product doesn't exist
 3. Uses AutoMapper to map the DTO to the existing entity, updating only the properties that are provided
@@ -285,39 +207,8 @@ This endpoint:
 
 The delete product endpoint (`/products/{id}`) deletes a product or marks it as unavailable:
 
-```csharp
-app.MapDelete("/products/{id}", async (
-    int id,
-    TinyTreatsDbContext dbContext) =>
-{
-    var product = await dbContext.Products.FindAsync(id);
-
-    if (product == null)
-    {
-        return Results.NotFound();
-    }
-
-    // Check if the product is referenced by any order items
-    var hasOrderItems = await dbContext.OrderItems
-        .AnyAsync(oi => oi.ProductId == id);
-
-    if (hasOrderItems)
-    {
-        // Instead of deleting, mark as unavailable
-        product.IsAvailable = false;
-        await dbContext.SaveChangesAsync();
-        return Results.Ok(new { message = "Product marked as unavailable because it has order references." });
-    }
-
-    // If no order items reference this product, we can safely delete it
-    dbContext.Products.Remove(product);
-    await dbContext.SaveChangesAsync();
-
-    return Results.NoContent();
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-```
-
 This endpoint:
+
 1. Retrieves the product by ID
 2. Returns a 404 Not Found response if the product doesn't exist
 3. Checks if the product is referenced by any order items
@@ -415,4 +306,4 @@ In this chapter, we've implemented product management endpoints for our TinyTrea
 
 These endpoints provide a complete product management system for our bakery application. In the next chapter, we'll implement order management endpoints to allow customers to place orders and staff to manage them.
 
-[Next: Order Management Endpoints](./tinytreats-order-endpoints.md)
+[Next: Order management endpoints](./tinytreats-order-endpoints.md)

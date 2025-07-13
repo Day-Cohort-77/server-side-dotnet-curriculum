@@ -152,6 +152,14 @@ public static class AuthEndpoints
 }
 ```
 
+## Activate your endpoints
+
+Add the following code to your `Program.cs` file under the "Map API endpoints" comment
+
+```cs
+app.MapAuthEndpoints();
+```
+
 ## Understanding the Authentication Endpoints
 
 Let's break down each endpoint:
@@ -160,45 +168,6 @@ Let's break down each endpoint:
 
 The registration endpoint (`/auth/register`) handles user registration:
 
-```csharp
-app.MapPost("/auth/register", async (
-    RegistrationDto registration,
-    UserManager<IdentityUser> userManager,
-    SignInManager<IdentityUser> signInManager,
-    TinyTreatsDbContext dbContext) =>
-{
-    // Create a new Identity user
-    var user = new IdentityUser
-    {
-        UserName = registration.Email,
-        Email = registration.Email
-    };
-
-    // Try to create the user with the provided password
-    var result = await userManager.CreateAsync(user, registration.Password);
-
-    if (result.Succeeded)
-    {
-        // Assign the Customer role by default
-        await userManager.AddToRoleAsync(user, "Customer");
-
-        // Create a UserProfile for the new user using AutoMapper
-        var userProfile = mapper.Map<UserProfile>(registration);
-        userProfile.IdentityUserId = user.Id;
-        dbContext.UserProfiles.Add(userProfile);
-        await dbContext.SaveChangesAsync();
-
-        // Log the user in
-        await signInManager.SignInAsync(user, isPersistent: false);
-        return Results.Ok();
-    }
-
-    // If we get here, something went wrong
-    return Results.BadRequest(result.Errors);
-});
-```
-
-This endpoint:
 1. Creates a new `IdentityUser` with the provided email
 2. Attempts to create the user with the provided password
 3. If successful, assigns the "Customer" role by default
@@ -210,35 +179,6 @@ This endpoint:
 
 The login endpoint (`/auth/login`) handles user login:
 
-```csharp
-app.MapPost("/auth/login", async (
-    LoginDto login,
-    UserManager<IdentityUser> userManager,
-    SignInManager<IdentityUser> signInManager) =>
-{
-    // Find the user by email
-    var user = await userManager.FindByEmailAsync(login.Email);
-
-    if (user == null)
-    {
-        return Results.Unauthorized();
-    }
-
-    // Verify the password
-    var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, false);
-
-    if (result.Succeeded)
-    {
-        // Sign in the user
-        await signInManager.SignInAsync(user, isPersistent: false);
-        return Results.Ok();
-    }
-
-    return Results.Unauthorized();
-});
-```
-
-This endpoint:
 1. Finds the user by email
 2. Verifies the password
 3. If successful, signs the user in
@@ -246,63 +186,12 @@ This endpoint:
 
 ### Logout Endpoint
 
-The logout endpoint (`/auth/logout`) handles user logout:
-
-```csharp
-app.MapPost("/auth/logout", async (SignInManager<IdentityUser> signInManager) =>
-{
-    await signInManager.SignOutAsync();
-    return Results.Ok();
-});
-```
-
-This endpoint simply signs the user out and returns a success response.
+The logout endpoint (`/auth/logout`) handles user logout. This endpoint simply signs the user out and returns a success response.
 
 ### Current User Endpoint
 
 The current user endpoint (`/auth/me`) returns information about the currently authenticated user:
 
-```csharp
-app.MapGet("/auth/me", async (
-    ClaimsPrincipal user,
-    UserManager<IdentityUser> userManager,
-    TinyTreatsDbContext dbContext) =>
-{
-    // Get the user ID from the claims
-    var identityUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    if (identityUserId == null)
-    {
-        return Results.Unauthorized();
-    }
-
-    // Find the user profile
-    var profile = await dbContext.UserProfiles
-        .FirstOrDefaultAsync(up => up.IdentityUserId == identityUserId);
-
-    if (profile == null)
-    {
-        return Results.NotFound();
-    }
-
-    // Get the user's roles
-    var identityUser = await userManager.FindByIdAsync(identityUserId);
-    var roles = await userManager.GetRolesAsync(identityUser);
-
-    // Return the user profile with roles
-    return Results.Ok(new
-    {
-        profile.Id,
-        profile.FirstName,
-        profile.LastName,
-        profile.Address,
-        Email = user.FindFirstValue(ClaimTypes.Email),
-        Roles = roles
-    });
-}).RequireAuthorization(); // This endpoint requires authentication
-```
-
-This endpoint:
 1. Gets the user ID from the claims
 2. Finds the user profile
 3. Gets the user's roles
