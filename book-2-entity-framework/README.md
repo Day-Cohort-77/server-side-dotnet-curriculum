@@ -25,16 +25,18 @@ You need to complete the first four projects in two weeks. Each project has you 
 | **15** | | | | | [Advanced Queries](./chapters/eventhorizon-advanced-queries.md) |
 | **16** | | | | | [Final Requirements](./chapters/eventhorizon-final.md) |
 
+## 🔐 Group Project
 
+At the end of two weeks of core project work, you will start on a major group project that will span multiple Sprints.
 
-
-
-
+| # | Project&nbsp;Name | Description |
+|--|--|--|
+|1| Pet Pal | PetPal is a comprehensive pet management application designed to help pet owners track and manage all aspects of their pets' health, care, and appointments. Your team will be inheriting an existing application that you must explore, understand, debug and enhance. |
 
 
 ## 🤔 Learning Reflections
 
-Once you have completed the projects, your job is to do a self-assessment. This is truly a self-assessment, as you will need to reflect on what you learned so far.
+Once the group project is done, your coach will do your final technical interview preparation with you.You will need to reflect on what you learned so far in the program.
 
 | # | | Description |
 |--|--|--|
