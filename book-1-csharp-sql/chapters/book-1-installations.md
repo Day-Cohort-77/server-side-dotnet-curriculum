@@ -14,7 +14,7 @@ To complete the exercises and projects in Book 1, you'll need to install several
 ## Installing .NET SDK
 
 1. Visit the [.NET download page](https://dotnet.microsoft.com/download)
-2. Download the latest .NET SDK (version 8)
+2. Download the .NET SDK (version 8)
 3. Follow the installation instructions for your operating system
 4. Update and verify the installation by opening a terminal/command prompt and running:
    ```sh
