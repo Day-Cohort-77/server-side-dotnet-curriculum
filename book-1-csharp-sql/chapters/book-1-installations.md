@@ -29,7 +29,7 @@ To complete the exercises and projects in Book 1, you'll need to install several
 2. Click on the Extensions icon in the sidebar (or press Ctrl+Shift+X)
 3. Search for "C# Dev Kit"
 4. Click "Install"
-5. Search for "IntelliCode for C# Dev KitPreview"
+5. Search for "IntelliCode for C# Dev Kit"
 6. Click "Install"
 7. You may need to restart VS Code after installation
 
