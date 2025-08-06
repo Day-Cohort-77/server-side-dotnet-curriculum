@@ -105,6 +105,14 @@ dotnet user-secrets init
 dotnet user-secrets set 'HarborMasterConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=your_password;Database=harbormaster'
 ```
 
+If you are using .NET version 9, you need the following secret format.
+
+```sh
+dotnet user-secrets init
+dotnet user-secrets set 'ConnectionStrings:HarborMasterConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=your_password;Database=harbormaster'
+```
+
+
 2. Create a database service to handle database operations. Create `Services/DatabaseService.cs`:
 
 ```csharp
