@@ -44,22 +44,12 @@ To complete the exercises and projects in Book 1, you'll need to install several
 6. Complete the installation
 
 ### macOS
-1. The easiest way to install PostgreSQL on macOS is using Homebrew. Check if you have it installed by running the following command in the terminal.
-   ```sh
-   which brew
-   ```
-2. If you don't have Homebrew installed, install it first:
-   ```sh
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-3. Install PostgreSQL:
-   ```
-   brew install postgresql
-   ```
-4. Start the PostgreSQL service:
-   ```
-   brew services start postgresql
-   ```
+
+Run the following command in your terminal
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/nashville-software-school/course-bash-scripts/main/csharp/mac-install-postgres.sh)"
+```
 
 ### Linux
 1. For Ubuntu/Debian:
