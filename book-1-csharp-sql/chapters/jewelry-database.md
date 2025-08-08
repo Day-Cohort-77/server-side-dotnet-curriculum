@@ -48,7 +48,8 @@ Each table will have appropriate columns with data types, constraints, and forei
 
 To connect to our PostgreSQL database, we'll:
 
-1. Add a connection string to your user secrets. Mac users, your Postgres password is **devpassword**. Windows/Linux users, use whatever password you chose when you installed Postgres.
+1. Add a connection string to your user secrets. Replace *your_password* with your Postgres user password.
+    > Mac users, your Postgres password is **devpassword**. Windows/Linux users, use whatever password you chose when you installed Postgres.
     ```sh
     dotnet user-secrets init
     dotnet user-secrets set 'JewelryJunctionConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=your_password;Database=JewelryJunction'
