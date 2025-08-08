@@ -51,6 +51,8 @@ Run the following command in your terminal
 /bin/bash -c "$(curl -H 'Cache-Control: no-cache' -fsSL https://raw.githubusercontent.com/nashville-software-school/course-bash-scripts/main/csharp/mac-install-postgres.sh)"
 ```
 
+Your Postgres user will be **postgres** and your Postgres password will be **devpassword**. You will be reminded in later chapters when this information is needed.
+
 ### Linux
 1. For Ubuntu/Debian:
    ```
