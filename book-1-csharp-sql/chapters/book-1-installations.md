@@ -48,7 +48,7 @@ To complete the exercises and projects in Book 1, you'll need to install several
 Run the following command in your terminal
 
 ```sh
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/nashville-software-school/course-bash-scripts/main/csharp/mac-install-postgres.sh)"
+/bin/bash -c "$(curl -H 'Cache-Control: no-cache' -fsSL https://raw.githubusercontent.com/nashville-software-school/course-bash-scripts/main/csharp/mac-install-postgres.sh)"
 ```
 
 ### Linux
