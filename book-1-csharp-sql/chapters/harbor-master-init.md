@@ -100,12 +100,14 @@ Now, let's set up the database connection. Run the following commands in your te
 
 Replace *your_password* with the password that you created for the **postgres** user.
 
+> If you are using a Mac, your password is **devpassword**
+
 ```sh
 dotnet user-secrets init
 dotnet user-secrets set 'HarborMasterConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=your_password;Database=harbormaster'
 ```
 
-If you are using .NET version 9, you need the following secret format.
+You should have .NET version 8 on your machine, but if you are using .NET version 9 instead, you need the following secret format.
 
 ```sh
 dotnet user-secrets init
