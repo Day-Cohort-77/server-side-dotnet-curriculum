@@ -68,8 +68,8 @@ public async Task<bool> DockHasAvailableCapacityAsync(int dockId)
 
      🧨 This is how you can use SQL to do logical operations
      you might otherwise be tempted to do in code.
-     Copy/pasta this SQL into pgAdmin and see the results
-     for different dock IDs.
+     Copy/pasta this SQL into your `.sql` file and run it
+     to see the results for different dock IDs.
     */
     using var capacityCommand = new NpgsqlCommand(
         @"SELECT d.capacity > COUNT(s.id)

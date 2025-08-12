@@ -98,7 +98,7 @@ Now that we've created our migration, we need to apply it to the database:
 
 Let's verify that our database was created correctly:
 
-1. Open pgAdmin (or another PostgreSQL client).
+1. Open your SQLTools extension's list of connections.
 2. Connect to your PostgreSQL server.
 3. Navigate to the `CreekRiver` database.
 4. You should see the following tables:

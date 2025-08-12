@@ -7,7 +7,6 @@ In this chapter, we'll explore the basics of PostgreSQL, a powerful open-source 
 By the end of this chapter, you should be able to:
 - Understand what PostgreSQL is and why it's used
 - Install and configure PostgreSQL on your machine
-- Use pgAdmin to interact with PostgreSQL
 - Create databases and tables
 - Understand basic data types in PostgreSQL
 - Perform basic SQL operations (SELECT, INSERT, UPDATE, DELETE)
@@ -26,37 +25,15 @@ Key features of PostgreSQL include:
 
 ## Connecting to PostgreSQL
 
-Once you have PostgreSQL and pgAdmin installed, you can connect to your PostgreSQL server:
-
-1. Open pgAdmin
-2. In the left panel, right-click on "Servers" and select "Create" > "Server..."
-3. In the "General" tab, give your server a name (e.g., "LocalPostgres")
-4. In the "Connection" tab, enter the following information:
+1. Open SQLTools extension
+2. Click **Add New Connection**
+3. Provide the following information:
    - Host name/address: localhost
    - Port: 5432
-   - Maintenance database: postgres
    - Username: postgres
    - Password: (the password you set during installation)
-5. Click "Save" to connect to your PostgreSQL server
-
-## Creating a Database
-
-Now that you're connected to your PostgreSQL server, let's create a database:
-
-1. In pgAdmin, right-click on "Databases" under your server and select "Create" > "Database..."
-2. Enter a name for your database (e.g., "ExtraVert")
-3. Click "Save" to create the database
-
-You can also create a database using SQL:
-
-```sql
-CREATE DATABASE extravert;
-```
-
-To execute this SQL command in pgAdmin:
-1. Right-click on your server and select "Query Tool"
-2. Enter the SQL command in the query editor
-3. Click the "Execute" button (or press F5)
+4. Click **Test Connection**
+5. If that was successful, save the connection
 
 ## Understanding PostgreSQL Data Types
 

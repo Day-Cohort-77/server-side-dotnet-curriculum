@@ -17,7 +17,7 @@ By the end of this chapter, you should be able to:
 Before starting this project, ensure you have:
 - .NET 8 SDK installed
 - PostgreSQL installed and running
-- pgAdmin or another PostgreSQL client tool
+- SQLTools extension
 - Basic understanding of C# and SQL
 
 ## Step 1: Creating the Minimal API Project

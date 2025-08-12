@@ -87,7 +87,6 @@ To ensure everything is installed correctly:
    ```
 3. Both commands should return version information
 4. Open VS Code and ensure the C# Dev Kit extension is active
-5. Open pgAdmin and verify you can connect to your PostgreSQL server
 
 ## SQLTools and Postgres Driver Extensions
 
