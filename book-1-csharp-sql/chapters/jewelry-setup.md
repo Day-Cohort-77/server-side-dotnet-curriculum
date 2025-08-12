@@ -63,13 +63,6 @@ Based on your domain understanding, you will need to create several model classe
 
 Refer to your model classes in the previous project as guidance for creating these. Use dbdiagram.io to make an ERD for this project. Your teammates and coaching team are great resources to review this with you.
 
-## Defining the DTO Classes
-
-Once you have your database model classes defined, you will create DTO classes to represent that form that the JSON reponses to your client will take.
-
-- Do all database fields need to be on each DTO?
-- Should `OrderItem` be a DTO, or should they be embedded in the `Order` DTO?
-
 ## Implementing Basic Endpoints
 
 Finally, you will implement some basic endpoints to verify your setup:
