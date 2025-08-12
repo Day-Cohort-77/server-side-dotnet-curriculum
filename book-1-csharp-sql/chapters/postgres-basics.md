@@ -23,18 +23,6 @@ Key features of PostgreSQL include:
 - Multi-version concurrency control
 - Strong standards compliance
 
-## Connecting to PostgreSQL
-
-1. Open SQLTools extension
-2. Click **Add New Connection**
-3. Provide the following information:
-   - Host name/address: localhost
-   - Port: 5432
-   - Username: postgres
-   - Password: (the password you set during installation)
-4. Click **Test Connection**
-5. If that was successful, save the connection
-
 ## Understanding PostgreSQL Data Types
 
 PostgreSQL supports a wide range of data types. Here are some common ones:
