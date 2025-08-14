@@ -15,9 +15,10 @@ Once the extension is installed, you can set up debugging for your C# applicatio
 
 1. Open your C# project in VS Code
 2. Click on the Run and Debug icon in the sidebar (or press Ctrl+Shift+D)
-3. Click on "create a launch.json file" and select ".NET Core" from the dropdown
-4. VS Code will create a `.vscode/launch.json` file with default configurations and open the contents
-5. Replace the default content with the following JSON. Note that the `program` key has a path to a file named `HarborMaster.dll`. The name of this file will change for every project — all other values will remain the same.
+3. Click on "create a launch.json file" and select ".NET Core" from the dropdown.
+    * You may have to create a new configuration if it doesn't appear. If so, choose **Create configuration** and choose ".NET Core Launch (web)" from the options
+5. VS Code will create a `.vscode/launch.json` file with default configurations and open the contents
+6. Replace the default content with the following JSON. Note that the `program` key has a path to a file named `HarborMaster.dll`. The name of this file will change for every project — all other values will remain the same.
    ```json
    {
        // Use IntelliSense to learn about possible attributes.
@@ -45,7 +46,7 @@ Once the extension is installed, you can set up debugging for your C# applicatio
        ]
    }
    ```
-6. In the `.vscode` directory, create a new file named `tasks.json` and place the following JSON in it:
+7. In the `.vscode` directory, create a new file named `tasks.json` and place the following JSON in it:
     ```json
     {
        "version": "2.0.0",
