@@ -4,6 +4,36 @@ On the last day of the project, you will review the following questions and reco
 
 On the following Monday, an instructor will join your team before you start the next round of individual learning and answer questions, provide expert guidance and context that you may have about any topic.
 
+## Data Types
+
+1. Can I explain the difference between value types and reference types in C#?
+2. Can I explain what nullable types are and when to use them?
+
+## Classes and Object-Oriented Programming
+
+1. What is the purpose of a class in object-oriented programming?
+2. Can I explain the difference between a class and an object (instance)?
+3. Can I explain what access modifiers (public, private, protected) are and when to use each?
+4. What are constructors and why are they important?
+
+## Methods
+
+1. Am I able to define and call methods in C#?
+2. Do I understand the concepts of method parameters, return types, and method overloading?
+3. Can I explain the difference between pass-by-value and pass-by-reference?
+
+### Exception Handling
+
+1. Can I explain the purpose of try/catch/finally blocks in C#?
+2. Do I understand when and how to throw exceptions?
+
+### SQL and Databases
+
+1. Can I explain what SQL is and why it is used in software development?
+2. Am I able to write basic SQL queries to select, insert, update, and delete records?
+3. Can I construct SQL queries to join tables and retrieve related data?
+4. Do I understand the concept of primary and foreign keys in relational databases?
+
 ## Collaboration
 
 - What high-value service(s) are you providing to your team and your customers when reviewing a teammate's code?

@@ -23,23 +23,17 @@ You need to complete all projects in two weeks. You want to be working on the fi
 | 11 | | | | [Modify Docks][43] | |
 | 12 | | | | [Modify Ships and Haulers][44] | |
 
-## 🤔 Learning Reflections
-
-Once you have completed the project, your job is to do a self-assessment. This is truly a self-assessment, as you will need to reflect on what you learned so far.
-
-| #   |  | Description |
-| --- | ------------------ | --- |
-| 1   | [Vocabulary Interview][30] | In this interview, we will be discussing your understanding and vocabulary on the technical concepts covered in this book to ensure you are prepared for the group project. |
-
 ## 🔐 Group Project
 
-Once everyone has had their reflections interview with a coach, we will start on a major group project that will span multiple Sprints.
+At the end of your two weeks of preparation, you will start on a major group project that will span multiple Sprints. You will be coached on the official scrum ceremonies.
 
 | # | Project&nbsp;Name | Description |
 |--|--|--|
 |1| [Rare Publishing Platform][31] | Your first, large full-stack group project. You will be building an API service with Python, and using SQL to manage the permanent state in your database. |
 
 ## 🤔 Final Reflections
+
+After the group project is complete, you will be interviewed by your coach on the questions and concepts covered so far.
 
 | #   |  | Description |
 | --- | ------------------ | --- |
