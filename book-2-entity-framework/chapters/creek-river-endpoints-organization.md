@@ -67,19 +67,24 @@ public static class ReservationEndpoints
 
 ## Updating Program.cs
 
-With our endpoint classes in place, we can now update `Program.cs` to use them. The updated file should look like this:
-
-First add this directive to the top of `Program.cs` to use the namespace where all of your endpoint classes are.
-
-```cs
-using CreekRiver.Endpoints;
-```
-
-Then at the end — before you tell your API to run — you will invoke the extension mathods to activate your endpoints. In the following chapters, you will define the specific enpoints one at a time.
+With our endpoint classes in place, we can now update `Program.cs` to use them. Your complete `Program.cs` file should look like this:
 
 ```csharp
-// ... rest of code ...
+using Microsoft.EntityFrameworkCore;
+using CreekRiver.Endpoints;
 
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+// Add the DbContext to the container
+builder.Services.AddDbContext<CreekRiverDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+app.UseHttpsRedirection();
 
 // Map API endpoints by resource
 app.MapCampsiteEndpoints();
@@ -87,6 +92,16 @@ app.MapReservationEndpoints();
 
 app.Run();
 ```
+
+Key points about this setup:
+
+1. **Using Directives**: We include `CreekRiver.Endpoints` to access our endpoint extension methods.
+
+2. **Extension Method Calls**: Before `app.Run()`, we call our extension methods to register all endpoints for each resource.
+
+3. **Clean Organization**: The `Program.cs` file remains clean and focused on configuration, while the actual endpoint definitions are organized in separate files by resource.
+
+In the following chapters, you will define the specific endpoints one at a time within each endpoint class.
 
 ## Benefits of This Approach
 

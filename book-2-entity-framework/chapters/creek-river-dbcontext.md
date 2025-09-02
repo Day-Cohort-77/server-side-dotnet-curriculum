@@ -102,14 +102,112 @@ Let's take a moment to understand some important OOP concepts used in our `DbCon
 
 4. **Method Overriding**: The `override` keyword is used to modify a method that is inherited from a base class. The `OnModelCreating` method is marked as `virtual` in the base class, which allows it to be overridden.
 
+## Configuring the DbContext in Program.cs
+
+Now that we've created our `DbContext` class, we need to configure our web API to use it. This involves registering the `DbContext` with the dependency injection container and providing a connection string.
+
+Open your `Program.cs` file and add the following configuration:
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+// Add the DbContext to the container
+builder.Services.AddDbContext<CreekRiverDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+app.UseHttpsRedirection();
+
+app.Run();
+```
+
+Let's break down what we added:
+
+1. **Using Statement**: We added `using Microsoft.EntityFrameworkCore;` to access Entity Framework Core services.
+
+2. **DbContext Registration**: The `AddDbContext<CreekRiverDbContext>()` method registers our `DbContext` with the dependency injection container. This makes it available to be injected into our endpoint handlers.
+
+3. **Database Provider**: We use `UseNpgsql()` to specify that we're using PostgreSQL as our database provider. This method comes from the `Npgsql.EntityFrameworkCore.PostgreSQL` package.
+
+4. **Connection String**: The `GetConnectionString("DefaultConnection")` method retrieves the connection string from our configuration using User Secrets.
+
+This is a clean, minimal setup that focuses on the essentials. In the next chapters, we'll add our API endpoints using the Minimal API approach, which allows us to define endpoints directly without the need for controller classes.
+
+### Testing Your API
+
+Once your API is running, you can test your endpoints using **Yaak**, a powerful HTTP client tool. Yaak allows you to:
+- Send HTTP requests to your API endpoints
+- View responses in a clean, organized interface
+- Save and organize your API requests for future use
+- Test different HTTP methods (GET, POST, PUT, DELETE)
+
+This approach gives you full control over testing your API without the overhead of additional documentation tools.
+
+### Setting Up the Connection String with User Secrets
+
+For security reasons, we should never store sensitive information like database passwords directly in our code or configuration files that might be committed to version control. Instead, we'll use .NET's User Secrets feature to store our connection string securely.
+
+#### Step 1: Initialize User Secrets
+
+First, navigate to your project directory in the terminal and run the following command to initialize user secrets for your project:
+
+```bash
+dotnet user-secrets init
+```
+
+This command adds a `UserSecretsId` to your `.csproj` file and creates a secure location on your machine to store secrets.
+
+#### Step 2: Set the Connection String
+
+Now, add your connection string as a user secret by running this command in your terminal:
+
+```bash
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Username=postgres;Password=your_password_here;Database=CreekRiver"
+```
+
+**Important**: Replace the connection string values with your actual PostgreSQL server details:
+- `Host`: Your PostgreSQL server address (usually `localhost` for local development)
+- `Port`: PostgreSQL port (default is `5432`)
+- `Username`: Your PostgreSQL username
+- `Password`: Your actual PostgreSQL password
+- `Database`: The name of your database (we're using `CreekRiver`)
+
+#### Step 3: Verify Your User Secret
+
+You can verify that your connection string was stored correctly by running:
+
+```bash
+dotnet user-secrets list
+```
+
+This will display all the user secrets for your project (but will mask sensitive values in some environments).
+
+#### Why Use User Secrets?
+
+User secrets provide several advantages:
+
+1. **Security**: Sensitive data is stored outside your project directory and won't be accidentally committed to version control
+2. **Environment-Specific**: Each developer can have their own database credentials without affecting others
+3. **Easy Management**: Simple commands to add, update, and remove secrets
+4. **Automatic Integration**: .NET automatically loads user secrets in development environments
+
+**Note**: User secrets are only available in the Development environment. For production deployments, you'll use environment variables or other secure configuration methods provided by your hosting platform.
+
 ## Conclusion
 
 In this chapter, we've created the `DbContext` class for our Creek River Campground API. We've learned how to:
 
 1. Create a `DbContext` class
 2. Define `DbSet` properties for our entity types
-3. Create instructios to seed the database with initial data
-4. Configure our web API to use EF Core
+3. Create instructions to seed the database with initial data
+4. Configure our web API to use EF Core by registering the `DbContext` in `Program.cs`
+5. Set up the database connection string
 
 In the next chapter, we'll create our first migration to create the database tables and seed the database with initial data.
 
