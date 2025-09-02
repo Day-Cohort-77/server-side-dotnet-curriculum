@@ -121,9 +121,6 @@ builder.Services.AddDbContext<CreekRiverDbContext>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-app.UseHttpsRedirection();
-
 app.Run();
 ```
 
