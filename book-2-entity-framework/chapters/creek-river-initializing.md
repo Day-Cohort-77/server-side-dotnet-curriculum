@@ -36,6 +36,16 @@ In this chapter, we'll set up a new API project that uses Entity Framework Core 
 
 6. Refer to the [debugging chapter](../../book-1-csharp-sql/chapters/debugging-csharp.md) to create your `.vscode/launch.json` and `.vscode/tasks.json`. Replace all instances of **HarborMaster** with **CreekRiver**.
 
+## Disable HTTPS Redirection
+
+By default, a minimal .NET Core API forces all incoming HTTP requests to switch to the HTTPS protocol, which you don't need for these project. It's easy to disable.
+
+1. Open your project and open the `Program.cs` file.
+2. Find the `app.UseHttpsRedirection();` line of code.
+3. Delete it
+
+Done.
+
 ## Project Structure
 
 Let's take a moment to understand what we've created:
