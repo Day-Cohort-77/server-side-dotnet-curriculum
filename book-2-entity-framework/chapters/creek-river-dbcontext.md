@@ -117,7 +117,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add the DbContext to the container
 builder.Services.AddDbContext<CreekRiverDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("CreekRiverDbConnectionString")));
 
 var app = builder.Build();
 
@@ -132,7 +132,7 @@ Let's break down what we added:
 
 3. **Database Provider**: We use `UseNpgsql()` to specify that we're using PostgreSQL as our database provider. This method comes from the `Npgsql.EntityFrameworkCore.PostgreSQL` package.
 
-4. **Connection String**: The `GetConnectionString("DefaultConnection")` method retrieves the connection string from our configuration using User Secrets.
+4. **Connection String**: The `GetConnectionString("CreekRiverDbConnectionString")` method retrieves the connection string from our configuration using User Secrets.
 
 This is a clean, minimal setup that focuses on the essentials. In the next chapters, we'll add our API endpoints using the Minimal API approach, which allows us to define endpoints directly without the need for controller classes.
 
@@ -145,56 +145,6 @@ Once your API is running, you can test your endpoints using **Yaak**, a powerful
 - Test different HTTP methods (GET, POST, PUT, DELETE)
 
 This approach gives you full control over testing your API without the overhead of additional documentation tools.
-
-### Setting Up the Connection String with User Secrets
-
-For security reasons, we should never store sensitive information like database passwords directly in our code or configuration files that might be committed to version control. Instead, we'll use .NET's User Secrets feature to store our connection string securely.
-
-#### Step 1: Initialize User Secrets
-
-First, navigate to your project directory in the terminal and run the following command to initialize user secrets for your project:
-
-```bash
-dotnet user-secrets init
-```
-
-This command adds a `UserSecretsId` to your `.csproj` file and creates a secure location on your machine to store secrets.
-
-#### Step 2: Set the Connection String
-
-Now, add your connection string as a user secret by running this command in your terminal:
-
-```bash
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Username=postgres;Password=your_password_here;Database=CreekRiver"
-```
-
-**Important**: Replace the connection string values with your actual PostgreSQL server details:
-- `Host`: Your PostgreSQL server address (usually `localhost` for local development)
-- `Port`: PostgreSQL port (default is `5432`)
-- `Username`: Your PostgreSQL username
-- `Password`: Your actual PostgreSQL password
-- `Database`: The name of your database (we're using `CreekRiver`)
-
-#### Step 3: Verify Your User Secret
-
-You can verify that your connection string was stored correctly by running:
-
-```bash
-dotnet user-secrets list
-```
-
-This will display all the user secrets for your project (but will mask sensitive values in some environments).
-
-#### Why Use User Secrets?
-
-User secrets provide several advantages:
-
-1. **Security**: Sensitive data is stored outside your project directory and won't be accidentally committed to version control
-2. **Environment-Specific**: Each developer can have their own database credentials without affecting others
-3. **Easy Management**: Simple commands to add, update, and remove secrets
-4. **Automatic Integration**: .NET automatically loads user secrets in development environments
-
-**Note**: User secrets are only available in the Development environment. For production deployments, you'll use environment variables or other secure configuration methods provided by your hosting platform.
 
 ## Conclusion
 
