@@ -4,3 +4,5 @@
 memory-bank/
 .DS_Store
 context_portal/
+CRUSH.md
+.crush.json

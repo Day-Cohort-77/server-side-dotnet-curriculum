@@ -79,12 +79,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add the DbContext to the container
 builder.Services.AddDbContext<CreekRiverDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("CreekRiverDbConnectionString")));
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-app.UseHttpsRedirection();
 
 // Map API endpoints by resource
 app.MapCampsiteEndpoints();

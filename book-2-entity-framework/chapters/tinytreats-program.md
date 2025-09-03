@@ -98,9 +98,6 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-// Ensure that HTTPS protocol is used
-app.UseHttpsRedirection();
-
 // Use CORS middleware
 app.UseCors("AllowLocalhost");
 
@@ -233,9 +230,6 @@ if (app.Environment.IsDevelopment())
     // Development-specific middleware
     app.UseDeveloperExceptionPage();
 }
-
-// Ensure that HTTPS protocol is used
-app.UseHttpsRedirection();
 
 // Use CORS middleware
 app.UseCors("AllowLocalhost");

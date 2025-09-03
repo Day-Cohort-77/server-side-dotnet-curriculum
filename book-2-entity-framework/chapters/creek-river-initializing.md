@@ -36,6 +36,11 @@ In this chapter, we'll set up a new API project that uses Entity Framework Core 
 
 6. Refer to the [debugging chapter](../../book-1-csharp-sql/chapters/debugging-csharp.md) to create your `.vscode/launch.json` and `.vscode/tasks.json`. Replace all instances of **HarborMaster** with **CreekRiver**.
 
+7. Create a `Models` directory in your project root to organize your data models:
+   ```bash
+   mkdir Models
+   ```
+
 ## Disable HTTPS Redirection
 
 By default, a minimal .NET Core API forces all incoming HTTP requests to switch to the HTTPS protocol, which you don't need for these project. It's easy to disable.
@@ -65,12 +70,6 @@ In the next chapter, we'll create our data models and set up the database struct
 2. Provide EF Core with the information it needs to create the corresponding database tables
 
 Up Next: [Setting up the database](./creek-river-models.md)
-
-## 🔍 Additional Materials
-
-- [Entity Framework Core Documentation](https://docs.microsoft.com/en-us/ef/core/)
-- [ASP.NET Core Minimal APIs](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis)
-- [Safe storage of app secrets in development in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets)
 
 ## 🔍 Additional Materials
 
