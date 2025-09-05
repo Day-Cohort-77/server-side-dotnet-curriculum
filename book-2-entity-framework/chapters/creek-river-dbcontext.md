@@ -52,36 +52,51 @@ Add the following method to your `CreekRiverDbContext` class:
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
+    // Configure DateTime properties to use timestamp without time zone
+    modelBuilder.Entity<Reservation>()
+        .Property(r => r.CheckinDate)
+        .HasColumnType("timestamp without time zone");
+
+    modelBuilder.Entity<Reservation>()
+        .Property(r => r.CheckoutDate)
+        .HasColumnType("timestamp without time zone");
+
     // Seed data with campsite types
     modelBuilder.Entity<CampsiteType>().HasData(new CampsiteType[]
     {
-        new CampsiteType {Id = 1, CampsiteTypeName = "Tent", FeePerNight = 15.99M, MaxReservationDays = 7},
-        new CampsiteType {Id = 2, CampsiteTypeName = "RV", FeePerNight = 26.50M, MaxReservationDays = 14},
-        new CampsiteType {Id = 3, CampsiteTypeName = "Primitive", FeePerNight = 10.00M, MaxReservationDays = 3},
-        new CampsiteType {Id = 4, CampsiteTypeName = "Hammock", FeePerNight = 12M, MaxReservationDays = 7}
+    new CampsiteType {Id = 1, CampsiteTypeName = "Tent", FeePerNight = 15.99M, MaxReservationDays = 7},
+    new CampsiteType {Id = 2, CampsiteTypeName = "RV", FeePerNight = 26.50M, MaxReservationDays = 14},
+    new CampsiteType {Id = 3, CampsiteTypeName = "Primitive", FeePerNight = 10.00M, MaxReservationDays = 3},
+    new CampsiteType {Id = 4, CampsiteTypeName = "Hammock", FeePerNight = 12M, MaxReservationDays = 7}
     });
 
     // Seed data with campsites
     modelBuilder.Entity<Campsite>().HasData(new Campsite[]
     {
-        new Campsite {Id = 1, CampsiteTypeId = 1, Nickname = "Barred Owl", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
-        new Campsite {Id = 2, CampsiteTypeId = 2, Nickname = "Red Fox", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
-        new Campsite {Id = 3, CampsiteTypeId = 3, Nickname = "Wild Turkey", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
-        new Campsite {Id = 4, CampsiteTypeId = 4, Nickname = "Raccoon", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
-        new Campsite {Id = 5, CampsiteTypeId = 1, Nickname = "Gray Squirrel", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
-        new Campsite {Id = 6, CampsiteTypeId = 2, Nickname = "White-tailed Deer", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"}
+    new Campsite {Id = 1, CampsiteTypeId = 1, Nickname = "Barred Owl", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
+    new Campsite {Id = 2, CampsiteTypeId = 2, Nickname = "Red Fox", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
+    new Campsite {Id = 3, CampsiteTypeId = 3, Nickname = "Wild Turkey", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
+    new Campsite {Id = 4, CampsiteTypeId = 4, Nickname = "Raccoon", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
+    new Campsite {Id = 5, CampsiteTypeId = 1, Nickname = "Gray Squirrel", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"},
+    new Campsite {Id = 6, CampsiteTypeId = 2, Nickname = "White-tailed Deer", ImageUrl="https://tnstateparks.com/assets/images/content-images/campgrounds/249/colsp-area2-site73.jpg"}
     });
 
     // Seed data with user profiles
     modelBuilder.Entity<UserProfile>().HasData(new UserProfile[]
     {
-        new UserProfile {Id = 1, FirstName = "Admina", LastName = "Strator", Email = "admina@creekriver.campground"}
+    new UserProfile {Id = 1, FirstName = "Admina", LastName = "Strator", Email = "admina@creekriver.campground"}
     });
 
     // Seed data with reservations
     modelBuilder.Entity<Reservation>().HasData(new Reservation[]
     {
-        new Reservation {Id = 1, CampsiteId = 1, UserProfileId = 1, CheckinDate = DateTime.Parse("2023-06-10"), CheckoutDate = DateTime.Parse("2023-06-13")}
+        new Reservation {
+            Id = 1,
+            CampsiteId = 1,
+            UserProfileId = 1,
+            CheckinDate = new DateTime(2023, 6, 10),
+            CheckoutDate = new DateTime(2023, 6, 13)
+        }
     });
 }
 ```
@@ -121,6 +136,8 @@ builder.Services.AddDbContext<CreekRiverDbContext>(options =>
 
 var app = builder.Build();
 
+app.MapGet("/", () => "Hello World!");
+
 app.Run();
 ```
 
@@ -139,12 +156,22 @@ This is a clean, minimal setup that focuses on the essentials. In the next chapt
 ### Testing Your API
 
 Once your API is running, you can test your endpoints using **Yaak**, a powerful HTTP client tool. Yaak allows you to:
+
 - Send HTTP requests to your API endpoints
 - View responses in a clean, organized interface
 - Save and organize your API requests for future use
 - Test different HTTP methods (GET, POST, PUT, DELETE)
 
 This approach gives you full control over testing your API without the overhead of additional documentation tools.
+
+For now, only a GET request the base domain is available.
+
+1. Start your API in debug mode
+2. Check the terminal at the bottom on VS Code and note what port the API is active on. You should see a message like the following:
+   ```sh
+   Microsoft.Hosting.Lifetime: Information: Now listening on: http://localhost:5156
+   ```
+3. Open Yaak and make a GET request to that URL and you should get a response of "Hello World!"
 
 ## Conclusion
 

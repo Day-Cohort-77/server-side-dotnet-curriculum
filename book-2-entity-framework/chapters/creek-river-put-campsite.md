@@ -12,7 +12,7 @@ When a client sends a PUT request to our API, it includes a JSON payload in the 
 
 Let's create an endpoint to update a campsite in our database:
 
-1. Open the `Program.cs` file.
+1. Open the `CampsiteEndpoints.cs` file.
 
 2. Add the following endpoint after the existing endpoints:
 
@@ -65,7 +65,6 @@ Now that we've created our endpoint, let's test it:
 
 ```json
 {
-  "id": 1,
   "nickname": "Updated Nickname",
   "imageUrl": "https://example.com/updated-image.jpg",
   "campsiteTypeId": 2
@@ -151,49 +150,6 @@ app.MapPut("/campsites/{id}", (CreekRiverDbContext db, int id, Campsite campsite
 ```
 
 This code catches `DbUpdateException`, which is thrown when there's an error saving changes to the database, such as a constraint violation.
-
-## Using DTOs for Input and Output
-
-In a real-world application, you might want to use DTOs (Data Transfer Objects) for input and output to decouple your API contract from your database schema. Here's how you might modify the endpoint to use DTOs:
-
-```csharp
-app.MapPut("/campsites/{id}", (CreekRiverDbContext db, int id, CampsiteUpdateDTO campsiteDTO) =>
-{
-    // Validate DTO...
-
-    try
-    {
-        Campsite campsiteToUpdate = db.Campsites.SingleOrDefault(c => c.Id == id);
-        if (campsiteToUpdate == null)
-        {
-            return Results.NotFound();
-        }
-
-        // Map DTO to entity
-        campsiteToUpdate.Nickname = campsiteDTO.Nickname;
-        campsiteToUpdate.CampsiteTypeId = campsiteDTO.CampsiteTypeId;
-        campsiteToUpdate.ImageUrl = campsiteDTO.ImageUrl;
-
-        db.SaveChanges();
-        return Results.NoContent();
-    }
-    catch (DbUpdateException ex)
-    {
-        return Results.BadRequest($"Error updating campsite: {ex.Message}");
-    }
-});
-```
-
-You would need to define a `CampsiteUpdateDTO` class that represents the data needed to update a campsite:
-
-```csharp
-public class CampsiteUpdateDTO
-{
-    public string Nickname { get; set; }
-    public string ImageUrl { get; set; }
-    public int CampsiteTypeId { get; set; }
-}
-```
 
 ## Checking for Existing Reservations
 

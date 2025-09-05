@@ -12,7 +12,7 @@ When a client sends a DELETE request to our API, it specifies the ID of the reso
 
 Let's create an endpoint to delete a campsite from our database:
 
-1. Open the `Program.cs` file.
+1. Open the `CampsiteEndpoints.cs` file.
 
 2. Add the following endpoint after the existing endpoints:
 

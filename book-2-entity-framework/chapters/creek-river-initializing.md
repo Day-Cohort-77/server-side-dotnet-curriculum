@@ -31,14 +31,14 @@ In this chapter, we'll set up a new API project that uses Entity Framework Core 
 
 5. Add the connection string to the secrets for this app (make sure you change `<your_postgresql_password>` to your db password!):
    ```bash
-   dotnet user-secrets set 'CreekRiverDbConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=<your_postgresql_password>;Database=CreekRiver'
+   dotnet user-secrets set 'ConnectionStrings:CreekRiverDbConnectionString' 'Host=localhost;Port=5432;Username=postgres;Password=<your_postgresql_password>;Database=CreekRiver'
    ```
 
 6. Refer to the [debugging chapter](../../book-1-csharp-sql/chapters/debugging-csharp.md) to create your `.vscode/launch.json` and `.vscode/tasks.json`. Replace all instances of **HarborMaster** with **CreekRiver**.
 
 7. Create a `Models` directory in your project root to organize your data models:
    ```bash
-   mkdir Models
+   mkdir Models Services Endpoints
    ```
 
 ## Disable HTTPS Redirection

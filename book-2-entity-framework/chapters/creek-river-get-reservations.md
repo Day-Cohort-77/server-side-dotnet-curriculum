@@ -24,7 +24,7 @@ The `ThenInclude` method is used to specify additional related entities to inclu
 
 Let's create an endpoint to retrieve all reservations with their related data:
 
-1. Open the `Program.cs` file.
+1. Open the `ReservationEndpoints.cs` file.
 
 2. Add the following endpoint after the existing endpoints:
 
@@ -58,9 +58,38 @@ Let's break down this code:
 
 - `.ToList()`: This executes the query and returns all reservations as a list, including their related data.
 
+## Requesting Reservations with Yaak
+
+Perform a GET request to the `/reservations` endpoint. You probably don't see what you expect. In all likelihood, you'll get an exception in the response body that starts with **System.Text.Json.JsonException: A possible object cycle was detected.**
+
+This is because in the LINQ statement, you join the **Campsites** table. The problem is that the **Campsite** model has a navigation property for reservations.
+
+```cs
+public List<Reservation> Reservations { get; set; }
+```
+
+The the query that LINQ is building for you joins the campsites table, which requires that the reservation table be joined. The **Reservation** model also has a navigation property to the campsite.
+
+```cs
+public Campsite Campsite { get; set; }
+```
+
+This means that when you join the reservation table, the campsite table must be joined, which joins the reservation table, which joins the campsite table, which joins the reservations table... well, I think you get the point now.
+
+To avoid this infinite joining, you can add a new configuration to the `Program.cs` module—right before the `var app = builder.Build();` statement.
+
+```cs
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+```
+
+Then restart your API and get reservations with Yaak again. Then you should see the reservations that were seeded for campsite 1.
+
 ## Understanding the Generated SQL Query
 
-The LINQ query in our endpoint is translated into a SQL query by Entity Framework Core. The generated SQL query might look something like this:
+With that configuration added, the LINQ query in our endpoint is translated into a SQL query by Entity Framework Core. The generated SQL query might look something like this:
 
 ```sql
 SELECT r.Id, r.CampsiteId, r.UserProfileId, r.CheckinDate, r.CheckoutDate,
@@ -75,16 +104,6 @@ ORDER BY r.CheckinDate
 ```
 
 This SQL query joins the `Reservations` table with the `UserProfiles`, `Campsites`, and `CampsiteTypes` tables, and selects all the columns from these tables.
-
-## Testing the Endpoint
-
-Now that we've created our endpoint, let's test it:
-
-1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
-
-2. Use a web browser or a tool like Yaak to send a GET request to `https://localhost:<port>/reservations`.
-
-3. You should see a JSON response with the reservations and their related data.
 
 ## Understanding the Response
 
@@ -123,77 +142,6 @@ The response from our endpoint will be a JSON array of reservation objects, each
   // More reservations...
 ]
 ```
-
-## Handling Circular References
-
-You might notice that the JSON response contains empty arrays for the `reservations` property of the `userProfile` and `campsite` objects, and for the `campsites` property of the `campsiteType` object. This is because these are navigation properties that create circular references in the object graph.
-
-A circular reference occurs when objects reference each other in a way that creates a loop: a reservation includes a campsite, which includes reservations, which include campsites, and so on.
-
-Entity Framework Core can handle circular references in the entity model, but when serializing to JSON, we need to be careful to avoid infinite loops. There are several ways to handle this:
-
-1. **Configure JSON serialization to ignore circular references**: ASP.NET Core can be configured to ignore circular references during JSON serialization. This can be done by adding the following code to the `Program.cs` file:
-
-```csharp
-builder.Services.Configure<JsonOptions>(options =>
-{
-    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
-```
-
-This is the approach we're using in our project. With this configuration, the JSON serializer will detect circular references and represent them as empty arrays or null values, depending on the property type.
-
-2. **Use System.Text.Json's `[JsonIgnore]` attribute**: You can use the `[JsonIgnore]` attribute to exclude properties from JSON serialization:
-
-```csharp
-using System.Text.Json.Serialization;
-
-public class Campsite
-{
-    // Other properties...
-
-    [JsonIgnore]
-    public List<Reservation> Reservations { get; set; }
-}
-```
-
-## Adding Filtering and Pagination
-
-In a real-world application, you might want to add filtering and pagination to your endpoint to limit the number of results and improve performance. Here's how you might modify the endpoint to support filtering by date range and pagination:
-
-```csharp
-app.MapGet("/reservations", (CreekRiverDbContext db, DateTime? startDate, DateTime? endDate, int? page, int? pageSize) =>
-{
-    IQueryable<Reservation> query = db.Reservations
-        .Include(r => r.UserProfile)
-        .Include(r => r.Campsite)
-        .ThenInclude(c => c.CampsiteType);
-
-    // Filter by date range if provided
-    if (startDate.HasValue)
-    {
-        query = query.Where(r => r.CheckinDate >= startDate.Value);
-    }
-
-    if (endDate.HasValue)
-    {
-        query = query.Where(r => r.CheckoutDate <= endDate.Value);
-    }
-
-    // Order by check-in date
-    query = query.OrderBy(r => r.CheckinDate);
-
-    // Apply pagination if provided
-    if (page.HasValue && pageSize.HasValue)
-    {
-        query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
-    }
-
-    return query.ToList();
-});
-```
-
-This code adds optional parameters for filtering by date range and pagination, and modifies the query based on these parameters.
 
 ## Conclusion
 

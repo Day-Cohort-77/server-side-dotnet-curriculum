@@ -98,23 +98,18 @@ Now that we've created our migration, we need to apply it to the database:
 
 Let's verify that our database was created correctly:
 
-1. Open your SQLTools extension's list of connections.
-2. Connect to your PostgreSQL server.
-3. Navigate to the `CreekRiver` database.
-4. You should see the following tables:
+1. Open your SQLTools extension.
+2. Add a new connection to the `CreekRiver` database.
+3. You should see the following tables:
    - `CampsiteTypes`
    - `Campsites`
-   - `UserProfiles`
    - `Reservations`
+   - `UserProfiles`
    - `__EFMigrationsHistory` (this table is used by EF Core to track which migrations have been applied)
 
-5. You can also verify that the seed data was inserted by querying the tables:
-   ```sql
-   SELECT * FROM "CampsiteTypes";
-   SELECT * FROM "Campsites";
-   SELECT * FROM "UserProfiles";
-   SELECT * FROM "Reservations";
-   ```
+4. Open each table and verify that the seed data was created
+
+![animated image showing the usage of the sqltools extension to check the data in each table](./images/verify-creek-river-database.gif)
 
 ## Understanding the Migration Process
 
