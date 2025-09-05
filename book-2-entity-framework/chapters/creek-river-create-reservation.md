@@ -158,20 +158,21 @@ Now that we've created our endpoints, let's test them:
 
 1. Run the application with `dotnet run` or by pressing F5 in Visual Studio.
 
-2. Use a tool like Yaak to send a POST request to `https://localhost:<port>/reservations` with a JSON payload like:
-
-```json
-{
-  "campsiteId": 1,
-  "userProfileId": 1,
-  "checkinDate": "2023-07-15",
-  "checkoutDate": "2023-07-18"
-}
-```
-
+2. Use Yaak to send a POST request to `https://localhost:<port>/reservations` with a JSON payload like:
+   ```json
+   {
+     "campsiteId": 1,
+     "userProfileId": 1,
+     "checkinDate": "some future date (e.g. 2032-07-11)",
+     "checkoutDate": "some future date"
+   }
+   ```
 3. You should receive a 201 Created response with the newly created reservation in the response body if all validations pass, or a 400 Bad Request response with an error message if any validation fails.
-
-4. To test the cancellation endpoint, send a DELETE request to `https://localhost:<port>/reservations/1` (replace `1` with the ID of a reservation you want to cancel).
+4. Use Yaak to send a POST request with some bad data
+    - A campsite id that doesn't exist
+    - A user that doesn't exist
+    - A checkout date that is before the checkin date
+5. To test the cancellation endpoint, send a DELETE request to `https://localhost:<port>/reservations/1` (replace `1` with the ID of a reservation you want to cancel).
 
 ## Conclusion
 
