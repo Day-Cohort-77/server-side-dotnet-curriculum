@@ -41,16 +41,6 @@ In this chapter, we'll set up a new API project that uses Entity Framework Core 
    mkdir Models Services Endpoints
    ```
 
-## Disable HTTPS Redirection
-
-By default, a minimal .NET Core API forces all incoming HTTP requests to switch to the HTTPS protocol, which you don't need for these project. It's easy to disable.
-
-1. Open your project and open the `Program.cs` file.
-2. Find the `app.UseHttpsRedirection();` line of code.
-3. Delete it
-
-Done.
-
 ## Project Structure
 
 Let's take a moment to understand what we've created:
@@ -61,7 +51,28 @@ Let's take a moment to understand what we've created:
    - `Npgsql.EntityFrameworkCore.PostgreSQL`: This package allows EF Core to work with PostgreSQL databases.
    - `Microsoft.EntityFrameworkCore.Design`: This package provides design-time support for EF Core migrations.
 
-3. **User Secrets**: We've initialized user secrets for our project and stored our database connection string securely. This is a best practice for managing sensitive information like connection strings.
+## User Secrets
+
+
+User Secrets is a feature in ASP.NET Core that allows developers to store sensitive information, such as database connection strings, API keys, and other configuration data, outside of the source code. This is particularly useful during development to avoid hardcoding sensitive information in the codebase, which could be accidentally committed to version control systems.
+
+**Purpose**:
+- **Security**: By storing secrets separately, you reduce the risk of exposing sensitive information in your source code.
+- **Environment-Specific Configuration**: User Secrets allow you to manage different configurations for different environments (development, staging, production) without changing the code.
+- **Ease of Use**: It provides a simple way to manage secrets during development without requiring complex configuration management tools.
+
+**Usage**:
+1. **Initialization**: You initialize User Secrets in your project using the command `dotnet user-secrets init`. This creates a unique identifier for your project in a `UserSecretsId` property in your `.csproj` file.
+2. **Setting Secrets**: You can set secrets using the command `dotnet user-secrets set <key> <value>`. For example, setting a connection string as shown in the previous steps.
+3. **Accessing Secrets**: In your application, you can access these secrets through the configuration system. For example, using `Configuration.GetConnectionString("CreekRiverDbConnectionString")` to retrieve the connection string.
+
+**Storage**:
+- User Secrets are stored in a JSON file located in a directory specific to your user profile on your machine. The path typically looks like this:
+  - Windows: `%APPDATA%\Microsoft\UserSecrets\<user_secrets_id>\secrets.json`
+  - macOS/Linux: `~/.microsoft/usersecrets/<user_secrets_id>/secrets.json`
+- This file is not checked into source control, ensuring that sensitive information remains private.
+
+By using User Secrets, developers can maintain a secure and flexible configuration management strategy during the development phase of their applications.
 
 ## What's Next?
 
