@@ -29,6 +29,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TinyTreatsDbContext>(options =>
     options.UseNpgsql(builder.Configuration["TinyTreatsDbConnectionString"]));
 
+// Configure automapper for dependency injection
+builder.Services.AddAutoMapper(typeof(Program));
+
 // Configure Identity
 builder.Services.AddIdentityCore<IdentityUser>(options =>
 {
