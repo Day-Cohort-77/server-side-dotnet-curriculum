@@ -283,8 +283,11 @@ You can test these endpoints using a tool like Yaak:
    Content-Type: application/json
 
    {
-     "price": 2.75,
-     "isAvailable": false
+     "name": "Red Velvet Cupcake",
+     "description": "Delicious purple velvet cupcake with cream cheese frosting",
+     "price": 8.99,
+     "isAvailable": false,
+     "imageUrl": "/images/red-velvet-cupcake.jpg"
    }
    ```
 

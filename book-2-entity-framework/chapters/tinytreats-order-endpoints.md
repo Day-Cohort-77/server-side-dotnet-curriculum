@@ -170,7 +170,7 @@ public static class OrderEndpoints
             // Create the order using AutoMapper
             var order = new Order
             {
-                OrderDate = DateTime.Now,
+                OrderDate = DateTime.UtcNow,
                 Status = "Pending",
                 UserProfileId = userProfile.Id,
                 OrderItems = mapper.Map<List<OrderItem>>(orderDto.Items)
